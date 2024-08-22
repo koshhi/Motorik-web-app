@@ -1,0 +1,16 @@
+### Test de Sign Up
+POST http://localhost:5002/api/users
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password"
+}
+
+### Obtener todos los usuarios
+GET http://localhost:5002/api/users
+Content-Type: application/json
+
+### Obtener info del usuario por ID
+GET http://localhost:5002/api/users/66b604ef792dbb44af90e138
+Content-Type: application/json

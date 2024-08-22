@@ -1,0 +1,29 @@
+### Crear un nuevo evento
+POST http://localhost:5002/api/events
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YzM4YTU2NDFjNDQ4NjMxYzI3YzRhZSIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MjQxNzM3MTMsImV4cCI6MTcyNDc3ODUxM30.0aKtWJt5ouurqiTaNRZxx4ANFg3xDKE6u0cEMUNKMOE
+
+
+
+{
+  "title": "Salida de enduro",
+  "startDate": "2024-09-01T10:00:00Z",
+  "endDate": "2024-09-01T14:00:00Z",
+  "location": "C. Sta. Ana, 14, 41807 Espartinas, Sevilla, España",
+  "locationCoordinates": {
+    "type": "Point",
+    "coordinates": [-6.128055, 37.380323]
+  },
+  "image": "https://i0.wp.com/pxsports.com/wp-content/uploads/2018/07/enduro.jpg?fit=1075%2C590",
+  "description": "Una quedada para los amantes de las motos.",
+  "eventType": "Quedadas"
+}
+
+### Obtener todos los eventos
+GET http://localhost:5002/api/events
+Content-Type: application/json
+
+### Obtener info del evento por ID
+GET http://localhost:5002/api/events/66c0c127e3ff05f010b2271a
+Content-Type: application/json
+
