@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import styles from './Navbar.module.scss';
+
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -25,18 +27,18 @@ const Navbar = () => {
 
   return (
     <header>
-      <nav className='navbar'>
+      <nav className={styles.container}>
         <Link to="/" className="logo" >
           <img src='/motorik-logo.svg' alt="Motorik Logo" />
         </Link>
         {isAuthenticated ? (
-          <div className='navbar_links'>
+          <div className={styles.links}>
             <button className='button' onClick={handleCreateEvent}>Create event</button>
             <button className='button' onClick={handleLogout}>Logout</button>
           </div>
         ) : (
           <>
-            <div className='navbar_links'>
+            <div className={styles.links}>
               <button className='button' onClick={handleCreateEvent}>Create event</button>
               <Link to="/login"><button className='button'>Login</button></Link>
               <Link to="/signup"><button className='button'>Signup</button></Link>

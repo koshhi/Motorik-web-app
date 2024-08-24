@@ -3,16 +3,14 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
-import Navbar from './components/Navbar';
 import EventDetail from './pages/EventDetail';
-import CreateEvent from './components/CreateEvent';
+import CreateEvent from './pages/CreateEvent/CreateEvent'
 
 
 
 function App() {
   return (
     <Router>
-      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

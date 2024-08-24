@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose')
+const Event = require('../models/Event')
 const uniqueValidator = require('mongoose-unique-validator')
 
 const userSchema = new Schema({
@@ -10,7 +11,10 @@ const userSchema = new Schema({
   passwordHash: String,
   events: [{
     type: Schema.Types.ObjectId,
-    ref: 'Event'
+    ref: 'Event',
+    default: function () {
+      return Event.find({ owner: this })
+    }
   }]
 })
 

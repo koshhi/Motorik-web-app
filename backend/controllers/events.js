@@ -6,39 +6,80 @@ const { format, startOfToday, endOfToday, startOfTomorrow, endOfTomorrow, endOfW
 const eventsRouter = express.Router()
 
 // Crear un evento (autenticado)
+// eventsRouter.post('/', auth, async (req, res) => {
+//   const { title, startDate, endDate, location, locationCoordinates, image, description, eventType } = req.body
+
+//   if (!locationCoordinates || !locationCoordinates.coordinates || locationCoordinates.coordinates.length !== 2) {
+//     return res.status(400).json({ success: false, message: 'Invalid location coordinates.' })
+//   }
+
+//   try {
+//     const newEvent = new Event({
+//       title,
+//       startDate,
+//       endDate,
+//       location,
+//       locationCoordinates, // Asegúrate de que las coordenadas están en el formato correcto
+//       image,
+//       description,
+//       eventType,
+//       attendees: [req.user.username],
+//       owner: req.user._id
+//     })
+
+//     const savedEvent = await newEvent.save()
+
+//     // Asociar el evento con el usuario
+//     const user = await User.findById(req.user.id)
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: 'User not found' })
+//     }
+
+//     // Añadir el ID del evento al usuario
+//     user.events.push(savedEvent._id)
+
+//     // Guardar los cambios en el usuario
+//     await user.save()
+
+//     res.status(201).json({ success: true, event: savedEvent })
+//   } catch (error) {
+//     console.error(error)
+//     res.status(500).json({ success: false, message: 'Internal Server Error' })
+//   }
+// })
+
+// Crear un evento (autenticado)
 eventsRouter.post('/', auth, async (req, res) => {
-  const { title, startDate, endDate, location, locationCoordinates, image, description, eventType } = req.body
+  const { title, startDate, endDate, location, locationCoordinates, image, description, eventType, shortLocation } = req.body
 
   if (!locationCoordinates || !locationCoordinates.coordinates || locationCoordinates.coordinates.length !== 2) {
     return res.status(400).json({ success: false, message: 'Invalid location coordinates.' })
   }
 
   try {
+    // Crear un nuevo evento
     const newEvent = new Event({
       title,
       startDate,
       endDate,
       location,
+      shortLocation,
       locationCoordinates, // Asegúrate de que las coordenadas están en el formato correcto
       image,
       description,
       eventType,
-      attendees: [req.user.username]
+      attendees: [req.user.username], // Añadimos al creador como primer asistente
+      owner: req.user._id // Asignamos el ID del usuario autenticado como el propietario del evento
     })
 
+    console.log({ newEvent })
+
+    // Guardar el evento en la base de datos
     const savedEvent = await newEvent.save()
 
-    // Asociar el evento con el usuario
-    const user = await User.findById(req.user.id)
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' })
-    }
-
-    // Añadir el ID del evento al usuario
-    user.events.push(savedEvent._id)
-
-    // Guardar los cambios en el usuario
-    await user.save()
+    // Asociar el evento con el usuario autenticado
+    req.user.events.push(savedEvent._id)
+    await req.user.save() // Guardar el usuario con el evento asociado
 
     res.status(201).json({ success: true, event: savedEvent })
   } catch (error) {
@@ -125,16 +166,17 @@ eventsRouter.get('/:id', async (req, res) => {
     }
 
     // Formatear las fechas antes de devolver la respuesta
-    const formattedStartDate = format(new Date(event.startDate), 'MMMM do, yyyy H:mm a')
-    const formattedEndDate = format(new Date(event.endDate), 'MMMM do, yyyy H:mm a')
-
+    // const formattedStartDate = format(new Date(event.startDate), 'MMMM do, yyyy H:mm a')
+    // const formattedEndDate = format(new Date(event.endDate), 'MMMM do, yyyy H:mm a')
+    console.log({ event })
     res.status(200).json({
       success: true,
-      event: {
-        ...event._doc, // Incluimos todos los campos del evento
-        startDate: formattedStartDate,
-        endDate: formattedEndDate
-      }
+      // event: {
+      //   ...event._doc, // Incluimos todos los campos del evento
+      //   startDate: formattedStartDate,
+      //   endDate: formattedEndDate
+      // }
+      event: event
     })
   } catch (error) {
     console.error(error)

@@ -1,12 +1,10 @@
 ### Crear un nuevo evento
 POST http://localhost:5002/api/events
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YzM4YTU2NDFjNDQ4NjMxYzI3YzRhZSIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MjQxNzM3MTMsImV4cCI6MTcyNDc3ODUxM30.0aKtWJt5ouurqiTaNRZxx4ANFg3xDKE6u0cEMUNKMOE
-
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YzljNTRiZGRlN2M3NzdlNjU1NDI5YyIsInVzZXJuYW1lIjoiY2VzYXIiLCJpYXQiOjE3MjQ1MDIwMzMsImV4cCI6MTcyNTEwNjgzM30.HJnXliDattPwB_e69rwlqMpEH4gd49_sDGqLSwvX3Kk
 
 {
-  "title": "Salida de enduro",
+  "title": "Salida de Moto Carretera",
   "startDate": "2024-09-01T10:00:00Z",
   "endDate": "2024-09-01T14:00:00Z",
   "location": "C. Sta. Ana, 14, 41807 Espartinas, Sevilla, España",
@@ -24,6 +22,6 @@ GET http://localhost:5002/api/events
 Content-Type: application/json
 
 ### Obtener info del evento por ID
-GET http://localhost:5002/api/events/66c0c127e3ff05f010b2271a
+GET http://localhost:5002/api/events/66ca46438033f805b454ae76
 Content-Type: application/json
 

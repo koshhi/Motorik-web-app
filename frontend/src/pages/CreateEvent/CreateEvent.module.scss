@@ -1,0 +1,29 @@
+.topbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-default-weak, #DCDCDC);
+  background: var(--bg-default-subtle, #FAFAFA);
+
+  .container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 12px 24px;
+    max-width: 1248px;
+    width: 100%;
+  }
+
+  .heading {
+    font-size: 20px;
+    line-height: 140%;
+    margin: unset;
+  }
+
+  .links {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+}

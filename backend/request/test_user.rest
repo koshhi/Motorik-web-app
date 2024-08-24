@@ -3,7 +3,7 @@ POST http://localhost:5002/api/users
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "cesar",
   "password": "password"
 }
 
@@ -12,5 +12,5 @@ GET http://localhost:5002/api/users
 Content-Type: application/json
 
 ### Obtener info del usuario por ID
-GET http://localhost:5002/api/users/66b604ef792dbb44af90e138
+GET http://localhost:5002/api/users/66c9c54bdde7c777e655429c
 Content-Type: application/json
