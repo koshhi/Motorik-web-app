@@ -1,7 +1,12 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
+import { getEmptyStateIcon } from '../../utils'
+import Input from '../Input/Input';
+import Select from '../Select/Select';
+
 
 // Define las bibliotecas fuera del componente para evitar recrear el array
 const libraries = ['places'];
@@ -20,7 +25,7 @@ const EventForm = forwardRef((props, ref) => {
   const [coordinates, setCoordinates] = useState({ lat: null, lng: null }); // Guardar las coordenadas
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
-  const [eventType, setEventType] = useState('Quedadas');
+  const [eventType, setEventType] = useState('Quedada');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -126,40 +131,100 @@ const EventForm = forwardRef((props, ref) => {
   if (!isLoaded) return <div>Loading...</div>;
 
   return (
-    <div className="create_event_form-container">
-      <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required />
-      <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} placeholder="Start Date" required />
-      <input type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="End Date" required />
-
+    <FormContainer>
+      <label>Título del evento</label>
+      <Input size="medium" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título del evento..." required />
+      <label>Fechas de inicio y fin:</label>
+      <Input size="medium" type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} placeholder="Start Date" required />
+      <Input size="medium" type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="End Date" required />
+      <label>Localización:</label>
       <Autocomplete
         onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
         onPlaceChanged={onPlaceChanged}
       >
-        <input
+        <Input
+          size="medium"
           type="text"
-          className="autocomplete-input"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="Location"
           required
         />
       </Autocomplete>
-
-      <input type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL" required />
+      <label>Imagen del evento:</label>
+      <div className="image-preview-container">
+        {image ? (
+          <img src={image} alt="Event" className="event-image-preview" />
+        ) : (
+          <div className="empty-state">
+            <img src={getEmptyStateIcon(eventType)} alt="empty state icon" className="empty-state-icon" />
+          </div>
+        )}
+      </div>
+      <Input size="medium" type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL" required />
+      <label>Descripción:</label>
       <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" required />
-      <select value={eventType} onChange={(e) => setEventType(e.target.value)}>
-        <option value="Quedadas">Quedadas</option>
+      <label>Tipo de evento:</label>
+      <Select value={eventType} onChange={(e) => setEventType(e.target.value)}>
+        <option value="Quedada">Quedada</option>
         <option value="Competición">Competición</option>
         <option value="Carrera">Carrera</option>
         <option value="Aventura">Aventura</option>
         <option value="Viaje">Viaje</option>
-        <option value="Concentraciones">Concentraciones</option>
-        <option value="Cursos">Cursos</option>
-        <option value="Rodadas">Rodadas</option>
-      </select>
+        <option value="Concentración">Concentración</option>
+        <option value="Curso">Curso</option>
+        <option value="Rodada">Rodada</option>
+        <option value="Exhibición">Exhibición</option>
+      </Select>
       {error && <p>{error}</p>}
-    </div>
+    </FormContainer>
   );
 });
 
 export default EventForm;
+
+export const FormContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+  max-width: 400px;
+  padding: 24px;
+
+  .autocomplete-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+
+  .image-preview-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: ${({ theme }) => theme.fill.defaultWeak};
+    width: 100%;
+    height: 200px; /* Ajusta el tamaño según lo necesites */
+    border-radius: 10px;
+  }
+
+  .event-image-preview {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+  }
+
+  .empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .empty-state-icon {
+    width: 50px;
+    height: 50px;
+  }
+`;

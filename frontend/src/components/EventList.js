@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import axios from 'axios';
 import EventCard from './EventCard';
 import FilterForm from './FilterForm';
@@ -32,43 +33,6 @@ const EventList = () => {
       )
     }
   }, [])
-
-  // useEffect(() => {
-  //   const fetchEvents = async () => {
-  //     setIsLoading(true)
-  //     try {
-  //       let url = `${process.env.REACT_APP_API_URL}/api/events`
-
-  //       const params = []
-  //       if (filters.typology && filters.typology.length > 0) {
-  //         params.push(`eventTypes=${filters.typology.join(',')}`)
-  //       }
-  //       if (filters.timeFilter) {
-  //         params.push(`timeFilter=${filters.timeFilter}`)
-  //       }
-
-  //       if (filters.location.lat && filters.location.lng) {
-  //         params.push(`lat=${filters.location.lat}`)
-  //         params.push(`lng=${filters.location.lng}`)
-  //         params.push(`radius=${filters.radius}`)
-  //       }
-
-  //       if (params.length > 0) {
-  //         url += '?' + params.join('&')
-  //       }
-
-  //       const response = await axios.get(url)
-
-  //       setEvents(response.data.events)
-  //     } catch (error) {
-  //       console.error('Error fetching events:', error)
-  //     } finally {
-  //       setIsLoading(false)
-  //     }
-  //   }
-
-  //   fetchEvents()
-  // }, [filters])
 
   const fetchEvents = async () => {
     setIsLoading(true)
@@ -108,7 +72,7 @@ const EventList = () => {
   return (
     <>
       <FilterForm filters={filters} setFilters={setFilters} />
-      <div className="event_list">
+      <EventsGrid>
         {isLoading ? (
           <div className="loading">Loading events...</div>
         ) : events.length === 0 ? (
@@ -118,9 +82,27 @@ const EventList = () => {
             <EventCard key={event._id} event={event} />
           ))
         )}
-      </div>
+      </EventsGrid>
     </>
   );
 };
 
 export default EventList;
+
+
+//Estilos del componente
+
+const EventsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 24px;
+  grid-auto-flow: row;
+  padding: 24px;
+  max-width: 1248px;
+  margin-left: auto;
+  margin-right: auto;
+
+  .loading {}
+  .empty_state {}
+`;

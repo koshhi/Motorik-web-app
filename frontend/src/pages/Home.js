@@ -1,12 +1,12 @@
 
 import React from 'react';
 import EventList from '../components/EventList';
-import Navbar from '../components/Navbar/Navbar';
+import MainNavbar from '../components/Navbar/MainNavbar';
 
 const Home = () => {
   return (
     <>
-      <Navbar />
+      <MainNavbar />
       <main className='discover_container'>
         <EventList />
       </main>

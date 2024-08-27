@@ -4,7 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
 import EventDetail from './pages/EventDetail';
-import CreateEvent from './pages/CreateEvent/CreateEvent'
+import CreateEvent from './pages/CreateEvent'
 
 
 
