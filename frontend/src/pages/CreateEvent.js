@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
+import axios from 'axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import EventForm from '../components/EventForm/EventForm';
+import EventForm from '../components/EventForm';
 import Button from '../components/Button/Button';
 
 
@@ -13,9 +14,30 @@ const CreateEvent = () => {
     navigate('/');
   };
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
     if (formRef.current) {
-      formRef.current.submitForm(); // Llama a la función submitForm del formulario
+      const formData = await formRef.current.submitForm();
+      console.log({ formData });
+
+      if (!formData) return; // Detener si no se obtuvo formData
+
+      try {
+        const token = localStorage.getItem('authToken');
+
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.success) {
+          navigate('/');
+        } else {
+          console.error('Failed to create event');
+        }
+      } catch (error) {
+        console.error('Error creating event:', error);
+      }
     }
   };
 

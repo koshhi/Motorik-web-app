@@ -1,27 +1,41 @@
-### Crear un nuevo evento
+### Crear un Evento
 POST http://localhost:5002/api/events
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YzljNTRiZGRlN2M3NzdlNjU1NDI5YyIsInVzZXJuYW1lIjoiY2VzYXIiLCJpYXQiOjE3MjQ1MDIwMzMsImV4cCI6MTcyNTEwNjgzM30.HJnXliDattPwB_e69rwlqMpEH4gd49_sDGqLSwvX3Kk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
 
 {
-  "title": "Salida de Moto Carretera",
-  "startDate": "2024-09-01T10:00:00Z",
-  "endDate": "2024-09-01T14:00:00Z",
-  "location": "C. Sta. Ana, 14, 41807 Espartinas, Sevilla, España",
+  "title": "Enduro Race",
+  "startDate": "2025-09-07T10:00:00Z",
+  "endDate": "2025-09-07T14:00:00Z",
+  "location": "Montes de Málaga, Spain",
+  "shortLocation": "Málaga, Spain",
   "locationCoordinates": {
     "type": "Point",
-    "coordinates": [-6.128055, 37.380323]
+    "coordinates": [-4.420340, 36.721302]
   },
   "image": "https://i0.wp.com/pxsports.com/wp-content/uploads/2018/07/enduro.jpg?fit=1075%2C590",
-  "description": "Una quedada para los amantes de las motos.",
-  "eventType": "Quedadas"
+  "description": "Exciting enduro race in the mountains.",
+  "eventType": "Competición"
 }
 
 ### Obtener todos los eventos
 GET http://localhost:5002/api/events
 Content-Type: application/json
 
-### Obtener info del evento por ID
-GET http://localhost:5002/api/events/66ca46438033f805b454ae76
-Content-Type: application/json
+### Obtener Todos los Eventos (Filtrado)
+GET http://localhost:5002/api/events?lat=36.721302&lng=-4.420340&radius=50&eventTypes=Competición&timeFilter=this_week
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
+
+###
+
+### Obtener un Evento por su ID
+GET http://localhost:5002/api/events/66d0613988a646afae26dce1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
+
+###
+
+### Eliminar un Evento 
+DELETE http://localhost:5002/api/events/66d0613988a646afae26dce1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
+
 

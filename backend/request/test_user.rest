@@ -1,10 +1,23 @@
-### Test de Sign Up
-POST http://localhost:5002/api/users
+### Test de Login
+POST http://localhost:5002/api/users/login
 Content-Type: application/json
 
 {
-  "username": "cesar",
+  "username": "cesaralvarezmarin@gmail.com",
   "password": "password"
+}
+
+### Test de Signup
+POST http://localhost:5002/api/users/signup
+Content-Type: application/json
+
+{
+  "username": "cesaralvarezmarin@gmail.com",
+  "password": "password",
+  "name": "César",
+  "lastName": "Álvarez",
+  "userAvatar": "https://avatars.githubusercontent.com/u/23705180?v=4&size=256",
+  "description": "This is my bio description"
 }
 
 ### Obtener todos los usuarios
@@ -12,5 +25,21 @@ GET http://localhost:5002/api/users
 Content-Type: application/json
 
 ### Obtener info del usuario por ID
-GET http://localhost:5002/api/users/66c9c54bdde7c777e655429c
+GET http://localhost:5002/api/users/66d057d91ff627392d295e5d
 Content-Type: application/json
+
+
+### Actualizar el Perfil de Usuario
+PUT http://localhost:5002/api/users/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+Content-Type: application/json
+
+{
+  "name": "César",
+  "lastName": "Álvarez Marín",
+  "userAvatar": "https://avatars.githubusercontent.com/u/23705180?v=4&size=256",
+  "description": "Updated description",
+  "enrolledEvents": [],
+  "organizedEvents": [],
+  "vehicles": []
+}

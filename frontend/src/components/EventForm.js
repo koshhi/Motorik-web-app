@@ -3,9 +3,9 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
-import { getEmptyStateIcon } from '../../utils'
-import Input from '../Input/Input';
-import Select from '../Select/Select';
+import Input from './Input/Input';
+import Select from './Select/Select';
+import { getEmptyStateIcon } from '../utils'
 
 
 // Define las bibliotecas fuera del componente para evitar recrear el array
@@ -18,19 +18,19 @@ const EventForm = forwardRef((props, ref) => {
     version: 'weekly', // Versión de la API de Google Maps (puedes cambiarla a una versión fija)
   });
 
-  const [title, setTitle] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [coordinates, setCoordinates] = useState({ lat: null, lng: null }); // Guardar las coordenadas
-  const [image, setImage] = useState('');
-  const [description, setDescription] = useState('');
-  const [eventType, setEventType] = useState('Quedada');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const [shortLocation, setShortLocation] = useState('');
-  const autocompleteRef = React.useRef(null);
+  const [title, setTitle] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [location, setLocation] = useState('')
+  const [coordinates, setCoordinates] = useState({ lat: null, lng: null }) // Guardar las coordenadas
+  const [image, setImage] = useState('')
+  const [description, setDescription] = useState('')
+  const [eventType, setEventType] = useState('Quedada')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+  const [shortLocation, setShortLocation] = useState('')
+  const autocompleteRef = React.useRef(null)
 
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
@@ -44,12 +44,11 @@ const EventForm = forwardRef((props, ref) => {
 
       try {
         const authToken = localStorage.getItem('authToken');
-        console.log({ token: authToken })
         if (!authToken) {
           return navigate('/login', { state: { message: 'You need to login to create an event.' } });
         }
 
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, {
+        const formData = {
           title,
           startDate,
           endDate,
@@ -57,29 +56,31 @@ const EventForm = forwardRef((props, ref) => {
           shortLocation,
           locationCoordinates: {
             type: 'Point',
-            coordinates: [coordinates.lng, coordinates.lat], // Enviar las coordenadas obtenidas
+            coordinates: [coordinates.lng, coordinates.lat],
           },
           image,
           description,
           eventType,
-        }, {
+        };
+
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
-        });
+        })
 
         if (response.data.success) {
-          navigate('/'); // Redirigir al home después de crear el evento
+          navigate('/') // Redirigir al home después de crear el evento
         } else {
-          setError('Failed to create event. Please try again.');
+          setError('Failed to create event. Please try again.')
         }
       } catch (error) {
-        console.error(error);
-        setError('An error occurred while creating the event.');
+        console.error('Error creating event:', error)
+        setError('An error occurred while creating the event.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    },
+    }
   }));
 
   const onPlaceChanged = () => {

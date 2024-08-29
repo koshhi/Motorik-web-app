@@ -13,7 +13,7 @@ const auth = async (req, res, next) => {
 
     // Verificar y decodificar el token usando la clave secreta
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    console.log({ decoded })
+    // console.log({ decoded })
 
     // Buscar al usuario en la base de datos por su ID
     const user = await User.findById(decoded.id)

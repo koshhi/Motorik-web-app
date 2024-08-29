@@ -74,12 +74,18 @@ eventsRouter.post('/', auth, async (req, res) => {
 
     console.log({ newEvent })
 
-    // Guardar el evento en la base de datos
     const savedEvent = await newEvent.save()
 
     // Asociar el evento con el usuario autenticado
-    req.user.events.push(savedEvent._id)
-    await req.user.save() // Guardar el usuario con el evento asociado
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    user.organizedEvents.push(savedEvent._id)
+    user.enrolledEvents.push(savedEvent._id)
+
+    await user.save()// Guardar los cambios en el usuario
 
     res.status(201).json({ success: true, event: savedEvent })
   } catch (error) {
@@ -178,6 +184,38 @@ eventsRouter.get('/:id', async (req, res) => {
       // }
       event: event
     })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+eventsRouter.delete('/:id', auth, async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const event = await Event.findById(id)
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
+
+    // Verificar si el usuario autenticado es el propietario del evento
+    if (event.owner.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this event' })
+    }
+
+    // Eliminar el evento
+    await event.deleteOne()
+
+    // Eliminar la referencia del evento del usuario
+    const user = await User.findById(req.user.id)
+    if (user) {
+      user.organizedEvents = user.organizedEvents.filter(e => e.toString() !== id)
+      user.enrolledEvents = user.enrolledEvents.filter(e => e.toString() !== id)
+      await user.save()
+    }
+
+    res.status(200).json({ success: true, message: 'Event deleted successfully' })
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, message: 'Internal Server Error' })

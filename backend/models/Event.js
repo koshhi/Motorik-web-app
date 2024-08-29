@@ -42,7 +42,7 @@ const eventSchema = new Schema({
   },
   eventType: {
     type: String,
-    enum: ['Quedadas', 'Competición', 'Carrera', 'Aventura', 'Viaje', 'Concentraciones', 'Cursos', 'Rodadas'],
+    enum: ['Quedada', 'Competición', 'Carrera', 'Aventura', 'Viaje', 'Concentración', 'Curso', 'Rodada', 'Exhibición'],
     required: true
   },
   attendeesCount: {

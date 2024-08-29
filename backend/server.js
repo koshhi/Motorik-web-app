@@ -3,8 +3,8 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const usersRouter = require('./controllers/users')
-const authRouter = require('./controllers/auth')
 const eventsRouter = require('./controllers/events')
+const vehiclesRouter = require('./controllers/vehicle') // Importar el controlador de vehículos
 
 dotenv.config()
 
@@ -13,9 +13,10 @@ app.use(cors())
 app.use(express.json())
 
 // Rutas
-app.use('/api/users', usersRouter)
-app.use('/api/login', authRouter)
+app.use('/api/users', usersRouter) // maneja /api/users/signup
+app.use('/api/login', usersRouter)
 app.use('/api/events', eventsRouter)
+app.use('/api/vehicles', vehiclesRouter)
 
 // Conexión a MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)

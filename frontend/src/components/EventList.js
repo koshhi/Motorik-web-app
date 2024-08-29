@@ -49,7 +49,7 @@ const EventList = () => {
       if (filters.location.lat && filters.location.lng) {
         params.push(`lat=${filters.location.lat}`)
         params.push(`lng=${filters.location.lng}`)
-        params.push(`radius=${filters.radius || 50}`); // Si no se selecciona un radio, se usa el valor por defecto de 10km
+        params.push(`radius=${filters.radius || 50}`); // Si no se selecciona un radio, se usa el valor por defecto de 50km
       }
 
       if (params.length > 0) {
