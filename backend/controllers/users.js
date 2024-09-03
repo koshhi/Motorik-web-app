@@ -100,8 +100,6 @@ usersRouter.post('/login', async (req, res) => {
       username: user.username,
       userAvatar: user.userAvatar,
       description: user.description,
-      enrolledEvents: user.enrolledEvents,
-      organizedEvents: user.organizedEvents,
       vehicles: user.vehicles,
       id: user._id,
       token
@@ -178,8 +176,6 @@ usersRouter.post('/signup', async (req, res) => {
 usersRouter.get('/', async (req, res) => {
   try {
     const users = await User.find()
-      .populate('organizedEvents')
-      .populate('enrolledEvents')
       .populate('vehicles')
     res.status(200).json({ success: true, users })
   } catch (error) {
@@ -193,8 +189,6 @@ usersRouter.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
     const user = await User.findById(id)
-      .populate('organizedEvents')
-      .populate('enrolledEvents')
       .populate('vehicles')
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' })
@@ -208,7 +202,7 @@ usersRouter.get('/:id', async (req, res) => {
 
 // Actualizar el perfil del usuario autenticado
 usersRouter.put('/profile', auth, async (req, res) => {
-  const { name, lastName, userAvatar, description, enrolledEvents, organizedEvents, vehicles } = req.body
+  const { name, lastName, userAvatar, description, vehicles } = req.body
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
@@ -218,8 +212,6 @@ usersRouter.put('/profile', auth, async (req, res) => {
         lastName,
         userAvatar,
         description,
-        enrolledEvents,
-        organizedEvents,
         vehicles
       },
       { new: true } // Retorna el documento actualizado

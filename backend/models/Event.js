@@ -42,7 +42,25 @@ const eventSchema = new Schema({
   },
   eventType: {
     type: String,
-    enum: ['Quedada', 'Competición', 'Carrera', 'Aventura', 'Viaje', 'Concentración', 'Curso', 'Rodada', 'Exhibición'],
+    enum: ['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'],
+    required: true
+  },
+  terrain: {
+    type: String,
+    enum: ['offroad', 'road', 'mixed'],
+    required: true
+  },
+  experience: {
+    type: String,
+    enum: ['none', 'beginner', 'intermediate', 'advanced'],
+    required: true
+  },
+  ticket: {
+    type: { type: String, enum: ['free', 'paid'], required: true },
+    price: { type: Number, required: function () { return this.type === 'paid' } }
+  },
+  capacity: {
+    type: Number,
     required: true
   },
   attendeesCount: {
@@ -50,8 +68,16 @@ const eventSchema = new Schema({
     default: 1
   },
   attendees: [{
-    type: String,
-    required: true
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    vehicleId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Vehicle',
+      required: true
+    }
   }],
   owner: {
     type: Schema.Types.ObjectId,

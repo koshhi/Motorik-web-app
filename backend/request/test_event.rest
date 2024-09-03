@@ -1,7 +1,7 @@
 ### Crear un Evento
 POST http://localhost:5002/api/events
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1MjY5NTE4LCJleHAiOjE3MjU4NzQzMTh9.of-E9teLymsBRyUVxd5fo0G3VA8rPxxTBodW37vfxAU
 
 {
   "title": "Enduro Race",
@@ -15,7 +15,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5M
   },
   "image": "https://i0.wp.com/pxsports.com/wp-content/uploads/2018/07/enduro.jpg?fit=1075%2C590",
   "description": "Exciting enduro race in the mountains.",
-  "eventType": "Competición"
+  "eventType": "Adventure",
+  "terrain": "offroad",
+  "experience": "intermediate",
+  "ticket": {
+    "type": "free",
+    "price": 0
+  },
+  "capacity": 20
 }
 
 ### Obtener todos los eventos
@@ -29,13 +36,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5M
 ###
 
 ### Obtener un Evento por su ID
-GET http://localhost:5002/api/events/66d0613988a646afae26dce1
+GET http://localhost:5002/api/events/66d58ae63331fc4ec260475a
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
 
 ###
 
 ### Eliminar un Evento 
-DELETE http://localhost:5002/api/events/66d0613988a646afae26dce1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
+DELETE http://localhost:5002/api/events/66d0a1cc015474f45fc43319
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA5NzJhMTI1NDdlMDZjMjFjZDQzNyIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTUyMjQzLCJleHAiOjE3MjU1NTcwNDN9.gUOZNEz6DbF0W-wIHKnhJ4UH1mPgpuurOz_pJtDeZUc
 
 

@@ -1,130 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useRef, useEffect } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
-import Input from './Input/Input'
-// Definición de las bibliotecas para Google Maps
+import styled from 'styled-components';
+import Input from "../components/Input/Input"
+import EventTypeTab from './Tab/EventTypeTab';
+import { getEventTypeSvgIcon } from '../utils';
+import { theme } from '../theme';
+
 const libraries = ['places'];
 
-const FilterForm = ({ filters, setFilters }) => {
-  const { isLoaded } = useLoadScript({
+
+const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
+  const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
-  const categories = [
-    'Quedada',
-    'Competición',
-    'Carrera',
-    'Aventura',
-    'Viaje',
-    'Concentración',
-    'Curso',
-    'Rodada',
-    'Exhibición',
-  ];
-
   const [address, setAddress] = useState('');
-  const [municipality, setMunicipality] = useState('');
   const [showLocationFields, setShowLocationFields] = useState(false);
-
   const autocompleteRef = React.useRef(null);
-
-  // Obtener la ubicación inicial del usuario
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          setFilters((prevFilters) => ({
-            ...prevFilters,
-            location: { lat, lng },
-          }));
-          fetchAddressFromCoordinates(lat, lng);
-        },
-        (error) => console.error(error)
-      );
-    }
-  }, []);
-
-  const fetchAddressFromCoordinates = async (lat, lng) => {
-    try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
-      );
-      const data = await response.json();
-
-      if (data.results && data.results.length > 0) {
-        const address = data.results[0].formatted_address;
-        setAddress(address);
-
-        const municipalityComponent = data.results[0].address_components.find(
-          (component) => component.types.includes('locality')
-        );
-        if (municipalityComponent) {
-          setMunicipality(municipalityComponent.long_name);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching address:', error);
-    }
-  };
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current.getPlace();
-    if (place && place.geometry) {
-      const lat = place.geometry.location.lat();
-      const lng = place.geometry.location.lng();
-
-      setAddress(place.formatted_address);
-
-      const municipalityComponent = place.address_components.find((component) =>
-        component.types.includes('locality')
-      );
-      if (municipalityComponent) {
-        setMunicipality(municipalityComponent.long_name);
-      }
-
-      setFilters((prevFilters) => ({
+    if (place.geometry) {
+      const userLocation = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      };
+      setFilters(prevFilters => ({
         ...prevFilters,
-        location: { lat, lng },
+        location: userLocation
       }));
+
+      // Obtener el nombre del municipio y guardarlo
+      const userMunicipality = place.address_components?.[0]?.long_name || 'Unknown';
+      setMunicipality(userMunicipality);
+      localStorage.setItem('location', JSON.stringify(userLocation));
+      localStorage.setItem('municipality', userMunicipality);
     }
   };
 
-  const handleRadiusChange = (e) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      radius: e.target.value,
-    }));
+  const updateTypologyFilter = (currentTypology, value) => {
+    return currentTypology.includes(value)
+      ? currentTypology.filter(item => item !== value)
+      : [...currentTypology, value];
   };
 
-  const handleCategoryToggle = (category) => {
-    setFilters((prevFilters) => {
-      const currentTypologies = prevFilters.typology || [];
-
-      if (currentTypologies.includes(category)) {
-        return {
-          ...prevFilters,
-          typology: currentTypologies.filter((t) => t !== category),
-        };
-      }
-
-      return {
+  function handleFilterChange(type, value) {
+    if (type === 'typology') {
+      const updatedTypology = updateTypologyFilter(filters.typology, value);
+      setFilters(prevFilters => ({
         ...prevFilters,
-        typology: [...currentTypologies, category],
-      };
-    });
-  };
+        typology: updatedTypology
+      }));
+    } else {
+      setFilters(prevFilters => ({
+        ...prevFilters,
+        [type]: value
+      }));
+    }
+  }
 
-  const handleTimeFilterChange = (e) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      timeFilter: e.target.value,
-    }));
-  };
 
-  if (!isLoaded) return <div>Loading...</div>;
+  if (loadError) {
+    return <div>Error al cargar Google Maps API</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Cargando mapa...</div>;
+  }
 
   return (
     <Filter>
@@ -138,7 +81,6 @@ const FilterForm = ({ filters, setFilters }) => {
             >
               {municipality ? municipality : 'Obteniendo tu ubicación...'}
             </Location>
-
             {showLocationFields && (
               <LocationDropdown>
                 <label>¿Dónde?</label>
@@ -158,33 +100,59 @@ const FilterForm = ({ filters, setFilters }) => {
                 <Input
                   type="number"
                   value={filters.radius}
-                  onChange={handleRadiusChange}
+                  onChange={(e) => handleFilterChange('radius', e.target.value)}
                 />
               </LocationDropdown>
             )}
-
-            <TimeFrame value={filters.timeFilter} onChange={handleTimeFilterChange}>
-              {/* <option value="">Selecciona</option> */}
+            <TimeFrame value={filters.timeFilter || 'flexible'} onChange={(e) => handleFilterChange('timeFilter', e.target.value)}>
+              <option value="flexible">Fecha flexible</option>
               <option value="today">Hoy</option>
               <option value="tomorrow">Mañana</option>
               <option value="this_week">Esta semana</option>
               <option value="this_month">Este mes</option>
-              <option value="flexible">Fecha flexible</option>
             </TimeFrame>
           </div>
         </MainFilters>
         <SecondaryFilters>
-          {categories.map((category) => (
-            <div key={category}>
-              <input
-                type="checkbox"
-                id={category}
-                checked={filters.typology && filters.typology.includes(category)}
-                onChange={() => handleCategoryToggle(category)}
-              />
-              <label htmlFor={category}>{category}</label>
-            </div>
+          {['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'].map((category) => (
+            <EventTypeTab
+              key={category}
+              category={category}
+              isActive={filters.typology.includes(category)}
+              onClick={() => handleFilterChange('typology', category)}
+              icon={getEventTypeSvgIcon(category, filters.typology.includes(category) ? theme.colors.brandMain : theme.colors.defaultSubtle)}
+            />
           ))}
+
+          <div>
+            <label>Terreno:</label>
+            <select value={filters.terrain || ''} onChange={(e) => handleFilterChange('terrain', e.target.value)}>
+              <option value="">Todos</option>
+              <option value="offroad">Offroad</option>
+              <option value="road">Carretera</option>
+              <option value="mixed">Mixto</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Experiencia:</label>
+            <select value={filters.experience || ''} onChange={(e) => handleFilterChange('experience', e.target.value)}>
+              <option value="">Todos</option>
+              <option value="none">Ninguno</option>
+              <option value="beginner">Principiante</option>
+              <option value="intermediate">Intermedio</option>
+              <option value="advanced">Avanzado</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Ticket:</label>
+            <select value={filters.ticketType || ''} onChange={(e) => handleFilterChange('ticketType', e.target.value)}>
+              <option value="">Todos</option>
+              <option value="free">Gratis</option>
+              <option value="paid">De pago</option>
+            </select>
+          </div>
         </SecondaryFilters>
       </FormContainer>
     </Filter>
@@ -193,7 +161,6 @@ const FilterForm = ({ filters, setFilters }) => {
 
 export default FilterForm;
 
-
 //Estilos del componente
 
 const Filter = styled.section`
@@ -201,12 +168,14 @@ const Filter = styled.section`
   flex-direction: column;
   align-items: center;
   z-index: 10;
+  background-color: ${({ theme }) => theme.fill.defaultSubtle};
 `;
 
 const FormContainer = styled.form`
   display: flex;
   flex-direction: column;
   padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
+  padding-bottom: 0px;
   width: 100%;
   max-width: 1248px;
   gap: ${({ theme }) => theme.sizing.md};
@@ -248,18 +217,18 @@ const SecondaryFilters = styled.div`
   align-items: center;
   gap: ${({ theme }) => theme.sizing.sm};
 
-  div {
-  gap: 0.5rem;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: ${({ theme }) => theme.sizing.xs};
+  // div {
+  // gap: 0.5rem;
+  //   display: flex;
+  //   flex-direction: row;
+  //   align-items: center;
+  //   justify-content: flex-start;
+  //   gap: ${({ theme }) => theme.sizing.xs};
 
-    input {
-      margin: 0px;
-    }
-  }
+  //   input {
+  //     margin: 0px;
+  //   }
+  // }
 `;
 
 const Location = styled.button`

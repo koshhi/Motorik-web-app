@@ -25,7 +25,7 @@ GET http://localhost:5002/api/users
 Content-Type: application/json
 
 ### Obtener info del usuario por ID
-GET http://localhost:5002/api/users/66d057d91ff627392d295e5d
+GET http://localhost:5002/api/users/66d0972a12547e06c21cd437
 Content-Type: application/json
 
 

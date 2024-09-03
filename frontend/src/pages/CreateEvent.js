@@ -6,37 +6,71 @@ import EventForm from '../components/EventForm';
 import Button from '../components/Button/Button';
 
 
+// const CreateEvent = () => {
+//   const navigate = useNavigate();
+//   const formRef = useRef(null);
+
+//   const handleDiscard = () => {
+//     navigate('/');
+//   };
+
+//   const handleCreateEvent = async () => {
+//     if (formRef.current) {
+//       const formData = await formRef.current.submitForm();
+//       console.log({ formData });
+
+//       if (!formData) return; // Detener si no se obtuvo formData
+
+//       try {
+//         const token = localStorage.getItem('authToken');
+
+//         const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         });
+
+//         if (response.data.success) {
+//           navigate('/');
+//         } else {
+//           console.error('Failed to create event');
+//         }
+//       } catch (error) {
+//         console.error('Error creating event:', error);
+//       }
+//     }
+//   };
+
 const CreateEvent = () => {
   const navigate = useNavigate();
-  const formRef = useRef(null);
+  const eventFormRef = useRef();
 
   const handleDiscard = () => {
     navigate('/');
   };
 
   const handleCreateEvent = async () => {
-    if (formRef.current) {
-      const formData = await formRef.current.submitForm();
-      console.log({ formData });
+    if (eventFormRef.current) {
+      const formData = await eventFormRef.current.submitForm();
 
-      if (!formData) return; // Detener si no se obtuvo formData
+      if (formData) {
+        try {
+          const authToken = localStorage.getItem('authToken');
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
 
-      try {
-        const token = localStorage.getItem('authToken');
-
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.data.success) {
-          navigate('/');
-        } else {
-          console.error('Failed to create event');
+          if (response.data.success) {
+            // Manejar la redirección o mensaje de éxito aquí
+            navigate('/');
+          } else {
+            // Manejar el error aquí
+          }
+        } catch (error) {
+          console.error('Error creating event:', error);
         }
-      } catch (error) {
-        console.error('Error creating event:', error);
       }
     }
   };
@@ -52,7 +86,7 @@ const CreateEvent = () => {
           </Links>
         </Container>
       </Topbar>
-      <EventForm ref={formRef} />
+      <EventForm ref={eventFormRef} />
     </>
   );
 };

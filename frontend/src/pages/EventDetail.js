@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
-import { getEmptyStateIcon } from '../utils';
+import { getEventTypeIcon } from '../utils';
 import MainNavbar from '../components/Navbar/MainNavbar';
 import Button from '../components/Button/Button';
 import EventFixedAction from '../components/EventFixedAction'
@@ -56,10 +56,10 @@ const EventDetail = () => {
             </div>
           </div>
           <div className='EventOrganizer'>
-            <img className="UserAvatar" src="https://mighty.tools/mockmind-api/content/human/62.jpg" alt="Event organizer" />
+            <img className="UserAvatar" src={event.owner.userAvatar} alt="Event organizer" />
             <div className='UserData'>
               <p className='label'>Organizado por</p>
-              <p className='username'>Carlos Sastre</p>
+              <p className='username'>{event.owner.name} {event.owner.lastName}</p>
             </div>
           </div>
         </div>
@@ -72,7 +72,7 @@ const EventDetail = () => {
               <img src={event.image} alt={event.title} className="event-image" />
             ) : (
               <div className="placeholder-image">
-                <img src={getEmptyStateIcon(event.eventType)} alt="empty state icon" className="empty-state-icon" />
+                <img src={getEventTypeIcon(event.eventType)} alt="empty state icon" className="empty-state-icon" />
               </div>
             )}
             <EventDescription>
@@ -84,9 +84,9 @@ const EventDetail = () => {
               <EventOrganizerCard>
                 <div className='EventOrganizerHeader'>
                   <div className='EventOrganizer'>
-                    <img className="OrganizerAvatar" src="https://mighty.tools/mockmind-api/content/human/62.jpg" alt="Event organizer" />
+                    <img className="OrganizerAvatar" src={event.owner.userAvatar} alt="Event organizer" />
                     <div className='OrganizerData'>
-                      <p className='username'>Carlos Sastre</p>
+                      <p className='username'>{event.owner.name} {event.owner.lastName}</p>
                       <p className='followers'>22 Seguidores</p>
                     </div>
                   </div>
@@ -96,7 +96,7 @@ const EventDetail = () => {
                   </div>
                 </div>
                 <p className='OrganizerDescription'>
-                  Soy Carlos Ávila, sevillano apasionado de las motos de aventura, el offroad y la velocidad. Desde mi primera moto, supe que las dos ruedas serían mi vida. El rugido del motor y el viento en mi rostro son mi escape, mi verdadera esencia. Cada día es una nueva aventura sobre dos ruedas.
+                  {event.owner.description}
                 </p>
               </EventOrganizerCard>
             </div>
@@ -124,8 +124,10 @@ const EventDetail = () => {
                 </div>
               </div>
             </DateAndLocation>
-            <p className="event_detail-eventType">Tipo: {event.eventType}</p>
-
+            <p>Tipo: {event.eventType}</p>
+            <p>Terreno: {event.terrain}</p>
+            <p>Capacity: {event.capacity}</p>
+            <p>Experience: {event.experience}</p>
             <p>
               From {event.startDate} to {event.endDate}
             </p>
@@ -142,7 +144,7 @@ const EventDetail = () => {
         eventName={event.title}
         eventDate={event.longDate}
         availableSeats="4"
-        price="1200"
+        price={event.ticket.price}
       />
     </>
   );
