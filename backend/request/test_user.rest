@@ -25,13 +25,18 @@ GET http://localhost:5002/api/users
 Content-Type: application/json
 
 ### Obtener info del usuario por ID
-GET http://localhost:5002/api/users/66d0972a12547e06c21cd437
+GET http://localhost:5002/api/users/66d566bcc08191eee0ac1e4f
+Content-Type: application/json
+
+### Obtener info del usuario autenticado
+GET http://localhost:5002/api/users/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NjE4MjA1LCJleHAiOjE3MjYyMjMwMDV9._kjOHy7JLFFNtWqznkFFFTQqJLNvGpbAl150bnLh984
 Content-Type: application/json
 
 
 ### Actualizar el Perfil de Usuario
 PUT http://localhost:5002/api/users/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NTUyMTI2LCJleHAiOjE3MjYxNTY5MjZ9.Q7lLBTFtXwlx5KR6uf7Vo-OlYU73nw1HQ3CeH6ztzcA
 Content-Type: application/json
 
 {

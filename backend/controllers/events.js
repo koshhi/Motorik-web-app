@@ -181,6 +181,7 @@ eventsRouter.put('/:id', auth, async (req, res) => {
   }
 })
 
+// Obtener todos los eventos (con filtros y ordenados por proximidad de fecha)
 eventsRouter.get('/', async (req, res) => {
   try {
     const {
@@ -254,6 +255,7 @@ eventsRouter.get('/', async (req, res) => {
 
     // Obtener los eventos que coinciden con los filtros
     const events = await Event.find(query)
+      .populate('owner', 'name lastName userAvatar description')
 
     res.json({ events })
   } catch (error) {
@@ -262,82 +264,50 @@ eventsRouter.get('/', async (req, res) => {
   }
 })
 
-// Obtener todos los eventos (con filtros y ordenados por proximidad de fecha)
-// eventsRouter.get('/', async (req, res) => {
-//   const eventTypes = req.query.eventTypes ? req.query.eventTypes.split(',') : [] // Recibe las tipologías como un array
-//   const timeFilter = req.query.timeFilter || null
-//   const lat = parseFloat(req.query.lat)
-//   const lng = parseFloat(req.query.lng)
-//   const radius = parseFloat(req.query.radius) || 50 // Radio por defecto en kilómetros
+// Inscribir a un usuario en un evento
+eventsRouter.post('/enroll/:id', auth, async (req, res) => {
+  const { id } = req.params
+  const { userId, vehicleId } = req.body
 
-//   try {
-//     const query = {}
+  try {
+    // Buscar el evento por ID
+    const event = await Event.findById(id)
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
 
-//     // Filtrar por categorías (tipologías)
-//     if (eventTypes.length > 0) {
-//       query.eventType = { $in: eventTypes }
-//     }
+    // Verificar si el usuario es el propietario del evento
+    if (event.owner.toString() === req.user._id) {
+      return res.status(403).json({ success: false, message: 'You cannot enroll in your own event' })
+    }
 
-//     // Obtener hoy
-//     const today = startOfToday(new Date())
+    // Verificar si el usuario ya está inscrito
+    if (event.attendees.includes(req.user._id)) {
+      return res.status(400).json({ success: false, message: 'You are already enrolled in this event' })
+    }
 
-//     // Asegurarse de no mostrar eventos anteriores a hoy
-//     query.startDate = { $gte: today }
+    // Inscribir al usuario en el evento
+    event.attendees.push({ userId, vehicleId })
+    event.attendeesCount += 1
 
-//     // Filtrar por tiempo
-//     if (timeFilter) {
-//       switch (timeFilter) {
-//         case 'today':
-//           query.startDate = { $gte: startOfToday(), $lte: endOfToday() }
-//           break
-//         case 'tomorrow':
-//           query.startDate = { $gte: startOfTomorrow(), $lte: endOfTomorrow() }
-//           break
-//         case 'this_week':
-//           query.startDate = { $gte: today, $lte: endOfWeek(today) }
-//           break
-//         case 'this_month':
-//           query.startDate = { $gte: today, $lte: endOfMonth(today) }
-//           break
-//         case 'flexible':
-//           // No aplicar ningún filtro de tiempo específico adicional
-//           break
-//         default:
-//           break
-//       }
-//     }
+    await event.save()
 
-//     // Filtrar por proximidad geográfica (si se proporcionan coordenadas)
-//     if (!isNaN(lat) && !isNaN(lng)) {
-//       query.locationCoordinates = {
-//         $near: {
-//           $geometry: {
-//             type: 'Point',
-//             coordinates: [lng, lat]
-//           },
-//           $maxDistance: radius * 1000 // Convertir el radio de kilómetros a metros
-//         }
-//       }
-//     }
-
-//     // Ejecutar la consulta
-//     const events = await Event.find(query).sort({ startDate: 1 })
-
-//     res.status(200).json({ success: true, events })
-//   } catch (error) {
-//     console.error(error)
-//     res.status(500).json({ success: false, message: 'Internal Server Error' })
-//   }
-// })
+    res.status(200).json({ success: true, message: 'Enrolled successfully', event })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
 
 // Obtener un evento por su ID
-
 eventsRouter.get('/:id', async (req, res) => {
   const { id } = req.params
   try {
     // Buscar el evento por ID y popular los campos especificados del owner
     const event = await Event.findById(id)
       .populate('owner', 'name lastName userAvatar description')
+      .populate('attendees.userId', 'name lastName userAvatar')
+      .populate('attendees.vehicleId', 'brand model nickname')
 
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' })
@@ -353,33 +323,38 @@ eventsRouter.get('/:id', async (req, res) => {
   }
 })
 
-// eventsRouter.get('/:id', async (req, res) => {
-//   const { id } = req.params
-//   try {
-//     const event = await Event.findById(id)
-//     if (!event) {
-//       return res.status(404).json({ success: false, message: 'Event not found' })
-//     }
+// Obtener los eventos de un usario autenticado y separado por eventos pasado y futuros
+eventsRouter.get('/user/myevents', auth, async (req, res) => {
+  try {
+    const userId = req.user._id
+    const today = new Date()
 
-//     // Formatear las fechas antes de devolver la respuesta
-//     // const formattedStartDate = format(new Date(event.startDate), 'MMMM do, yyyy H:mm a')
-//     // const formattedEndDate = format(new Date(event.endDate), 'MMMM do, yyyy H:mm a')
-//     console.log({ event })
-//     res.status(200).json({
-//       success: true,
-//       // event: {
-//       //   ...event._doc, // Incluimos todos los campos del evento
-//       //   startDate: formattedStartDate,
-//       //   endDate: formattedEndDate
-//       // }
-//       event: event
-//     })
-//   } catch (error) {
-//     console.error(error)
-//     res.status(500).json({ success: false, message: 'Internal Server Error' })
-//   }
-// })
+    // Obtener eventos futuros y pasados del usuario
+    const futureEvents = await Event.find({
+      owner: userId,
+      startDate: { $gte: today }
+    }).sort({ startDate: 1 })
+      .populate('owner', 'name lastName userAvatar description')
 
+    const pastEvents = await Event.find({
+      owner: userId,
+      startDate: { $lt: today }
+    }).sort({ startDate: -1 })
+      .populate('owner', 'name lastName userAvatar description')
+
+    // Obtener eventos donde el usuario es un attendee
+    const attendeeEvents = await Event.find({
+      attendees: userId
+    }).sort({ startDate: 1 }).populate('owner', 'name lastName userAvatar description')
+
+    res.status(200).json({ success: true, futureEvents, pastEvents, attendeeEvents })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Eliminar un evento por id
 eventsRouter.delete('/:id', auth, async (req, res) => {
   const { id } = req.params
 

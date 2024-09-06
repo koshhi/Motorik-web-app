@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken')
-const User = require('../models/User') // Asegúrate de tener el modelo User importado
+const User = require('../models/User')
 
 const auth = async (req, res, next) => {
   try {
     // Obtener el token de la cabecera Authorization
     const token = req.header('Authorization')?.replace('Bearer ', '')
-
+    console.log(token)
     // Si no hay token, retornamos un error
     if (!token) {
       return res.status(401).json({ success: false, message: 'Authentication required' })
@@ -13,7 +13,7 @@ const auth = async (req, res, next) => {
 
     // Verificar y decodificar el token usando la clave secreta
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    // console.log({ decoded })
+    console.log('Decoded token:', decoded)
 
     // Buscar al usuario en la base de datos por su ID
     const user = await User.findById(decoded.id)

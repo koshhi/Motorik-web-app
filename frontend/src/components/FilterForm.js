@@ -177,7 +177,7 @@ const FormContainer = styled.form`
   padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
   padding-bottom: 0px;
   width: 100%;
-  max-width: 1248px;
+  max-width: 1400px;
   gap: ${({ theme }) => theme.sizing.md};
 `;
 
@@ -233,7 +233,7 @@ const SecondaryFilters = styled.div`
 
 const Location = styled.button`
   background-color: ${({ theme }) => theme.fill.defaultMain};
-  color: ${({ theme }) => theme.colors.defaultMain};
+  color: ${({ theme }) => theme.colors.defaultWeak};
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: 'ss01' on;
   font-family: "Mona Sans", sans-serif;
@@ -241,9 +241,12 @@ const Location = styled.button`
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  padding: 12px;
+  padding: 0px 12px;
   height: 44px;
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
   &:hover {
     background-color: ${({ theme }) => theme.fill.defaultWeak};
@@ -268,8 +271,8 @@ const LocationDropdown = styled.div`
 
 
 const TimeFrame = styled.select`
-  background-color: #${({ theme }) => theme.fill.defaultMain};
-  color: #464646;
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  color: ${({ theme }) => theme.colors.defaultWeak};
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: 'ss01' on;
   font-family: "Mona Sans", sans-serif;
@@ -277,7 +280,7 @@ const TimeFrame = styled.select`
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  padding: 12px;
+  padding: 0px 12px;
   height: 44px;
   cursor: pointer;
 

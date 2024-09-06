@@ -172,7 +172,7 @@ usersRouter.post('/signup', async (req, res) => {
   }
 })
 
-// Obtener todos los usuarios con sus eventos
+// Obtener todos los usuarios con sus vehiculos
 usersRouter.get('/', async (req, res) => {
   try {
     const users = await User.find()
@@ -180,6 +180,25 @@ usersRouter.get('/', async (req, res) => {
     res.status(200).json({ success: true, users })
   } catch (error) {
     console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Profile del usurio logueado
+// Esta ruta debe ir antes del get usuario por su ID
+usersRouter.get('/profile', auth, async (req, res) => {
+  try {
+    console.log('User ID from token:', req.user.id)
+
+    const user = await User.findById(req.user.id).populate('vehicles')
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    res.status(200).json({ success: true, user })
+  } catch (error) {
+    console.error('Error retrieving profile:', error)
     res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })

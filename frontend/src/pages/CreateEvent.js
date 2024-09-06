@@ -110,7 +110,7 @@ export const Container = styled.nav`
     justify-content: space-between;
     align-items: center;
     padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
-    max-width: 1248px;
+    max-width: 1400px;
     width: 100%;
 `;
 

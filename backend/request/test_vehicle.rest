@@ -1,11 +1,11 @@
 ### Crear un Vehículo
 POST http://localhost:5002/api/vehicles
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDk1MDAzYTI0Zjc2ZGVmN2QxY2ZiMiIsInVzZXJuYW1lIjoidGVzdEBnbWFpbC5jb20iLCJpYXQiOjE3MjU1NTYxNzcsImV4cCI6MTcyNjE2MDk3N30.yYEyRhqPOEoySvaQStlNyOZRADCLnAeuwZ4eE0R9rpA
 Content-Type: application/json
 
 {
-  "brand": "Jonda",
-  "model": "CRF450R",
+  "brand": "Triumph",
+  "model": "Tiger",
   "nickname": "Mi Moto de Enduro"
 }
 
@@ -13,7 +13,7 @@ Content-Type: application/json
 
 ### Obtener Todos los Vehículos del Usuario
 GET http://localhost:5002/api/vehicles/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NTU1NjM1LCJleHAiOjE3MjYxNjA0MzV9.2w7KE4yhIUbH_ULmNIe1QrGjHXCOmx9ictO9S4VlcwU
 
 ###
 

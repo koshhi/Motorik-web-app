@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Input from '../components/Input/Input';
 import Button from '../components/Button/Button';
 
@@ -12,6 +13,7 @@ const Signup = () => {
   const [userAvatar, setUserAvatar] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
+  const { setUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -29,17 +31,27 @@ const Signup = () => {
         // Guardar token en localStorage
         localStorage.setItem('authToken', response.data.token)
 
+        // Obtener la información del usuario
+        const userResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/profile`, {
+          headers: {
+            Authorization: `Bearer ${response.data.token}`,
+          },
+        });
+
+        // Actualizar el estado del usuario en el contexto
+        setUser(userResponse.data.user);
+
         // Redirigir al home con mensaje de bienvenida
-        navigate('/', { state: { message: `Welcome, ${name}!` } })
+        navigate('/')
 
       } else {
         // Manejar error de signup
         setError('Signup failed. Username might be taken.')
-        navigate('/error', { state: { message: 'Signup failed. Please try again.' } });
+        navigate('/error');
       }
     } catch (error) {
       setError('An error occurred');
-      navigate('/error', { state: { message: 'An error occurred during signup. Please try again.' } }); // Redirige a página de error
+      navigate('/error');
     }
   }
 

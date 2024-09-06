@@ -28,25 +28,42 @@ const MainNavbar = () => {
 
   return (
     <Topbar>
-      <div className='container'>
-        <Link to="/" >
-          <img src='/motorik-logo.svg' alt="Motorik Logo" />
-        </Link>
-        {isAuthenticated ? (
+      {isAuthenticated ? (
+        <div className='container'>
+          <Link to="/" >
+            <img src='/motorik-logo.svg' alt="Motorik Logo" />
+          </Link>
+          <NavLinks>
+            <Link to="/" className='NavLink'>
+              <img src='/icons/find-plan.svg' alt="Encuentra Plan" /><p>Encuentra Plan</p>
+            </Link>
+            <Link to="/" className='NavLink'>
+              <img src='/icons/my-calendar.svg' alt="Mi Calendario" /><p>Calendario</p>
+            </Link>
+            <Link to="/my-events" className='NavLink'>
+              <img src='/icons/my-events.svg' alt="Mis Eventos" /><p>Mis Eventos</p>
+            </Link>
+            <Link to="/" className='NavLink'>
+              <img src='/icons/my-profile.svg' alt="Mi Perfil" /><p>Mi Perfil</p>
+            </Link>
+          </NavLinks>
           <ActionsContainer>
             <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Create event</Button>
             <Button size="small" variant="outlineInverse" onClick={handleLogout}>Logout</Button>
           </ActionsContainer>
-        ) : (
-          <>
-            <ActionsContainer>
-              <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Create event</Button>
-              <Link to="/login"><button className='button'>Login</button></Link>
-              <Link to="/signup"><button className='button'>Signup</button></Link>
-            </ActionsContainer>
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className='container'>
+          <Link to="/" >
+            <img src='/motorik-logo.svg' alt="Motorik Logo" />
+          </Link>
+          <ActionsContainer>
+            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Create event</Button>
+            <Link to="/login"><Button size="small" variant="outlineInverse">Entra</Button></Link>
+            <Link to="/signup"><Button size="small" variant="outlineInverse">Únete</Button></Link>
+          </ActionsContainer>
+        </div>
+      )}
     </Topbar>
   );
 };
@@ -71,12 +88,45 @@ export const Topbar = styled.header`
     flex-grow: 1;
     justify-content: space-between;
     padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
-    max-width: 1248px;
+    max-width: 1400px;
   }
+`;
+
+
+export const NavLinks = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+
+  .NavLink {
+    display: flex;
+    flex-direction: row;
+    padding: 6px 8px;
+    align-items: center;
+    gap: 8px;
+    border-radius: ${({ theme }) => theme.radius.xs};
+
+    &:hover {
+      background-color: ${({ theme }) => theme.fill.inverseWeak};
+    }
+
+    p {
+      color: ${({ theme }) => theme.colors.inverseMain};
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on, 'ss04' on;
+      font-family: "Mona Sans";
+      font-size: 15px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 140%; /* 21px */
+    }
+  }
+
 `;
 
 export const ActionsContainer = styled.div`
   display: flex;
   flex-direction: row;
-  column-gap: 8px;
+  gap: 8px;
 `;
