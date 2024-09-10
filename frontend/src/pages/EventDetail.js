@@ -14,7 +14,10 @@ const EventDetail = () => {
   const { user, loading } = useAuth();
   const [isOwner, setIsOwner] = useState(false);
 
-  console.log({ ParamsID: id });
+  const [showModal, setShowModal] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+
+  //console.log({ ParamsID: id });
 
   useEffect(() => {
     // Verificamos que el perfil del usuario haya cargado
@@ -42,35 +45,79 @@ const EventDetail = () => {
     }
   }, [id, user, loading]);
 
-  const handleEnroll = async () => {
+  // const handleEnroll = async () => {
+  //   try {
+  //     const token = localStorage.getItem('authToken');
+  //     console.log(token)
+  //     if (!token) {
+  //       alert('Debes estar autenticado para inscribirte en un evento');
+  //       return;
+  //     }
+
+  //     // Verificamos si el user está definido
+  //     if (!user || !user.id) {
+  //       alert('No se ha cargado el perfil del usuario correctamente.');
+  //       return;
+  //     }
+
+  //     // Verificamos si el usuario tiene vehículos
+  //     if (!user.vehicles || user.vehicles.length === 0) {
+  //       alert('No tienes vehículos registrados.');
+  //       return;
+  //     }
+
+  //     // Obtener el userId y vehicleId del usuario (puedes ajustar según cómo lo obtienes)
+  //     const userId = user.id;
+  //     const vehicleId = user.vehicles[0]._id; // Suponiendo que el primer vehículo es el que usaremos
+
+
+  //     await axios.post(
+  //       `${process.env.REACT_APP_API_URL}/api/events/enroll/${id}`,
+  //       { userId, vehicleId },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     // Después de una inscripción exitosa, obtener los detalles actualizados del evento
+  //     const updatedEventResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/events/${id}`);
+  //     setEvent(updatedEventResponse.data.event);
+
+  //     alert('Inscripción exitosa');
+  //   } catch (error) {
+  //     console.error('Error enrolling in event:', error);
+  //     alert('Hubo un error al inscribirse en el evento');
+  //   }
+  // }
+
+  const handleEnroll = () => {
+    if (!user || !user.vehicles || user.vehicles.length === 0) {
+      alert('No tienes vehículos registrados.');
+      return;
+    }
+
+    if (user.vehicles.length === 1) {
+      // Si solo tiene un vehículo, lo inscribimos directamente
+      enroll(user.vehicles[0]._id);
+    } else {
+      // Si tiene más de un vehículo, abrimos el modal
+      setShowModal(true);
+    }
+  };
+
+  const enroll = async (vehicleId) => {
     try {
       const token = localStorage.getItem('authToken');
-      console.log(token)
       if (!token) {
         alert('Debes estar autenticado para inscribirte en un evento');
         return;
       }
 
-      // Verificamos si el user está definido
-      if (!user || !user.id) {
-        alert('No se ha cargado el perfil del usuario correctamente.');
-        return;
-      }
-
-      // Verificamos si el usuario tiene vehículos
-      if (!user.vehicles || user.vehicles.length === 0) {
-        alert('No tienes vehículos registrados.');
-        return;
-      }
-
-      // Obtener el userId y vehicleId del usuario (puedes ajustar según cómo lo obtienes)
-      const userId = user.id;
-      const vehicleId = user.vehicles[0]._id; // Suponiendo que el primer vehículo es el que usaremos
-
-
       await axios.post(
         `${process.env.REACT_APP_API_URL}/api/events/enroll/${id}`,
-        { userId, vehicleId },
+        { userId: user.id, vehicleId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -78,7 +125,7 @@ const EventDetail = () => {
         }
       );
 
-      // Después de una inscripción exitosa, obtener los detalles actualizados del evento
+      // Actualizar el evento con los asistentes después de la inscripción
       const updatedEventResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/events/${id}`);
       setEvent(updatedEventResponse.data.event);
 
@@ -86,8 +133,13 @@ const EventDetail = () => {
     } catch (error) {
       console.error('Error enrolling in event:', error);
       alert('Hubo un error al inscribirse en el evento');
+    } finally {
+      setShowModal(false);
     }
-  }
+  };
+
+
+
 
   if (loading) return <p>Cargando...</p>;
   if (!event) return <p>Evento no encontrado</p>;
@@ -111,7 +163,7 @@ const EventDetail = () => {
               {isOwner ? (
                 <Button size="small" variant="outline" alt="Gestionar evento">Gestionar evento</Button>
               ) : (
-                <Button onClick={handleEnroll} size="small" variant="outline" alt="Inscríbete en el evento">Inscribirse</Button>
+                <Button onClick={handleEnroll} size="small" variant="outline" alt="Inscríbete en el evento">Inscríbete</Button>
               )}
             </div>
           </div>
@@ -191,7 +243,7 @@ const EventDetail = () => {
                   <li key={index} className='Attendee'>
                     <div className='Images'>
                       <img className='AttendeeImg' src={attendee.userId.userAvatar} alt="attendee avatar" />
-                      <img className='VehicleImg' src={attendee.userId.userAvatar} alt="attendee avatar" />
+                      <img className='VehicleImg' src={attendee.vehicleId.image} alt="attendee avatar" />
                     </div>
                     <div className='Info'>
                       <p className='AttendeeName'>
@@ -212,6 +264,36 @@ const EventDetail = () => {
             <p>From {event.startDate} to {event.endDate}</p>
           </EventSummary>
         </div>
+        {showModal && (
+          <div className='modalWrapper'>
+            <Modal onClose={() => setShowModal(false)}>
+              <div className='Heading'>
+                <h3>Indica que moto usaras:</h3>
+                <p>Al inscribir tu moto en el evento haces mas fácil que otras personas se inscriban en el evento.</p>
+              </div>
+              <ul className='VehicleList'>
+                {user.vehicles.map((vehicle) => (
+                  <li key={vehicle._id} className='Vehicle'>
+                    <div className='VehicleContent' onClick={() => enroll(vehicle._id)}>
+                      <img src={vehicle.image} className='VehicleImage' alt={vehicle.brand + vehicle.model} />
+                      <div className='VehicleData'>
+                        <p className='Brand'>{vehicle.brand} </p>
+                        <div className='Name'>
+                          <p className='Subtitle'>{vehicle.model}</p>
+                          {vehicle.nickname.length > 0 && (
+                            <p className='Subtitle'> - {vehicle.nickname}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <p className='Label'>Seleccionar</p>
+                  </li>
+                ))}
+              </ul>
+            </Modal>
+            <div className='modalOverlay'></div>
+          </div>
+        )}
       </EventBody>
       <EventFixedAction
         eventName={event.title}
@@ -334,6 +416,161 @@ const EventBody = styled.section`
     grid-row-gap: 0px;
     padding: 0px ${({ theme }) => theme.sizing.md};
 
+  }
+
+  .modalWrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .modalOverlay {
+      width: 100%;
+      height: 100%;
+      background: rgba(26, 26, 26, 0.90);
+      backdrop-filter: blur(12px);
+      position: absolute;
+    }
+  }
+`;
+
+const Modal = styled.div`
+  display: flex;
+  padding: var(--Spacing-md, 24px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--Spacing-md, 24px);
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  border-radius: 8px;
+  z-index: 1001;
+
+  .Heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${({ theme }) => theme.sizing.xs};
+
+    h3 {
+      color: ${({ theme }) => theme.colors.defaultStrong};
+      text-align: center;
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on, 'ss04' on;
+
+      /* Titles/Desktop/Title 5/Semibold */
+      font-family: "Mona Sans";
+      font-size: 18px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 140%; /* 25.2px */
+    }
+
+    p {
+      color: ${({ theme }) => theme.colors.defaultWeak}; 
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on;
+
+      /* Body/Body 1/Regular */
+      font-family: "Mona Sans";
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 150%; /* 24px */
+    }
+  }
+
+  .VehicleList {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    align-self: stretch;
+
+    .Vehicle {
+      border-radius: var(--Spacing-xs, 8px);
+      border: 1px solid ${({ theme }) => theme.border.defaultWeak}; 
+      background-color: ${({ theme }) => theme.fill.defaultMain}; 
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding-right: 16px;
+
+      &:hover {
+        border: 1px solid ${({ theme }) => theme.border.brandMain}; 
+        box-shadow: 0px 0px 0px 1px ${({ theme }) => theme.border.brandMain}; 
+      }
+
+      .Label {
+        color: ${({ theme }) => theme.colors.brandMain}; 
+        font-variant-numeric: lining-nums tabular-nums;
+        font-feature-settings: 'ss01' on;
+
+        /* Body/Body 2/Semibold */
+        font-family: "Mona Sans";
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 140%; /* 19.6px */
+      }
+
+      .VehicleContent {
+        display: flex;
+        padding: var(--Spacing-xs, 8px) var(--Spacing-sm, 16px) var(--Spacing-xs, 8px) var(--Spacing-xs, 8px);
+        align-items: center;
+        gap: 16px;
+        align-self: stretch;
+
+        .VehicleData {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+
+          .Brand {
+            color: var(--text-icon-default-main, #292929);
+            font-variant-numeric: lining-nums tabular-nums;
+            font-feature-settings: 'ss01' on;
+
+            /* Body/Body 2/Medium */
+            font-family: "Mona Sans";
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 140%; /* 19.6px */
+          }
+
+          .Name {
+            display: inline-flex;
+            gap: ${({ theme }) => theme.sizing.xxs}; 
+
+            .Subtitle {
+              color: var(--text-icon-default-main, #292929);
+              font-variant-numeric: lining-nums tabular-nums;
+              font-feature-settings: 'ss01' on;
+
+              /* Body/Body 1/Semibold */
+              font-family: "Mona Sans";
+              font-size: 16px;
+              font-style: normal;
+              font-weight: 600;
+              line-height: 150%; /* 24px */
+            }
+          }
+        }
+
+        .VehicleImage {
+          width: 80px;
+          height: 80px;
+          border-radius: var(--Spacing-xxs, 4px);
+        }
+      }
+    }
   }
 `;
 

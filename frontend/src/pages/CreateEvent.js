@@ -5,42 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import EventForm from '../components/EventForm';
 import Button from '../components/Button/Button';
 
-
-// const CreateEvent = () => {
-//   const navigate = useNavigate();
-//   const formRef = useRef(null);
-
-//   const handleDiscard = () => {
-//     navigate('/');
-//   };
-
-//   const handleCreateEvent = async () => {
-//     if (formRef.current) {
-//       const formData = await formRef.current.submitForm();
-//       console.log({ formData });
-
-//       if (!formData) return; // Detener si no se obtuvo formData
-
-//       try {
-//         const token = localStorage.getItem('authToken');
-
-//         const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         });
-
-//         if (response.data.success) {
-//           navigate('/');
-//         } else {
-//           console.error('Failed to create event');
-//         }
-//       } catch (error) {
-//         console.error('Error creating event:', error);
-//       }
-//     }
-//   };
-
 const CreateEvent = () => {
   const navigate = useNavigate();
   const eventFormRef = useRef();
@@ -79,7 +43,7 @@ const CreateEvent = () => {
     <>
       <Topbar>
         <Container>
-          <Heading>Crear Evento</Heading>
+          <Heading>Crea un evento</Heading>
           <Links>
             <Button size="default" variant="outline" onClick={handleDiscard}>Descartar</Button>
             <Button size="default" variant="default" onClick={handleCreateEvent}>Crear Evento</Button>
@@ -102,6 +66,10 @@ export const Topbar = styled.header`
   justify-content: center;
   border-bottom: 1px solid ${({ theme }) => theme.border.defaultWeak};
   background: ${({ theme }) => theme.fill.defaultSubtle};
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
 `;
 
 export const Container = styled.nav`
@@ -115,9 +83,16 @@ export const Container = styled.nav`
 `;
 
 export const Heading = styled.h1`
-    font-size: 20px;
-    line-height: 100%;
-    margin: unset;
+  color: ${({ theme }) => theme.colors.defaultStrong};
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'ss01' on;
+
+  /* Titles/Desktop/Title 4/Semibold */
+  font-family: "Mona Sans";
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%; /* 28px */
 `;
 
 export const Links = styled.div`

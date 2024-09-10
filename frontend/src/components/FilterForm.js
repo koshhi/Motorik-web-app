@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import styled from 'styled-components';
-import Input from "../components/Input/Input"
+import InputText from "./Input/InputText"
 import EventTypeTab from './Tab/EventTypeTab';
 import { getEventTypeSvgIcon } from '../utils';
 import { theme } from '../theme';
@@ -88,7 +88,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                   onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
                   onPlaceChanged={handlePlaceSelect}
                 >
-                  <Input
+                  <InputText
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
@@ -97,7 +97,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                 </Autocomplete>
 
                 <label>Radio (km):</label>
-                <Input
+                <InputText
                   type="number"
                   value={filters.radius}
                   onChange={(e) => handleFilterChange('radius', e.target.value)}
@@ -225,7 +225,7 @@ const SecondaryFilters = styled.div`
   //   justify-content: flex-start;
   //   gap: ${({ theme }) => theme.sizing.xs};
 
-  //   input {
+  //   InputText {
   //     margin: 0px;
   //   }
   // }

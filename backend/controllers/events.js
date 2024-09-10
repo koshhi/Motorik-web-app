@@ -307,7 +307,7 @@ eventsRouter.get('/:id', async (req, res) => {
     const event = await Event.findById(id)
       .populate('owner', 'name lastName userAvatar description')
       .populate('attendees.userId', 'name lastName userAvatar')
-      .populate('attendees.vehicleId', 'brand model nickname')
+      .populate('attendees.vehicleId', 'brand model nickname image')
 
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' })

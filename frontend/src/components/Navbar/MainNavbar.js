@@ -43,12 +43,12 @@ const MainNavbar = () => {
             <Link to="/my-events" className='NavLink'>
               <img src='/icons/my-events.svg' alt="Mis Eventos" /><p>Mis Eventos</p>
             </Link>
-            <Link to="/" className='NavLink'>
+            <Link to="/my-profile" className='NavLink'>
               <img src='/icons/my-profile.svg' alt="Mi Perfil" /><p>Mi Perfil</p>
             </Link>
           </NavLinks>
           <ActionsContainer>
-            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Create event</Button>
+            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
             <Button size="small" variant="outlineInverse" onClick={handleLogout}>Logout</Button>
           </ActionsContainer>
         </div>
@@ -58,7 +58,7 @@ const MainNavbar = () => {
             <img src='/motorik-logo.svg' alt="Motorik Logo" />
           </Link>
           <ActionsContainer>
-            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Create event</Button>
+            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
             <Link to="/login"><Button size="small" variant="outlineInverse">Entra</Button></Link>
             <Link to="/signup"><Button size="small" variant="outlineInverse">Únete</Button></Link>
           </ActionsContainer>
