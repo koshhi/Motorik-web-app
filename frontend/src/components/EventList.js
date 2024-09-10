@@ -234,7 +234,7 @@ const EventList = () => {
     typology: '',
     timeFilter: 'flexible',
     location: JSON.parse(localStorage.getItem('location')) || { lat: 40.4168, lng: -3.7038 }, // Valores por defecto para Madrid
-    radius: 300,
+    radius: 1000,
     terrain: '',
     experience: '',
     ticketType: ''
@@ -450,12 +450,12 @@ export default EventList;
 
 const EventsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  gap: ${({ theme }) => theme.sizing.md};
   grid-auto-flow: row;
-  padding: 24px;
-  max-width: 1248px;
+  padding: ${({ theme }) => theme.sizing.md};
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 

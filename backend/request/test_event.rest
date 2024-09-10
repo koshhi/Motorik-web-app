@@ -36,13 +36,20 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5M
 ###
 
 ### Obtener un Evento por su ID
-GET http://localhost:5002/api/events/66d58ae63331fc4ec260475a
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxODM4LCJleHAiOjE3MjU1MzY2Mzh9.2yK4JtX5WTcx0R2MMXXk4XoPmtA23gBdpPW9zdOMEmE
+GET http://localhost:5002/api/events/66dadc873ce148a852992acc
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDk1MDAzYTI0Zjc2ZGVmN2QxY2ZiMiIsInVzZXJuYW1lIjoidGVzdEBnbWFpbC5jb20iLCJpYXQiOjE3MjU1Njc1NTEsImV4cCI6MTcyNjE3MjM1MX0.lAtLzf2lpLv5H3diSG-gV3vJZ2CkiSiMbdAwVu7r4CA
 
 ###
 
 ### Eliminar un Evento 
 DELETE http://localhost:5002/api/events/66d0a1cc015474f45fc43319
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA5NzJhMTI1NDdlMDZjMjFjZDQzNyIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTUyMjQzLCJleHAiOjE3MjU1NTcwNDN9.gUOZNEz6DbF0W-wIHKnhJ4UH1mPgpuurOz_pJtDeZUc
+
+###
+
+### Test de MyEvents (obtener eventos futuros y pasados del usuario autenticado)
+GET http://localhost:5002/api/events/user/myevents
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1Mzc4NTM0LCJleHAiOjE3MjU5ODMzMzR9.U4cPrjC0kboeurZ_7cGHThIkKtWF-alt6SsPTaJh4_8
+Content-Type: application/json
 
 

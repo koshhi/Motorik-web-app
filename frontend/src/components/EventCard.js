@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
 import { getEventTypeIcon } from '../utils'
+import Button from './Button/Button';
 
 const EventCard = ({ event }) => {
 
@@ -47,6 +48,16 @@ const EventCard = ({ event }) => {
             <div><ReactSVG src="/icons/calendar.svg" />{event.longDate}</div>
             <div><ReactSVG src="/icons/map-location.svg" />{event.shortLocation}</div>
             <div><ReactSVG src="/icons/attendees.svg" />{event.attendeesCount} asistentes</div>
+          </div>
+          <div className='tertiaryInfo'>
+            <div className='EventOrganizer'>
+              <img className="UserAvatar" src={event.owner.userAvatar} alt="Event organizer" />
+              <div className='UserData'>
+                <p className='label'>Organizado por</p>
+                <p className='username'>{event.owner.name} {event.owner.lastName}</p>
+              </div>
+            </div>
+            <p className='EventPrice'>{event.ticket.price === 0 ? 'Gratis' : `$${event.ticket.price}`}</p>
           </div>
         </Bottom>
       </Event>
@@ -95,6 +106,7 @@ const Top = styled.div`
       width: 100%;
       height: 100%;
       object-fit: cover;
+      aspect-ratio: 4 / 3;
     }
 
     .placeholderImage {
@@ -149,7 +161,7 @@ const Bottom = styled.div`
   flex-direction: column;
   align-self: stretch;
   gap: var(--Spacing-sm, 16px);
-  border-radius: 24px 24px 0px 0px;
+  border-radius: ${({ theme }) => theme.sizing.sm};
   background: var(--bg-default-main, #FFF);
   box-shadow: 0px -8px 12px 0px rgba(0, 0, 0, 0.16);    margin-top: -24px;
   z-index: 1;
@@ -238,6 +250,71 @@ const Bottom = styled.div`
       font-style: normal;
       font-weight: 500;
       line-height: 100%;
+    }
+  }
+  
+  .tertiaryInfo {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    .EventOrganizer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: ${({ theme }) => theme.sizing.xs};
+
+      .UserAvatar {
+        border-radius: ${({ theme }) => theme.sizing.xs};
+        height: 40px;
+        width: 40px;
+      }
+
+      .UserData{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: ${({ theme }) => theme.sizing.xxs};;
+
+        .label {
+          color: ${({ theme }) => theme.colors.defaultWeak};
+          font-variant-numeric: lining-nums tabular-nums;
+          font-feature-settings: 'ss01' on;
+          margin: 0px;
+          // font-family: "Mona Sans";
+          font-size: 12px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 100%%;
+        }
+          
+        .username {
+          color: ${({ theme }) => theme.colors.defaultMain};
+          font-variant-numeric: lining-nums tabular-nums;
+          font-feature-settings: 'ss01' on;
+          margin: 0px;
+          // font-family: "Mona Sans";
+          font-size: 14px;
+          font-style: normal;
+          font-weight: 600;
+          line-height: 100%;
+        }
+      }
+    }
+
+    .EventPrice {
+      color: ${({ theme }) => theme.colors.defaultStrong};
+      text-align: right;
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on;
+
+      /* Titles/Desktop/Title 4/Semibold */
+      font-family: "Mona Sans";
+      font-size: 20px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 140%; /* 28px */
     }
   }
 `;

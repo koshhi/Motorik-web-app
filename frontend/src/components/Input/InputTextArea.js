@@ -63,7 +63,7 @@ const variantStyles = css`
 `;
 
 // Input estilizado
-const Input = styled.input`
+const InputTextArea = styled.textarea`
   width: 100%;
   border: 1px solid;
   border-radius: ${({ theme }) => theme.radius.xs};
@@ -72,7 +72,7 @@ const Input = styled.input`
   font-family: "Mona Sans";
   font-style: normal;
   font-weight: 400;
-  line-height: 100%;
+  line-height: 140%%;
   
   ${sizeStyles} /* Aplicar los estilos basados en el tamaño */
   ${variantStyles} /* Aplicar los estilos basados en la variante */
@@ -83,4 +83,4 @@ const Input = styled.input`
   }
 `;
 
-export default Input;
+export default InputTextArea;

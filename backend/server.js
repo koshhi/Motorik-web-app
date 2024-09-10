@@ -13,7 +13,7 @@ app.use(cors())
 app.use(express.json())
 
 // Rutas
-app.use('/api/users', usersRouter) // maneja /api/users/signup
+app.use('/api/users', usersRouter)
 app.use('/api/login', usersRouter)
 app.use('/api/events', eventsRouter)
 app.use('/api/vehicles', vehiclesRouter)

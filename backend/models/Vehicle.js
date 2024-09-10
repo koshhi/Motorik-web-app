@@ -5,6 +5,7 @@ const vehicleSchema = new Schema({
   brand: { type: String, required: true },
   model: { type: String, required: true },
   nickname: { type: String },
+  image: { type: String },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

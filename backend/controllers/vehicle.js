@@ -74,7 +74,7 @@ vehiclesRouter.get('/:id', auth, async (req, res) => {
 // Actualizar un vehículo
 vehiclesRouter.put('/:id', auth, async (req, res) => {
   const { id } = req.params
-  const { brand, model, nickname } = req.body
+  const { brand, model, nickname, image } = req.body
 
   try {
     const vehicle = await Vehicle.findById(id)
@@ -90,6 +90,7 @@ vehiclesRouter.put('/:id', auth, async (req, res) => {
     vehicle.brand = brand
     vehicle.model = model
     vehicle.nickname = nickname
+    vehicle.image = image
 
     const updatedVehicle = await vehicle.save()
 

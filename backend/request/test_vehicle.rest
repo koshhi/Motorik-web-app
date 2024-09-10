@@ -1,19 +1,20 @@
 ### Crear un Vehículo
 POST http://localhost:5002/api/vehicles
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NjQ2NTU5LCJleHAiOjE3MjYyNTEzNTl9.yxgFLST1qbjaoZ7QAZ0t6KCKONNnuVeFle7FJP-8-08
 Content-Type: application/json
 
 {
-  "brand": "Jonda",
-  "model": "CRF450R",
-  "nickname": "Mi Moto de Enduro"
+  "brand": "Triumph",
+  "model": "Tiger Sport 600",
+  "nickname": "Mi Moto de carretera",
+  "image": "https://media.triumphmotorcycles.co.uk/image/upload/f_auto/q_auto/sitecoremedialibrary/media-library/images/motorcycles/adventure-touring/my22/ll1%20tiger%20sport%20660/family/tiger-660-family-multi-small-v3-630x788.jpg"
 }
 
 ###
 
 ### Obtener Todos los Vehículos del Usuario
 GET http://localhost:5002/api/vehicles/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NjQ2NTU5LCJleHAiOjE3MjYyNTEzNTl9.yxgFLST1qbjaoZ7QAZ0t6KCKONNnuVeFle7FJP-8-08
 
 ###
 
@@ -24,14 +25,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5M
 ###
 
 ### Actualizar un Vehículo
-PUT http://localhost:5002/api/vehicles/66d05cff1ddb3bff4c6f32ee
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5MWZmNjI3MzkyZDI5NWU1ZCIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI0OTMxMDUyLCJleHAiOjE3MjU1MzU4NTJ9.vRWpg9VzLE-vPBwkNdgke9EWJf_Y-NxNRn6rVFznkJM
+PUT http://localhost:5002/api/vehicles/66d9e3c49309e6998c7efa07
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NjQ2NTU5LCJleHAiOjE3MjYyNTEzNTl9.yxgFLST1qbjaoZ7QAZ0t6KCKONNnuVeFle7FJP-8-08
 Content-Type: application/json
 
 {
   "brand": "Yamaha",
   "model": "YZ450F",
-  "nickname": "Actualizado"
+  "nickname": "Actualizado",
+  "image": "https://dirtbikemagazine.com/wp-content/uploads/2022/01/Eli-Tomac-Yamaha-YZ450F-3-scaled.jpg"
 }
 
 ###

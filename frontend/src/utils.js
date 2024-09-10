@@ -24,7 +24,7 @@ export const getEventTypeIcon = (eventType) => {
   }
 }
 
-export const getEventTypeSvgIcon = (eventType, color = "#989898") => {
+export const getEventTypeSvgIcon = (eventType, color) => {
   switch (eventType) {
     case 'Race':
       return (
@@ -64,7 +64,7 @@ export const getEventTypeSvgIcon = (eventType, color = "#989898") => {
       return (
         <svg width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M11.5 18H8.5L4.5 28H28.5L24.5 18H21.5" stroke={color} strokeWidth="2" />
-          <path d="M11.4032 23.468C10.564 22.6744 10.6288 21.4204 10.8793 20.2929L14.5 4C14.5 4 15.3954 3 16.5 3C17.6046 3 18.5 4 18.5 4L22.1207 20.2929C22.3712 21.4204 22.436 22.6744 21.5968 23.468C20.7925 24.2285 19.2892 25 16.5 25C13.7108 25 12.2075 24.2285 11.4032 23.468Z" stroke="#989898" strokeWidth="2" />
+          <path d="M11.4032 23.468C10.564 22.6744 10.6288 21.4204 10.8793 20.2929L14.5 4C14.5 4 15.3954 3 16.5 3C17.6046 3 18.5 4 18.5 4L22.1207 20.2929C22.3712 21.4204 22.436 22.6744 21.5968 23.468C20.7925 24.2285 19.2892 25 16.5 25C13.7108 25 12.2075 24.2285 11.4032 23.468Z" stroke={color} strokeWidth="2" />
           <path d="M12 16.375C12 16.375 12.375 18.625 16.5 18.625C20.625 18.625 21 16.375 21 16.375" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M13.25 9.6875C13.25 9.6875 13.5208 11.3125 16.5 11.3125C19.4792 11.3125 19.75 9.6875 19.75 9.6875" stroke={color} strokeWidth="1.85714" />
         </svg>
@@ -120,6 +120,121 @@ export const getEventTypeSvgIcon = (eventType, color = "#989898") => {
           <rect x="23" y="3" width="6" height="6" rx="3" stroke={color} strokeWidth="2" />
           <path d="M8.5 26H25C27.7614 26 30 23.7614 30 21V21C30 18.2386 27.7614 16 25 16H7C4.23858 16 2 13.7614 2 11V11C2 8.23858 4.23858 6 7 6H18.5" stroke={color} strokeWidth="2" />
           <path d="M15 10L19 6L15 2" stroke={color} strokeWidth="2" />
+        </svg>
+      );
+  }
+}
+
+export const getEventTerrainSvgIcon = (terrain, color) => {
+  switch (terrain) {
+    case 'Road':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 29C3 19 3 13 10 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M29 29C22 21 20 14 23.5 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M15.6869 29C11 20 12.3131 14 17 3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" />
+          <path d="M27 15.5C28.1046 15.5 29 14.6046 29 13.5C29 12.3954 28 8 27 8C25.8954 8 25 12.3954 25 13.5C25 14.6046 25.8954 15.5 27 15.5ZM27 15.5V18" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case 'Offroad':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 29C3 19 3 13 10 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M29 29C22 21 20 14 23.5 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M10 12.01L10.01 11.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M7 24.01L7.01 23.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 20.01L10.01 19.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 28.01L10.01 27.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M7 16.01L7.01 15.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13 8.01001L13.01 7.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13 24.01L13.01 23.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 20.01L16.01 19.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 12.01L16.01 11.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 4.01L16.01 3.99889" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 28.01L16.01 27.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13 16.01L13.01 15.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 8.01L19.01 7.99889" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 24.01L19.01 23.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 16.01L19.01 15.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M22 28.01L22.01 27.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M27 15.5C28.1046 15.5 29 14.6046 29 13.5C29 12.3954 28 8 27 8C25.8954 8 25 12.3954 25 13.5C25 14.6046 25.8954 15.5 27 15.5ZM27 15.5V18" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+
+    case 'Mixed':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 29C3 19 3 13 10 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M10 12.01L10.01 11.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M7 16.01L7.01 15.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M13 8.01001L13.01 7.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 12.01L16.01 11.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 4.01L16.01 3.99889" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 8.01L19.01 7.99889" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 16.01L19.01 15.9989" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M29 29C22 21 20 14 23.5 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M15.6869 29C13.4904 24.7823 12.8313 19.2234 13 15.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" />
+          <path d="M27 15.5C28.1046 15.5 29 14.6046 29 13.5C29 12.3954 28 8 27 8C25.8954 8 25 12.3954 25 13.5C25 14.6046 25.8954 15.5 27 15.5ZM27 15.5V18" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+
+    // Repite para las otras categorías
+    default:
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 29C3 19 3 13 10 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M29 29C22 21 20 14 23.5 3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M15.6869 29C11 20 12.3131 14 17 3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" />
+          <path d="M27 15.5C28.1046 15.5 29 14.6046 29 13.5C29 12.3954 28 8 27 8C25.8954 8 25 12.3954 25 13.5C25 14.6046 25.8954 15.5 27 15.5ZM27 15.5V18" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+  }
+}
+
+export const getEventExperienceSvgIcon = (experience, color) => {
+  switch (experience) {
+    case 'None':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="17" width="6" height="11" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="13" y="12" width="6" height="16" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="23" y="4" width="6" height="24" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'Beginner':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="17" width="6" height="11" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="13" y="12" width="6" height="16" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="23" y="4" width="6" height="24" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+
+    case 'Intermediate':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="17" width="6" height="11" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="13" y="12" width="6" height="16" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="23" y="4" width="6" height="24" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+
+    case 'Advanced':
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="17" width="6" height="11" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="13" y="12" width="6" height="16" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="23" y="4" width="6" height="24" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+
+    // Repite para las otras categorías
+    default:
+      return (
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="17" width="6" height="11" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="13" y="12" width="6" height="16" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="23" y="4" width="6" height="24" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
   }

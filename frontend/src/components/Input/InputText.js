@@ -63,7 +63,7 @@ const variantStyles = css`
 `;
 
 // Input estilizado
-const Select = styled.select`
+const InputText = styled.input`
   width: 100%;
   border: 1px solid;
   border-radius: ${({ theme }) => theme.radius.xs};
@@ -83,4 +83,4 @@ const Select = styled.select`
   }
 `;
 
-export default Select;
+export default InputText;

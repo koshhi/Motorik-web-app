@@ -43,7 +43,7 @@ const EventFixedBar = styled.div`
 
   .Container {
     width: 100%;
-    max-width: 1248px;
+    max-width: 1400px;
     display: flex;
     padding: 24px 24px;
     align-items: center;
