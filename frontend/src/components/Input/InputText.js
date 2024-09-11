@@ -37,9 +37,9 @@ const variantStyles = css`
         `;
       case 'error':
         return css`
-          background-color: ${theme.fill.errorBackground};
-          border-color: ${theme.border.errorMain};
-          color: ${theme.colors.errorMain};
+          background-color: ${theme.fill.errorBackground} !important;
+          border-color: ${theme.border.errorMain} !important;
+          color: ${theme.colors.errorMain} !important;
         `;
       default:
         return css`

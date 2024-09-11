@@ -44,6 +44,14 @@ const EventForm = forwardRef((props, ref) => {
   const [activeModal, setActiveModal] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    title: '',
+    startDate: '',
+    endDate: '',
+    location: '',
+    image: '',
+    description: ''
+  });
 
 
 
@@ -51,6 +59,34 @@ const EventForm = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
       setLoading(true);
+      const newErrors = {};
+
+      // Validaciones de campos
+      if (!title.trim()) {
+        newErrors.title = 'El título es obligatorio';
+      }
+      if (!startDate) {
+        newErrors.startDate = 'La fecha de inicio es obligatoria';
+      }
+      if (!endDate) {
+        newErrors.endDate = 'La fecha de fin es obligatoria';
+      }
+      if (!location.trim()) {
+        newErrors.location = 'La localización es obligatoria';
+      }
+      if (!image.trim()) {
+        newErrors.image = 'La imagen es obligatoria';
+      }
+      if (!description.trim()) {
+        newErrors.description = 'La descripción es obligatoria';
+      }
+
+      // Si hay errores, actualizamos el estado y detenemos el envío
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setLoading(false);
+        return;
+      }
 
       if (!coordinates.lat || !coordinates.lng) {
         setError('No se encontraron coordenadas para la ubicación. Por favor selecciona una ubicación válida.');
@@ -149,7 +185,19 @@ const EventForm = forwardRef((props, ref) => {
       <Header>
         <Container>
           <div className='HeaderWrapper'>
-            <InputText className='EventTitle' value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Introduce el título del evento..." required />
+            <div className='TitleInputBlock'>
+              <InputText className='EventTitle'
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title) setErrors({ ...errors, title: '' });
+                }}
+                placeholder="Introduce el título del evento..."
+                variant={errors.title ? 'error' : ''}
+                required
+              />
+              {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
+            </div>
             {user && (
               <div className='EventOrganizer'>
                 <img className="UserAvatar" src={user.userAvatar} alt="User Avatar" />
@@ -175,11 +223,38 @@ const EventForm = forwardRef((props, ref) => {
                   </div>
                 )}
               </div>
-              <InputText size="medium" type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL" required />
+              <div className='ImageInputBlock'>
+                <InputText
+                  size="medium"
+                  type="text"
+                  value={image}
+                  onChange={(e) => {
+                    setImage(e.target.value);
+                    if (errors.image) setErrors({ ...errors, image: '' });
+                  }}
+                  placeholder="Image URL"
+                  variant={errors.image ? 'error' : ''}
+                  required
+                />
+                {errors.image && <ErrorMessage>{errors.image}</ErrorMessage>}
+              </div>
             </Image>
             <Description>
               <label>Detalles</label>
-              <InputTextArea size="large" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Añade detalles a tu evento para que otros usuario puedan saber que de tratará tu evento..." required />
+              <div className='DescriptionInputBlock'>
+                <InputTextArea
+                  size="large"
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (errors.description) setErrors({ ...errors, description: '' });
+                  }}
+                  placeholder="Añade detalles a tu evento para que otros usuario puedan saber que de tratará tu evento..."
+                  variant={errors.description ? 'error' : ''}
+                  required
+                />
+                {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
+              </div>
             </Description>
           </div>
           <div className="Settings">
@@ -188,31 +263,66 @@ const EventForm = forwardRef((props, ref) => {
               <div className='DateInputTexts'>
                 <div className='Row'>
                   <label>Inicio</label>
-                  <InputText size="medium" type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} placeholder="Start Date" required />
+                  <div className='DateInputBlock'>
+                    <InputText
+                      size="medium"
+                      type="datetime-local"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (errors.startDate) setErrors({ ...errors, startDate: '' });
+                      }}
+                      placeholder="Start Date"
+                      variant={errors.startDate ? 'error' : ''}
+                      required
+                    />
+                    {errors.startDate && <ErrorMessage>{errors.startDate}</ErrorMessage>}
+                  </div>
                 </div>
                 <div className='Row'>
                   <label>Fin</label>
-                  <InputText size="medium" type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="End Date" required />
+                  <div className='DateInputBlock'>
+                    <InputText
+                      size="medium"
+                      type="datetime-local"
+                      value={endDate}
+                      onChange={(e) => {
+                        setEndDate(e.target.value);
+                        if (errors.endDate) setErrors({ ...errors, endDate: '' });
+                      }}
+                      placeholder="End Date"
+                      variant={errors.endDate ? 'error' : ''}
+                      required
+                    />
+                    {errors.endDate && <ErrorMessage>{errors.endDate}</ErrorMessage>}
+                  </div>
                 </div>
               </div>
             </div>
             <div className="Location">
               <div className='Heading'><img src="/icons/location.svg" alt="Fecha" />Localización</div>
               <div className='SearchLocation'>
-                <img src="/icons/search.svg" alt="search by location" />
-                <Autocomplete
-                  onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                  onPlaceChanged={onPlaceChanged}
-                >
-                  <InputText
-                    size="large"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Introduce localización del evento"
-                    required
-                  />
-                </Autocomplete>
+                <div className='LocationInputBlock'>
+                  <img src="/icons/search.svg" alt="search by location" />
+                  <Autocomplete
+                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                    onPlaceChanged={onPlaceChanged}
+                  >
+                    <InputText
+                      size="large"
+                      type="text"
+                      value={location}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        if (errors.location) setErrors({ ...errors, location: '' });
+                      }}
+                      placeholder="Introduce localización del evento"
+                      variant={errors.location ? 'error' : ''}
+                      required
+                    />
+                  </Autocomplete>
+                  {errors.location && <ErrorMessage>{errors.location}</ErrorMessage>}
+                </div>
               </div>
             </div>
             <Options>
@@ -375,6 +485,14 @@ const Image = styled.div`
     width: 50px;
     height: 50px;
   }
+
+  .ImageInputBlock {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 `;
 
 const Description = styled.div`
@@ -382,6 +500,14 @@ const Description = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  .DescriptionInputBlock {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
   
   textarea {
     min-height: 120px;
@@ -429,16 +555,21 @@ const Header = styled.div`
     width: 100%;
     gap: ${({ theme }) => theme.sizing.xs};
 
-    Input {
-
+    .TitleInputBlock {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      width: 100%;
     }
   }
 
   .EventTitle {
     width: 100%;
     padding: 0px;
-    border-radius: 0px;
-    border: none;
+    border-radius: ${({ theme }) => theme.radius.xs};
+    border: 1px solid transparent;
     background: none;
     font-variant-numeric: lining-nums tabular-nums;
     font-feature-settings: 'ss01' on;
@@ -577,6 +708,14 @@ const FormWrapper = styled.div`
             align-items: center;
             gap: 16px;
             width: 100%;
+      
+            .DateInputBlock {
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 4px;
+            }
 
             label {
               width: 64px;
@@ -590,18 +729,33 @@ const FormWrapper = styled.div`
         border-top: none;
 
         .SearchLocation {
-          position: relative;
 
-          img {
-            position: absolute;
-            left: 16px;
-            top: 16px;
-          }
+          .LocationInputBlock {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
           
-          input {
-            padding-left: 44px;
-            background: var(--bg-default-subtle, #FAFAFA);
-        }
+
+            img {
+              position: absolute;
+              left: 16px;
+              top: 16px;
+            }
+
+            div {
+              width: 100%;
+            }
+          
+            input {
+              padding-left: 44px;
+              background: var(--bg-default-subtle, #FAFAFA);
+            }
+          }
+
+
       }
     }
   }
@@ -684,4 +838,15 @@ const Option = styled.div`
     border: 0;
     background-color: unset;
   }
+`;
+
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.errorMain};
+  font-variant-numeric: lining-nums tabular-nums;
+  /* Body 2/Medium */
+  font-family: "Satoshi Variable";
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;         
 `;
