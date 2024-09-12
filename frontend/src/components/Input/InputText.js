@@ -37,9 +37,9 @@ const variantStyles = css`
         `;
       case 'error':
         return css`
-          background-color: ${theme.fill.errorBackground};
-          border-color: ${theme.border.errorMain};
-          color: ${theme.colors.errorMain};
+          background-color: ${theme.fill.errorBackground} !important;
+          border-color: ${theme.border.errorMain} !important;
+          color: ${theme.colors.errorMain} !important;
         `;
       default:
         return css`
@@ -73,6 +73,8 @@ const InputText = styled.input`
   font-style: normal;
   font-weight: 400;
   line-height: 100%;
+  transition: all 0.3s;
+
   
   ${sizeStyles} /* Aplicar los estilos basados en el tamaño */
   ${variantStyles} /* Aplicar los estilos basados en la variante */

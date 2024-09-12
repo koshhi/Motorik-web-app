@@ -1,4 +1,5 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
+// import axios from 'axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
@@ -18,20 +19,20 @@ const libraries = ['places'];
 
 const EventForm = forwardRef((props, ref) => {
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY, // Clave de API de Google
-    libraries, // Incluye la biblioteca de Places
-    version: 'weekly', // Versión de la API de Google Maps (puedes cambiarla a una versión fija)
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries,
+    version: 'weekly',
   });
 
   const { user } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const autocompleteRef = React.useRef(null);
   const [title, setTitle] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
-  const [image, setImage] = useState('');
+  const [file, setFile] = useState(null); // Para manejar la imagen
   const [description, setDescription] = useState('');
   const [eventType, setEventType] = useState('Meetup');
   const [terrain, setTerrain] = useState('offroad');
@@ -44,65 +45,23 @@ const EventForm = forwardRef((props, ref) => {
   const [activeModal, setActiveModal] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-
-
-
-  useImperativeHandle(ref, () => ({
-    submitForm: async () => {
-      setLoading(true);
-
-      if (!coordinates.lat || !coordinates.lng) {
-        setError('No se encontraron coordenadas para la ubicación. Por favor selecciona una ubicación válida.');
-        setLoading(false);
-        return;
-      }
-
-      const formData = {
-        title,
-        startDate,
-        endDate,
-        location,
-        shortLocation,
-        locationCoordinates: {
-          type: 'Point',
-          coordinates: [coordinates.lng, coordinates.lat],
-        },
-        image,
-        description,
-        eventType,
-        terrain,
-        experience,
-        ticket: {
-          type: ticketType,
-          price: ticketType === 'paid' ? ticketPrice : 0,
-        },
-        capacity,
-      };
-
-      console.log({ formData }); // Debugging: Verifica el contenido de formData
-
-      try {
-        const authToken = localStorage.getItem('authToken');
-        console.log(authToken)
-
-        if (!authToken) {
-          return navigate('/login', { state: { message: 'You need to login to create an event.' } });
-        }
-        return formData; // Retorna el formData para que sea manejado en el componente padre
-      } catch (error) {
-        console.error('Error creating event:', error);
-        setError('An error occurred while creating the event.');
-        setLoading(false);
-      }
-    },
-  }));
+  const [errors, setErrors] = useState({
+    title: '',
+    startDate: '',
+    endDate: '',
+    location: '',
+    file: '',
+    description: ''
+  });
 
   const onPlaceChanged = () => {
     const place = autocompleteRef.current.getPlace();
+
     if (place && place.geometry) {
-      const formattedAddress = place.formatted_address;
-      setLocation(formattedAddress);
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+
+      setLocation(place.formatted_address);
 
       const addressComponents = place.address_components;
       let locality = '';
@@ -127,12 +86,122 @@ const EventForm = forwardRef((props, ref) => {
 
       setShortLocation(shortLocation);
 
-      setCoordinates({
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      });
+      // Verifica si las coordenadas son válidas y asegúrate de que se envíen correctamente
+      if (lat && lng) {
+        setCoordinates({ lat, lng });
+        console.log("Coordinates set:", { lat, lng });
+      } else {
+        setError('Las coordenadas de la ubicación no se han obtenido correctamente.');
+      }
+    } else {
+      setError('No se pudieron obtener las coordenadas. Intenta de nuevo.');
     }
   };
+  useImperativeHandle(ref, () => ({
+    getFormData: async () => {
+      setLoading(true);
+      const newErrors = {};
+
+      // Validaciones de campos
+      if (!title.trim()) newErrors.title = 'El título es obligatorio';
+      if (!startDate) newErrors.startDate = 'La fecha de inicio es obligatoria';
+      if (!endDate) newErrors.endDate = 'La fecha de fin es obligatoria';
+      if (!location.trim()) newErrors.location = 'La localización es obligatoria';
+      if (!description.trim()) newErrors.description = 'La descripción es obligatoria';
+      if (!file) newErrors.file = 'La imagen es obligatoria';
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setLoading(false);
+        return;
+      }
+
+      // Validar coordenadas
+      if (!coordinates.lat || !coordinates.lng) {
+        setError('Las coordenadas de la ubicación no son válidas.');
+        return null;
+      }
+
+      const formData = new FormData();
+      formData.append('locationCoordinates', JSON.stringify({
+        type: 'Point',
+        coordinates: [coordinates.lng, coordinates.lat]  // Orden correcto: lng, lat
+      }));
+      formData.append('title', title);
+      formData.append('startDate', startDate);
+      formData.append('endDate', endDate);
+      formData.append('location', location);
+      formData.append('shortLocation', shortLocation);
+      formData.append('description', description);
+      formData.append('eventType', eventType);
+      formData.append('terrain', terrain);
+      formData.append('experience', experience);
+      // formData.append('ticket', JSON.stringify({ type: ticketType, price: ticketType === 'paid' ? ticketPrice : 0 }));
+      // Cambiar la manera en que se pasa el ticket
+      formData.append('ticketType', ticketType);
+      formData.append('ticketPrice', ticketType === 'paid' ? ticketPrice : 0);
+      formData.append('capacity', capacity);
+
+      if (file) formData.append('image', file); // Añadir imagen si existe
+
+      return formData
+    }
+  }));
+
+  // const onPlaceChanged = () => {
+  //   const place = autocompleteRef.current.getPlace();
+  //   if (place && place.geometry) {
+  //     const formattedAddress = place.formatted_address;
+  //     setLocation(formattedAddress);
+
+  //     const addressComponents = place.address_components;
+  //     let locality = '';
+  //     let administrativeArea = '';
+  //     let country = '';
+
+  //     addressComponents.forEach(component => {
+  //       if (component.types.includes('locality')) {
+  //         locality = component.long_name;
+  //       }
+  //       if (component.types.includes('administrative_area_level_2')) {
+  //         administrativeArea = component.long_name;
+  //       }
+  //       if (component.types.includes('country')) {
+  //         country = component.long_name;
+  //       }
+  //     });
+
+  //     let shortLocation = locality && administrativeArea && locality !== administrativeArea
+  //       ? `${locality}, ${administrativeArea}, ${country}`
+  //       : `${administrativeArea}, ${country}`;
+
+  //     setShortLocation(shortLocation);
+
+  //     setCoordinates({
+  //       lat: place.geometry.location.lat(),
+  //       lng: place.geometry.location.lng(),
+  //     });
+  //   }
+  // };
+
+  // const onPlaceChanged = () => {
+  //   const place = autocompleteRef.current.getPlace();
+  //   if (place && place.geometry) {
+  //     const lat = place.geometry.location.lat();
+  //     const lng = place.geometry.location.lng();
+
+  //     // Asegúrate de que las coordenadas sean válidas
+  //     if (lat && lng) {
+  //       setLocation(place.formatted_address);
+  //       setCoordinates({ lat, lng });
+  //       setShortLocation(`${place.address_components[0].short_name}, ${place.address_components[1].short_name}`);
+  //     } else {
+  //       setError('Coordenadas inválidas. Por favor selecciona una ubicación válida.');
+  //     }
+  //   } else {
+  //     setError('No se pudieron obtener las coordenadas. Intenta de nuevo.');
+  //   }
+  // };
 
   const handleOpenModal = (modalId) => {
     setActiveModal(modalId);
@@ -149,7 +218,19 @@ const EventForm = forwardRef((props, ref) => {
       <Header>
         <Container>
           <div className='HeaderWrapper'>
-            <InputText className='EventTitle' value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Introduce el título del evento..." required />
+            <div className='TitleInputBlock'>
+              <InputText className='EventTitle'
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title) setErrors({ ...errors, title: '' });
+                }}
+                placeholder="Introduce el título del evento..."
+                variant={errors.title ? 'error' : ''}
+                required
+              />
+              {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
+            </div>
             {user && (
               <div className='EventOrganizer'>
                 <img className="UserAvatar" src={user.userAvatar} alt="User Avatar" />
@@ -166,7 +247,89 @@ const EventForm = forwardRef((props, ref) => {
         <div className='Grid'>
           <div className='Details'>
             <Image>
-              <div className="image-preview-container" >
+              <div className="ImageContainer">
+                {file ? (
+                  <div className='EventImageWrapper'>
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt="Event"
+                      className="EventImage"
+                    />
+                    <div className="ImageInputBlock">
+                      <input
+                        type="file"
+                        id="file"
+                        onChange={(e) => {
+                          const selectedFile = e.target.files[0];
+                          setFile(selectedFile);
+                          if (errors.file) setErrors({ ...errors, file: '' });
+                        }}
+                        className="inputFile"
+                      />
+                      <label
+                        for="file"
+                        className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
+                      >
+                        <div className='labelContent'>
+                          <img src="/icons/upload-file.svg" alt="Subir fichero" />
+                          <p>Sube una imagen</p>
+                        </div>
+                        {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
+                      </label>                    </div>
+                  </div>
+
+                ) : (
+                  <div className="EventEmptyImageWrapper">
+                    <img
+                      src={getEventTypeIcon(eventType)}
+                      alt="empty state icon"
+                      className="empty-state-icon"
+                    />
+                    <div className="ImageInputBlock">
+                      <input
+                        type="file"
+                        id="file"
+                        onChange={(e) => {
+                          const selectedFile = e.target.files[0];
+                          setFile(selectedFile);
+                          if (errors.file) setErrors({ ...errors, file: '' });
+                        }}
+                        className="inputFile"
+                      />
+                      <label
+                        for="file"
+                        className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
+                      >
+                        <div className='labelContent'>
+                          <img src="/icons/upload-file.svg" alt="Subir fichero" />
+                          <p>Sube una imagen</p>
+                        </div>
+                        {errors.file && <ErrorMessage className='error'>{errors.file}</ErrorMessage>}
+                      </label>
+
+                    </div>
+                  </div>
+                )}
+              </div>
+
+
+              {/* <div className="ImageInputBlock">
+                <input
+                  type="file"
+                  id="file"
+                  onChange={(e) => {
+                    const selectedFile = e.target.files[0];
+                    setFile(selectedFile);
+                    if (errors.file) setErrors({ ...errors, file: '' });
+                  }}
+                  className={errors.file ? 'error' : ''}
+                />
+                <label for="file"><img src="/icons/upload-file.svg" alt="Subir fichero" />Sube una imagen</label>
+                {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
+              </div> */}
+
+
+              {/* <div className="image-preview-container" >
                 {image ? (
                   <img src={image} alt="Event" className="event-image-preview" />
                 ) : (
@@ -174,12 +337,39 @@ const EventForm = forwardRef((props, ref) => {
                     <img src={getEventTypeIcon(eventType)} alt="empty state icon" className="empty-state-icon" />
                   </div>
                 )}
-              </div>
-              <InputText size="medium" type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL" required />
+              </div> */}
+              {/* <div className='ImageInputBlock'>
+                <InputText
+                  size="medium"
+                  type="text"
+                  value={image}
+                  onChange={(e) => {
+                    setImage(e.target.value);
+                    if (errors.image) setErrors({ ...errors, image: '' });
+                  }}
+                  placeholder="Image URL"
+                  variant={errors.image ? 'error' : ''}
+                  required
+                />
+                {errors.image && <ErrorMessage>{errors.image}</ErrorMessage>}
+              </div> */}
             </Image>
             <Description>
               <label>Detalles</label>
-              <InputTextArea size="large" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Añade detalles a tu evento para que otros usuario puedan saber que de tratará tu evento..." required />
+              <div className='DescriptionInputBlock'>
+                <InputTextArea
+                  size="large"
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (errors.description) setErrors({ ...errors, description: '' });
+                  }}
+                  placeholder="Añade detalles a tu evento para que otros usuario puedan saber que de tratará tu evento..."
+                  variant={errors.description ? 'error' : ''}
+                  required
+                />
+                {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
+              </div>
             </Description>
           </div>
           <div className="Settings">
@@ -188,31 +378,66 @@ const EventForm = forwardRef((props, ref) => {
               <div className='DateInputTexts'>
                 <div className='Row'>
                   <label>Inicio</label>
-                  <InputText size="medium" type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} placeholder="Start Date" required />
+                  <div className='DateInputBlock'>
+                    <InputText
+                      size="medium"
+                      type="datetime-local"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (errors.startDate) setErrors({ ...errors, startDate: '' });
+                      }}
+                      placeholder="Start Date"
+                      variant={errors.startDate ? 'error' : ''}
+                      required
+                    />
+                    {errors.startDate && <ErrorMessage>{errors.startDate}</ErrorMessage>}
+                  </div>
                 </div>
                 <div className='Row'>
                   <label>Fin</label>
-                  <InputText size="medium" type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="End Date" required />
+                  <div className='DateInputBlock'>
+                    <InputText
+                      size="medium"
+                      type="datetime-local"
+                      value={endDate}
+                      onChange={(e) => {
+                        setEndDate(e.target.value);
+                        if (errors.endDate) setErrors({ ...errors, endDate: '' });
+                      }}
+                      placeholder="End Date"
+                      variant={errors.endDate ? 'error' : ''}
+                      required
+                    />
+                    {errors.endDate && <ErrorMessage>{errors.endDate}</ErrorMessage>}
+                  </div>
                 </div>
               </div>
             </div>
             <div className="Location">
               <div className='Heading'><img src="/icons/location.svg" alt="Fecha" />Localización</div>
               <div className='SearchLocation'>
-                <img src="/icons/search.svg" alt="search by location" />
-                <Autocomplete
-                  onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                  onPlaceChanged={onPlaceChanged}
-                >
-                  <InputText
-                    size="large"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Introduce localización del evento"
-                    required
-                  />
-                </Autocomplete>
+                <div className='LocationInputBlock'>
+                  <img src="/icons/search.svg" alt="search by location" />
+                  <Autocomplete
+                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                    onPlaceChanged={onPlaceChanged}
+                  >
+                    <InputText
+                      size="large"
+                      type="text"
+                      value={location}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        if (errors.location) setErrors({ ...errors, location: '' });
+                      }}
+                      placeholder="Introduce localización del evento"
+                      variant={errors.location ? 'error' : ''}
+                      required
+                    />
+                  </Autocomplete>
+                  {errors.location && <ErrorMessage>{errors.location}</ErrorMessage>}
+                </div>
               </div>
             </div>
             <Options>
@@ -336,6 +561,10 @@ const EventForm = forwardRef((props, ref) => {
 
 export default EventForm;
 
+
+
+//ddddddddd
+
 export const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -346,7 +575,7 @@ export const FormContainer = styled.div`
 const Image = styled.div`
   width: 100%;
 
-  .image-preview-container {
+  .ImageContainer {
     display: flex;
     justify-content: center;
     align-items: stretch;
@@ -354,26 +583,110 @@ const Image = styled.div`
     width: 100%;
     aspect-ratio: 4 / 3;
     border-radius: ${({ theme }) => theme.radius.sm};
-  }
 
-  .event-image-preview {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 10px;
-    object-fit: cover;
-  }
+    .EventImageWrapper,
+    .EventEmptyImageWrapper {
+      position: relative;
 
-  .empty-state {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-  }
+      .ImageInputBlock {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
 
-  .empty-state-icon {
-    width: 50px;
-    height: 50px;
+        .inputFile {
+          width: 0.1px;
+          height: 0.1px;
+          opacity: 0;
+          overflow: hidden !important;
+          position: absolute;
+          z-index: -1;
+        }
+        .inputFileLabel {
+          cursor: pointer;
+          color: ${({ theme }) => theme.colors.defaultStrong};
+          font-variant-numeric: lining-nums tabular-nums;
+          font-feature-settings: 'ss01' on;
+          font-family: "Mona Sans";
+          font-size: 16px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 150%; /* 24px */
+          border-radius: ${({ theme }) => theme.radius.sm};
+          border: 1px solid transparent;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          flex-direction: column;
+
+          // &:hover {
+          //   border-color: ${({ theme }) => theme.border.defaultWeak};
+          // }
+
+          .labelContent {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 40px;
+            margin-bottom: 40px;
+          }
+          
+          .error {
+            position: absolute;
+            bottom: 12px;
+          }
+        }
+
+        .inputFileLabel.error {
+          border: 1px solid ${({ theme }) => theme.colors.errorMain};
+        
+          &:hover {
+            outline: 1px solid ${({ theme }) => theme.colors.errorMain};
+          }
+        }
+      }
+    }
+
+    .EventEmptyImageWrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .empty-state-icon {
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    .EventImageWrapper {
+      transition: all 0.3s;
+      &:hover {
+        opacity: 80%;
+      }
+      .EventImage {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: ${({ theme }) => theme.radius.sm};
+      }
+
+      .ImageInputBlock{
+        .inputFileLabel {
+          &:hover {
+            border: 1px solid transparent;
+          }
+          .labelContent {
+            background-color: ${({ theme }) => theme.fill.defaultMain};
+          }
+        }
+      }
+    }
   }
 `;
 
@@ -382,6 +695,14 @@ const Description = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  .DescriptionInputBlock {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
   
   textarea {
     min-height: 120px;
@@ -429,16 +750,21 @@ const Header = styled.div`
     width: 100%;
     gap: ${({ theme }) => theme.sizing.xs};
 
-    Input {
-
+    .TitleInputBlock {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      width: 100%;
     }
   }
 
   .EventTitle {
     width: 100%;
     padding: 0px;
-    border-radius: 0px;
-    border: none;
+    border-radius: ${({ theme }) => theme.radius.xs};
+    border: 1px solid transparent;
     background: none;
     font-variant-numeric: lining-nums tabular-nums;
     font-feature-settings: 'ss01' on;
@@ -577,6 +903,14 @@ const FormWrapper = styled.div`
             align-items: center;
             gap: 16px;
             width: 100%;
+      
+            .DateInputBlock {
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 4px;
+            }
 
             label {
               width: 64px;
@@ -590,18 +924,37 @@ const FormWrapper = styled.div`
         border-top: none;
 
         .SearchLocation {
-          position: relative;
 
-          img {
-            position: absolute;
-            left: 16px;
-            top: 16px;
-          }
+          .LocationInputBlock {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
           
-          input {
-            padding-left: 44px;
-            background: var(--bg-default-subtle, #FAFAFA);
-        }
+
+            img {
+              position: absolute;
+              left: 16px;
+              top: 16px;
+            }
+
+            div {
+              width: 100%;
+            }
+          
+            input {
+              padding-left: 44px;
+              background: var(--bg-default-subtle, #FAFAFA);
+
+              &:hover {
+                background: #efefef;
+              }
+            }
+          }
+
+
       }
     }
   }
@@ -647,6 +1000,8 @@ const Option = styled.div`
   justify-content: space-between;
   border-bottom: 1px solid var(--border-default-weak, #DCDCDC);
   cursor: pointer;
+  transition: all 0.3s;
+
 
   &:hover {
     background-color: #EFEFEF;
@@ -684,4 +1039,15 @@ const Option = styled.div`
     border: 0;
     background-color: unset;
   }
+`;
+
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.errorMain};
+  font-variant-numeric: lining-nums tabular-nums;
+  /* Body 2/Medium */
+  font-family: "Satoshi Variable";
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;         
 `;

@@ -1,34 +1,118 @@
 const express = require('express')
 const Event = require('../models/Event')
 const User = require('../models/User')
+const dotenv = require('dotenv')
 const auth = require('../middleware/auth')
 const { format, startOfToday, endOfToday, startOfTomorrow, endOfTomorrow, endOfWeek, endOfMonth } = require('date-fns')
 const eventsRouter = express.Router()
+const cloudinary = require('cloudinary').v2
+const multer = require('multer')
 
-// Crear un evento (autenticado)
+// Cargar variables de entorno
+dotenv.config()
+
+// Configurar Cloudinary para usar la variable de entorno
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
+// Configurar Multer para manejo de archivos
+const storage = multer.diskStorage({})
+const upload = multer({ storage })
+
+eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
+  try {
+    const {
+      title, startDate, endDate, location, shortLocation, locationCoordinates,
+      description, eventType, terrain, experience, ticketType, ticketPrice, capacity
+    } = req.body
+
+    // Deserializar el campo locationCoordinates si es una cadena
+    let parsedLocationCoordinates
+    try {
+      parsedLocationCoordinates = JSON.parse(locationCoordinates)
+    } catch (error) {
+      return res.status(400).json({ success: false, message: 'Error en las coordenadas de ubicación.' })
+    }
+
+    console.log('Received data:', req.body)
+
+    // Validar campos obligatorios
+    if (!title || !startDate || !endDate || !location || !locationCoordinates || !description || !eventType || !terrain || !experience || !ticketType || !capacity) {
+      return res.status(400).json({ success: false, message: 'All fields are required.' })
+    }
+
+    const coordinates = parsedLocationCoordinates.coordinates
+    console.log(coordinates)
+    // Verifica que las coordenadas estén en el formato correcto [lng, lat]
+    if (!coordinates || coordinates.length !== 2 || isNaN(coordinates[0]) || isNaN(coordinates[1])) {
+      return res.status(400).json({ success: false, message: 'Coordenadas de ubicación inválidas.' })
+    }
+
+    // Invertir las coordenadas para cumplir con el estándar GeoJSON
+    const geoCoordinates = [coordinates[1], coordinates[0]] // [lat, lng] -> [lng, lat]
+
+    // Subir imagen a Cloudinary
+    let imageUrl = ''
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path)
+      imageUrl = result.secure_url
+    }
+
+    console.log(imageUrl)
+
+    // Crear el evento
+    const newEvent = new Event({
+      title,
+      startDate,
+      endDate,
+      location,
+      shortLocation,
+      locationCoordinates: {
+        type: 'Point',
+        coordinates: geoCoordinates
+      },
+      image: imageUrl,
+      description,
+      eventType,
+      terrain,
+      experience,
+      ticket: { type: ticketType, price: ticketPrice },
+      capacity,
+      owner: req.user._id
+    })
+
+    console.log({ newEvento: newEvent })
+
+    // // Verifica que las coordenadas sean válidas antes de guardar
+    // if (locationCoordinates.lng == null || locationCoordinates.lat == null) {
+    //   return res.status(400).json({ success: false, message: 'Coordenadas de ubicación inválidas.' })
+    // }
+
+    const savedEvent = await newEvent.save()
+    return res.status(201).json({ success: true, event: savedEvent })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Post de un evento
 // eventsRouter.post('/', auth, async (req, res) => {
-//   const { title, startDate, endDate, location, locationCoordinates, image, description, eventType, shortLocation, terrain, experience, ticket, capacity } = req.body
-
-//   if (!locationCoordinates || !locationCoordinates.coordinates || locationCoordinates.coordinates.length !== 2) {
-//     return res.status(400).json({ success: false, message: 'Invalid location coordinates.' })
-//   }
-
 //   try {
-//     // Crear un nuevo evento
-//     // const newEvent = new Event({
-//     //   title,
-//     //   startDate,
-//     //   endDate,
-//     //   location,
-//     //   shortLocation,
-//     //   locationCoordinates, // Asegúrate de que las coordenadas están en el formato correcto
-//     //   image,
-//     //   description,
-//     //   eventType,
-//     //   attendees: [req.user.username], // Añadimos al creador como primer asistente
-//     //   owner: req.user._id // Asignamos el ID del usuario autenticado como el propietario del evento
-//     // })
+//     const {
+//       title, startDate, endDate, location, shortLocation, locationCoordinates,
+//       image, description, eventType, terrain, experience, ticket, capacity
+//     } = req.body
 
+//     // Validate required fields
+//     if (!title || !startDate || !endDate || !location || !locationCoordinates || !description || !eventType || !terrain || !experience || !ticket || !capacity) {
+//       return res.status(400).json({ success: false, message: 'All fields are required.' })
+//     }
+
+//     // Create the new event
 //     const newEvent = new Event({
 //       title,
 //       startDate,
@@ -43,103 +127,17 @@ const eventsRouter = express.Router()
 //       experience,
 //       ticket,
 //       capacity,
-//       attendees: [],
 //       owner: req.user._id
 //     })
 
-//     console.log({ newEvent })
-
+//     // Save the event to the database
 //     const savedEvent = await newEvent.save()
-
-//     // Asociar el evento con el usuario autenticado
-//     const user = await User.findById(req.user.id)
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: 'User not found' })
-//     }
-
-//     user.organizedEvents.push(savedEvent._id)
-//     // user.enrolledEvents.push(savedEvent._id)
-
-//     await user.save()// Guardar los cambios en el usuario
-
-//     res.status(201).json({ success: true, event: savedEvent })
+//     return res.status(201).json({ success: true, event: savedEvent })
 //   } catch (error) {
 //     console.error(error)
-//     res.status(500).json({ success: false, message: 'Internal Server Error' })
+//     return res.status(500).json({ success: false, message: 'Internal Server Error' })
 //   }
 // })
-
-// eventsRouter.post('/', auth, async (req, res) => {
-//   const {
-//     title, startDate, endDate, location, locationCoordinates, image, description, eventType,
-//     shortLocation, terrain, experience, ticket, capacity
-//   } = req.body
-
-//   // Creación del evento...
-//   const newEvent = new Event({
-//     title,
-//     startDate,
-//     endDate,
-//     location,
-//     shortLocation,
-//     locationCoordinates,
-//     image,
-//     description,
-//     eventType,
-//     terrain,
-//     experience,
-//     ticket,
-//     capacity,
-//     attendees: [],
-//     owner: req.user._id
-//   })
-
-//   try {
-//     const savedEvent = await newEvent.save()
-//     res.status(201).json({ success: true, event: savedEvent })
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: 'Internal Server Error' })
-//   }
-// })
-
-eventsRouter.post('/', auth, async (req, res) => {
-  try {
-    const {
-      title, startDate, endDate, location, shortLocation, locationCoordinates,
-      image, description, eventType, terrain, experience, ticket, capacity
-    } = req.body
-
-    // Validate required fields
-    if (!title || !startDate || !endDate || !location || !locationCoordinates || !description || !eventType || !terrain || !experience || !ticket || !capacity) {
-      return res.status(400).json({ success: false, message: 'All fields are required.' })
-    }
-
-    // Create the new event
-    const newEvent = new Event({
-      title,
-      startDate,
-      endDate,
-      location,
-      shortLocation,
-      locationCoordinates,
-      image,
-      description,
-      eventType,
-      terrain,
-      experience,
-      ticket,
-      capacity,
-      owner: req.user._id
-    })
-
-    // Save the event to the database
-    const savedEvent = await newEvent.save()
-    return res.status(201).json({ success: true, event: savedEvent })
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({ success: false, message: 'Internal Server Error' })
-  }
-})
 
 // Actualizar un evento
 eventsRouter.put('/:id', auth, async (req, res) => {
@@ -256,6 +254,16 @@ eventsRouter.get('/', async (req, res) => {
     // Obtener los eventos que coinciden con los filtros
     const events = await Event.find(query)
       .populate('owner', 'name lastName userAvatar description')
+      .sort({ startDate: 1 })
+
+    // Si se proporcionan latitud y longitud, ordenar por proximidad
+    // if (lat && lng) {
+    //   events.sort((a, b) => {
+    //     const distanceA = calculateDistance(a.locationCoordinates.coordinates, [lng, lat])
+    //     const distanceB = calculateDistance(b.locationCoordinates.coordinates, [lng, lat])
+    //     return distanceA - distanceB
+    //   })
+    // }
 
     res.json({ events })
   } catch (error) {
@@ -263,6 +271,22 @@ eventsRouter.get('/', async (req, res) => {
     res.status(500).json({ message: 'Error fetching events' })
   }
 })
+
+// Función auxiliar para calcular la distancia entre dos puntos geográficos (Haversine formula)
+function calculateDistance(coords1, coords2) {
+  const [lng1, lat1] = coords1
+  const [lng2, lat2] = coords2
+  const R = 6371 // Radio de la Tierra en km
+  const dLat = (lat2 - lat1) * (Math.PI / 180)
+  const dLng = (lng2 - lng1) * (Math.PI / 180)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c // Distancia en km
+  return distance
+}
 
 // Inscribir a un usuario en un evento
 eventsRouter.post('/enroll/:id', auth, async (req, res) => {

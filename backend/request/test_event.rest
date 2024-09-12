@@ -36,7 +36,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDA1N2Q5M
 ###
 
 ### Obtener un Evento por su ID
-GET http://localhost:5002/api/events/66dadc873ce148a852992acc
+GET http://localhost:5002/api/events/66e1b60f981eddd7c2497897
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDk1MDAzYTI0Zjc2ZGVmN2QxY2ZiMiIsInVzZXJuYW1lIjoidGVzdEBnbWFpbC5jb20iLCJpYXQiOjE3MjU1Njc1NTEsImV4cCI6MTcyNjE3MjM1MX0.lAtLzf2lpLv5H3diSG-gV3vJZ2CkiSiMbdAwVu7r4CA
 
 ###

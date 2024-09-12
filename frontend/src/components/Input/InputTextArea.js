@@ -73,6 +73,8 @@ const InputTextArea = styled.textarea`
   font-style: normal;
   font-weight: 400;
   line-height: 140%%;
+  transition: all 0.3s;
+
   
   ${sizeStyles} /* Aplicar los estilos basados en el tamaño */
   ${variantStyles} /* Aplicar los estilos basados en la variante */

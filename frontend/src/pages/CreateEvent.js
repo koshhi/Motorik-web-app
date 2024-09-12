@@ -15,7 +15,22 @@ const CreateEvent = () => {
 
   const handleCreateEvent = async () => {
     if (eventFormRef.current) {
-      const formData = await eventFormRef.current.submitForm();
+      const formData = await eventFormRef.current.getFormData();
+
+      if (!formData) {
+        console.error("Errores en el formulario, no se puede enviar");
+        return;  // Salimos si hay errores
+      }
+
+      // Invertir las coordenadas antes de enviarlas
+      const locationCoordinates = JSON.parse(formData.get('locationCoordinates'));
+      locationCoordinates.coordinates = [locationCoordinates.coordinates[1], locationCoordinates.coordinates[0]]; // Invertir [lng, lat] a [lat, lng]
+      formData.set('locationCoordinates', JSON.stringify(locationCoordinates));
+
+      // Mostrar el contenido de FormData
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
 
       if (formData) {
         try {
@@ -23,17 +38,17 @@ const CreateEvent = () => {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
             headers: {
               Authorization: `Bearer ${authToken}`,
+              'Content-Type': 'multipart/form-data',  // Esto asegura que Axios maneje el archivo binario correctamente
             },
           });
 
           if (response.data.success) {
-            // Manejar la redirección o mensaje de éxito aquí
             navigate('/');
           } else {
-            // Manejar el error aquí
+            console.error('Error en la creación del evento');
           }
         } catch (error) {
-          console.error('Error creating event:', error);
+          console.error('Error creando el evento:', error);
         }
       }
     }
