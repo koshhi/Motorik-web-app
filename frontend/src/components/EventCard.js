@@ -45,7 +45,7 @@ const EventCard = ({ event }) => {
             </div>
           </div>
           <div className='secondaryInfo'>
-            <div><ReactSVG src="/icons/calendar.svg" />{event.longDate}</div>
+            <div><ReactSVG src="/icons/calendar.svg" />{event.partialDateStart} {event.partialDateEnd}</div>
             <div><ReactSVG src="/icons/map-location.svg" />{event.shortLocation}</div>
             <div><ReactSVG src="/icons/attendees.svg" />{event.attendeesCount} asistentes</div>
           </div>

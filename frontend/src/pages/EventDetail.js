@@ -224,7 +224,9 @@ const EventDetail = () => {
                     <p>{event.dayDate}</p>
                   </div>
                 </div>
-                <p className='LongDate'>{event.longDate}</p>
+                <p className='LongDate'>{event.partialDateStart}</p>
+                <p className='LongDate'>{event.partialDateEnd}</p>
+
               </div>
               <div className='LocationRow'>
                 <div className='LocationContainer'>
@@ -273,8 +275,8 @@ const EventDetail = () => {
               </div>
               <ul className='VehicleList'>
                 {user.vehicles.map((vehicle) => (
-                  <li key={vehicle._id} className='Vehicle'>
-                    <div className='VehicleContent' onClick={() => enroll(vehicle._id)}>
+                  <li key={vehicle._id} className='Vehicle' onClick={() => enroll(vehicle._id)}>
+                    <div className='VehicleContent'>
                       <img src={vehicle.image} className='VehicleImage' alt={vehicle.brand + vehicle.model} />
                       <div className='VehicleData'>
                         <p className='Brand'>{vehicle.brand} </p>
@@ -492,6 +494,7 @@ const Modal = styled.div`
     align-self: stretch;
 
     .Vehicle {
+      cursor: pointer;
       border-radius: var(--Spacing-xs, 8px);
       border: 1px solid ${({ theme }) => theme.border.defaultWeak}; 
       background-color: ${({ theme }) => theme.fill.defaultMain}; 
