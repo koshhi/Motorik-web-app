@@ -17,6 +17,8 @@ const CreateEvent = () => {
     if (eventFormRef.current) {
       const formData = await eventFormRef.current.getFormData();
 
+      console.log(formData)
+
       if (!formData) {
         console.error("Errores en el formulario, no se puede enviar");
         return;  // Salimos si hay errores

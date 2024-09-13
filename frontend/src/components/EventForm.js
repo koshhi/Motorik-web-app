@@ -28,8 +28,12 @@ const EventForm = forwardRef((props, ref) => {
   // const navigate = useNavigate();
   const autocompleteRef = React.useRef(null);
   const [title, setTitle] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  // const [startDate, setStartDate] = useState('');
+  // const [endDate, setEndDate] = useState('');
+  const [startDay, setStartDay] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endDay, setEndDay] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
   const [file, setFile] = useState(null); // Para manejar la imagen
@@ -47,8 +51,10 @@ const EventForm = forwardRef((props, ref) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     title: '',
-    startDate: '',
-    endDate: '',
+    startDay: '',
+    startTime: '',
+    endDay: '',
+    endTime: '',
     location: '',
     file: '',
     description: ''
@@ -102,10 +108,21 @@ const EventForm = forwardRef((props, ref) => {
       setLoading(true);
       const newErrors = {};
 
+      const startDate = `${startDay}T${startTime}`;
+      const endDate = `${endDay}T${endTime}`;
+
+      // Asegúrate de validar que ambos campos, día y hora, estén llenos
+      // if (!startDay || !startTime || !endDay || !endTime) {
+      //   setError('Por favor completa tanto el día como la hora.');
+      //   return;
+      // }
+
       // Validaciones de campos
       if (!title.trim()) newErrors.title = 'El título es obligatorio';
-      if (!startDate) newErrors.startDate = 'La fecha de inicio es obligatoria';
-      if (!endDate) newErrors.endDate = 'La fecha de fin es obligatoria';
+      if (!startDay) newErrors.startDay = 'La fecha de inicio es obligatoria';
+      if (!startTime) newErrors.startTime = 'La hora de inicio es obligatoria';
+      if (!endDay) newErrors.endDay = 'La fecha de fin es obligatoria';
+      if (!endTime) newErrors.endTime = 'La hora de fin es obligatoria';
       if (!location.trim()) newErrors.location = 'La localización es obligatoria';
       if (!description.trim()) newErrors.description = 'La descripción es obligatoria';
       if (!file) newErrors.file = 'La imagen es obligatoria';
@@ -128,6 +145,8 @@ const EventForm = forwardRef((props, ref) => {
         coordinates: [coordinates.lng, coordinates.lat]  // Orden correcto: lng, lat
       }));
       formData.append('title', title);
+      // formData.append('startDate', startDate);
+      // formData.append('endDate', endDate);
       formData.append('startDate', startDate);
       formData.append('endDate', endDate);
       formData.append('location', location);
@@ -147,8 +166,6 @@ const EventForm = forwardRef((props, ref) => {
       return formData
     }
   }));
-
-  // const onPlaceChanged = () => {
   //   const place = autocompleteRef.current.getPlace();
   //   if (place && place.geometry) {
   //     const formattedAddress = place.formatted_address;
@@ -311,48 +328,6 @@ const EventForm = forwardRef((props, ref) => {
                   </div>
                 )}
               </div>
-
-
-              {/* <div className="ImageInputBlock">
-                <input
-                  type="file"
-                  id="file"
-                  onChange={(e) => {
-                    const selectedFile = e.target.files[0];
-                    setFile(selectedFile);
-                    if (errors.file) setErrors({ ...errors, file: '' });
-                  }}
-                  className={errors.file ? 'error' : ''}
-                />
-                <label for="file"><img src="/icons/upload-file.svg" alt="Subir fichero" />Sube una imagen</label>
-                {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
-              </div> */}
-
-
-              {/* <div className="image-preview-container" >
-                {image ? (
-                  <img src={image} alt="Event" className="event-image-preview" />
-                ) : (
-                  <div className="empty-state">
-                    <img src={getEventTypeIcon(eventType)} alt="empty state icon" className="empty-state-icon" />
-                  </div>
-                )}
-              </div> */}
-              {/* <div className='ImageInputBlock'>
-                <InputText
-                  size="medium"
-                  type="text"
-                  value={image}
-                  onChange={(e) => {
-                    setImage(e.target.value);
-                    if (errors.image) setErrors({ ...errors, image: '' });
-                  }}
-                  placeholder="Image URL"
-                  variant={errors.image ? 'error' : ''}
-                  required
-                />
-                {errors.image && <ErrorMessage>{errors.image}</ErrorMessage>}
-              </div> */}
             </Image>
             <Description>
               <label>Detalles</label>
@@ -379,7 +354,28 @@ const EventForm = forwardRef((props, ref) => {
                 <div className='Row'>
                   <label>Inicio</label>
                   <div className='DateInputBlock'>
-                    <InputText
+                    <div className='ComboBlock'>
+                      <InputText size="medium" type="date" value={startDay}
+                        onChange={(e) => {
+                          setStartDay(e.target.value);
+                          if (errors.startDay) setErrors({ ...errors, startDay: '' });
+                        }}
+                        variant={errors.startDay ? 'error' : ''}
+                        placeholder="Start Day"
+                        min={new Date().toISOString().split('T')[0]}
+                        required
+                      />
+                      <InputText size="medium" type="time" value={startTime}
+                        onChange={(e) => {
+                          setStartTime(e.target.value);
+                          if (errors.startTime) setErrors({ ...errors, startTime: '' });
+                        }}
+                        variant={errors.startTime ? 'error' : ''}
+                        placeholder="Start Time"
+                        required
+                      />
+                    </div>
+                    {/* <InputText
                       size="medium"
                       type="datetime-local"
                       value={startDate}
@@ -390,14 +386,39 @@ const EventForm = forwardRef((props, ref) => {
                       placeholder="Start Date"
                       variant={errors.startDate ? 'error' : ''}
                       required
-                    />
-                    {errors.startDate && <ErrorMessage>{errors.startDate}</ErrorMessage>}
+                    /> */}
+                    {errors.startTime && <ErrorMessage>{errors.startTime}</ErrorMessage>}
+                    {errors.startDay && <ErrorMessage>{errors.startDay}</ErrorMessage>}
                   </div>
                 </div>
                 <div className='Row'>
                   <label>Fin</label>
                   <div className='DateInputBlock'>
-                    <InputText
+                    <div className='ComboBlock'>
+                      <InputText size="medium" type="date" value={endDay}
+                        onChange={(e) => {
+                          setEndDay(e.target.value);
+                          if (errors.endDay) setErrors({ ...errors, endDay: '' });
+                        }}
+                        variant={errors.endDay ? 'error' : ''}
+                        placeholder="End Day"
+                        min={new Date().toISOString().split('T')[0]}
+                        required
+                      />
+                      <InputText size="medium" type="time" value={endTime}
+                        onChange={(e) => {
+                          setEndTime(e.target.value);
+                          if (errors.endTime) setErrors({ ...errors, endTime: '' });
+                        }}
+                        variant={errors.endTime ? 'error' : ''}
+                        placeholder="End Time" required
+                      />
+                    </div>
+                    {errors.endDay && <ErrorMessage>{errors.endDay}</ErrorMessage>}
+                    {errors.endTime && <ErrorMessage>{errors.endTime}</ErrorMessage>}
+
+
+                    {/* <InputText
                       size="medium"
                       type="datetime-local"
                       value={endDate}
@@ -409,7 +430,7 @@ const EventForm = forwardRef((props, ref) => {
                       variant={errors.endDate ? 'error' : ''}
                       required
                     />
-                    {errors.endDate && <ErrorMessage>{errors.endDate}</ErrorMessage>}
+                    {errors.endDate && <ErrorMessage>{errors.endDate}</ErrorMessage>} */}
                   </div>
                 </div>
               </div>
@@ -910,6 +931,31 @@ const FormWrapper = styled.div`
               flex-direction: column;
               align-items: flex-start;
               gap: 4px;
+
+              .ComboBlock {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                width: 100%;
+
+                input {
+                  height: 40px;
+
+                  &:first-child {
+                    border-top-right-radius: 0px;
+                    border-bottom-right-radius: 0px;
+                    border-right: 0px;
+                    width: 100%;
+                  }
+                  &:last-child {
+                    border-top-left-radius: 0px;
+                    border-bottom-left-radius: 0px;
+                    width: 100px;
+                  }
+                }
+                
+
+              }
             }
 
             label {
