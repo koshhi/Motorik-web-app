@@ -360,18 +360,18 @@ eventsRouter.get('/user/myevents', auth, async (req, res) => {
     }).sort({ startDate: 1 })
       .populate('owner', 'name lastName userAvatar description')
 
-    const pastEvents = await Event.find({
-      owner: userId,
-      startDate: { $lt: today }
-    }).sort({ startDate: -1 })
-      .populate('owner', 'name lastName userAvatar description')
-
     // Obtener eventos donde el usuario es un attendee
+    // const attendeeEvents = await Event.find({
+    //   attendees: userId
+    // }).sort({ startDate: 1 }).populate('owner', 'name lastName userAvatar description')
     const attendeeEvents = await Event.find({
-      attendees: userId
-    }).sort({ startDate: 1 }).populate('owner', 'name lastName userAvatar description')
+      'attendees.userId': userId
+    }).sort({ startDate: 1 })
+      .populate('owner', 'name lastName userAvatar description')
+      .populate('attendees.userId', 'name lastName userAvatar')
+      .populate('attendees.vehicleId', 'brand model nickname image')
 
-    res.status(200).json({ success: true, futureEvents, pastEvents, attendeeEvents })
+    res.status(200).json({ success: true, futureEvents, attendeeEvents })
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, message: 'Internal Server Error' })

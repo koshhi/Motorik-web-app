@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import EventDetail from './pages/EventDetail';
 import CreateEvent from './pages/CreateEvent'
 import MyEvents from './pages/MyEvents';
-import UserProfile from './pages/UserProfile';
+import UserProfile from './pages/UserProfile/UserProfile';
 
 
 

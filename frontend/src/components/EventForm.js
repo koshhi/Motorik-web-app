@@ -1,7 +1,6 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 // import axios from 'axios';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import { useAuth } from '../context/AuthContext';
 import InputText from './Input/InputText';
