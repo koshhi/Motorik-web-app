@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 // import axios from 'axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -25,18 +25,11 @@ const EventForm = forwardRef((props, ref) => {
   });
 
   const { user } = useAuth();
-  // const navigate = useNavigate();
   const autocompleteRef = React.useRef(null);
   const [title, setTitle] = useState('');
-  // const [startDate, setStartDate] = useState('');
-  // const [endDate, setEndDate] = useState('');
-  const [startDay, setStartDay] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endDay, setEndDay] = useState('');
-  const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState({ lat: null, lng: null });
-  const [file, setFile] = useState(null); // Para manejar la imagen
+  const [file, setFile] = useState(null);
   const [description, setDescription] = useState('');
   const [eventType, setEventType] = useState('Meetup');
   const [terrain, setTerrain] = useState('offroad');
@@ -59,6 +52,87 @@ const EventForm = forwardRef((props, ref) => {
     file: '',
     description: ''
   });
+
+  // Estado para fechas y horas
+  const [startDay, setStartDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDay, setEndDay] = useState(() => new Date().toISOString().split('T')[0]);
+  // const [endDay, setEndDay] = useState(startDay);
+
+  const roundTimeToNearestHalfHour = () => {
+    const now = new Date();
+    const minutes = now.getMinutes();
+
+    // Si los minutos son mayores a 0 pero menores a 30, redondea a las 30.
+    // Si son mayores o iguales a 30, redondea a la siguiente hora en punto.
+    if (minutes > 0 && minutes <= 30) {
+      now.setMinutes(30);
+    } else {
+      now.setHours(now.getHours() + 1); // Incrementa la hora
+      now.setMinutes(0);
+    }
+
+    now.setSeconds(0); // Poner segundos a 0
+    return now.toTimeString().slice(0, 5); // Devuelve la hora en formato HH:MM
+  };
+
+  const [startTime, setStartTime] = useState(roundTimeToNearestHalfHour);
+
+  const adjustEndTime = (startTime) => {
+    const [hours, minutes] = startTime.split(':');
+    const endTime = new Date();
+    endTime.setHours(parseInt(hours) + 1); // Incrementar 1 hora
+    endTime.setMinutes(parseInt(minutes));
+    return endTime.toTimeString().slice(0, 5); // Formato HH:MM
+  };
+
+  const [endTime, setEndTime] = useState(() => adjustEndTime(roundTimeToNearestHalfHour()));
+
+  // Estados adicionales
+  const [isEndDayChanged, setIsEndDayChanged] = useState(false);
+  const [isEndTimeChanged, setIsEndTimeChanged] = useState(false);
+
+  // useEffect para endDay
+  useEffect(() => {
+    if (!isEndDayChanged) {
+      if (endDay !== startDay) {
+        setEndDay(startDay);
+      }
+    } else if (new Date(endDay) < new Date(startDay)) {
+      setEndDay(startDay);
+      setIsEndDayChanged(false);
+    }
+  }, [startDay, endDay, isEndDayChanged]);
+
+  // useEffect para endTime
+  useEffect(() => {
+    if (!isEndTimeChanged) {
+      setEndTime(adjustEndTime(startTime));
+    } else {
+      const startDateTime = new Date(`${startDay}T${startTime}`);
+      const endDateTime = new Date(`${endDay}T${endTime}`);
+
+      if (endDateTime <= startDateTime) {
+        setEndTime(adjustEndTime(startTime));
+        setIsEndTimeChanged(false);
+      }
+    }
+  }, [startTime, startDay, endDay]);
+
+  const validateDates = () => {
+    const startDateTime = new Date(`${startDay}T${startTime}`);
+    const endDateTime = new Date(`${endDay}T${endTime}`);
+
+    const newErrors = {};
+
+    if (startDateTime >= endDateTime) {
+      newErrors.startDay = 'La fecha y hora de inicio no pueden ser posteriores o iguales a la de fin.';
+      newErrors.endDay = 'La fecha y hora de fin deben ser posteriores a las de inicio.';
+    }
+
+    setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   const onPlaceChanged = () => {
     const place = autocompleteRef.current.getPlace();
@@ -106,16 +180,8 @@ const EventForm = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
       setLoading(true);
+      if (!validateDates()) return null;
       const newErrors = {};
-
-      const startDate = `${startDay}T${startTime}`;
-      const endDate = `${endDay}T${endTime}`;
-
-      // Asegúrate de validar que ambos campos, día y hora, estén llenos
-      // if (!startDay || !startTime || !endDay || !endTime) {
-      //   setError('Por favor completa tanto el día como la hora.');
-      //   return;
-      // }
 
       // Validaciones de campos
       if (!title.trim()) newErrors.title = 'El título es obligatorio';
@@ -126,6 +192,7 @@ const EventForm = forwardRef((props, ref) => {
       if (!location.trim()) newErrors.location = 'La localización es obligatoria';
       if (!description.trim()) newErrors.description = 'La descripción es obligatoria';
       if (!file) newErrors.file = 'La imagen es obligatoria';
+      if (!validateDates()) return null;
 
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -147,8 +214,8 @@ const EventForm = forwardRef((props, ref) => {
       formData.append('title', title);
       // formData.append('startDate', startDate);
       // formData.append('endDate', endDate);
-      formData.append('startDate', startDate);
-      formData.append('endDate', endDate);
+      formData.append('startDate', `${startDay}T${startTime}`);
+      formData.append('endDate', `${endDay}T${endTime}`);
       formData.append('location', location);
       formData.append('shortLocation', shortLocation);
       formData.append('description', description);
@@ -395,23 +462,81 @@ const EventForm = forwardRef((props, ref) => {
                   <label>Fin</label>
                   <div className='DateInputBlock'>
                     <div className='ComboBlock'>
-                      <InputText size="medium" type="date" value={endDay}
+                      {/* <InputText size="medium" type="date" value={endDay}
                         onChange={(e) => {
                           setEndDay(e.target.value);
                           if (errors.endDay) setErrors({ ...errors, endDay: '' });
                         }}
                         variant={errors.endDay ? 'error' : ''}
                         placeholder="End Day"
-                        min={new Date().toISOString().split('T')[0]}
+                        // min={new Date().toISOString().split('T')[0]}
+                        min={startDay}
+                        required
+                      /> */}
+                      <InputText
+                        size="medium"
+                        type="date"
+                        value={endDay}
+                        onChange={(e) => {
+                          const newEndDay = e.target.value;
+                          setEndDay(newEndDay);
+                          setIsEndDayChanged(true);
+
+                          const startDateTime = new Date(`${startDay}T${startTime}`);
+                          const endDateTime = new Date(`${newEndDay}T${endTime}`);
+
+                          if (new Date(newEndDay) < new Date(startDay)) {
+                            setErrors((prevErrors) => ({
+                              ...prevErrors,
+                              endDay: 'La fecha de fin no puede ser anterior a la fecha de inicio.',
+                            }));
+                          } else if (endDateTime <= startDateTime) {
+                            setErrors((prevErrors) => ({
+                              ...prevErrors,
+                              endDay: 'La fecha y hora de fin deben ser posteriores a la fecha y hora de inicio.',
+                            }));
+                          } else {
+                            setErrors((prevErrors) => ({ ...prevErrors, endDay: '' }));
+                          }
+                        }}
+                        variant={errors.endDay ? 'error' : ''}
+                        placeholder="End Day"
+                        min={startDay}
                         required
                       />
-                      <InputText size="medium" type="time" value={endTime}
+
+                      {/* <InputText size="medium" type="time" value={endTime}
                         onChange={(e) => {
                           setEndTime(e.target.value);
                           if (errors.endTime) setErrors({ ...errors, endTime: '' });
                         }}
                         variant={errors.endTime ? 'error' : ''}
                         placeholder="End Time" required
+                      /> */}
+                      <InputText
+                        size="medium"
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => {
+                          const newEndTime = e.target.value;
+                          setEndTime(newEndTime);
+                          setIsEndTimeChanged(true);
+
+                          const startDateTime = new Date(`${startDay}T${startTime}`);
+                          const endDateTime = new Date(`${endDay}T${newEndTime}`);
+
+                          if (endDateTime <= startDateTime) {
+                            setErrors((prevErrors) => ({
+                              ...prevErrors,
+                              endTime: 'La fecha y hora de fin deben ser posteriores a la fecha y hora de inicio.',
+                            }));
+                          } else {
+                            setErrors((prevErrors) => ({ ...prevErrors, endTime: '' }));
+                          }
+                        }}
+                        variant={errors.endTime ? 'error' : ''}
+                        placeholder="End Time"
+                        required
                       />
                     </div>
                     {errors.endDay && <ErrorMessage>{errors.endDay}</ErrorMessage>}
@@ -877,6 +1002,7 @@ const FormWrapper = styled.div`
       grid-area: 1 / 8 / 2 / 13;
       border-radius: 16px;
       border: 1px solid var(--border-default-weak, #DCDCDC);
+      height: fit-content;
 
       .Date,
       .Location {

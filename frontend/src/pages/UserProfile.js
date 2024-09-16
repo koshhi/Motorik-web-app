@@ -1,6 +1,7 @@
 import axios from 'axios';
 import styled from 'styled-components';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import EventCard from '../components/EventCard'
 import MainNavbar from '../components/Navbar/MainNavbar'
 import Button from '../components/Button/Button';
@@ -10,6 +11,8 @@ const UserProfile = () => {
   const [futureEvents, setFutureEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
   const [attendeeEvents, setAttendeeEvents] = useState([]);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -75,7 +78,10 @@ const UserProfile = () => {
             <div className='UserInfo'>
               <div className="Bio">
                 <h3>Bio</h3>
-                <p>{userProfile.description}</p>
+                <p>{user.description}</p>
+
+
+                {/* <p>{userProfile.description}</p> */}
               </div>
               <div className="Vehicles">
                 <h3>Garaje</h3>

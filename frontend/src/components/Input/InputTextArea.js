@@ -64,7 +64,8 @@ const variantStyles = css`
 
 // Input estilizado
 const InputTextArea = styled.textarea`
-  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
   border: 1px solid;
   border-radius: ${({ theme }) => theme.radius.xs};
   font-variant-numeric: lining-nums tabular-nums;
@@ -72,7 +73,7 @@ const InputTextArea = styled.textarea`
   font-family: "Mona Sans";
   font-style: normal;
   font-weight: 400;
-  line-height: 140%%;
+  line-height: 140%;
   transition: all 0.3s;
 
   
