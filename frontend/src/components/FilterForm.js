@@ -5,6 +5,8 @@ import InputText from "./Input/InputText"
 import EventTypeTab from './Tab/EventTypeTab';
 import { getEventTypeSvgIcon } from '../utils';
 import { theme } from '../theme';
+import Button from './Button/Button';
+import Select from './Select/Select'
 
 const libraries = ['places'];
 
@@ -17,6 +19,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
 
   const [address, setAddress] = useState('');
   const [showLocationFields, setShowLocationFields] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const autocompleteRef = React.useRef(null);
 
   const handlePlaceSelect = () => {
@@ -114,44 +117,62 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
           </div>
         </MainFilters>
         <SecondaryFilters>
-          {['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'].map((category) => (
-            <EventTypeTab
-              key={category}
-              category={category}
-              isActive={filters.typology.includes(category)}
-              onClick={() => handleFilterChange('typology', category)}
-              icon={getEventTypeSvgIcon(category, filters.typology.includes(category) ? theme.colors.brandMain : theme.colors.defaultSubtle)}
-            />
-          ))}
-
-          <div>
-            <label>Terreno:</label>
-            <select value={filters.terrain || ''} onChange={(e) => handleFilterChange('terrain', e.target.value)}>
-              <option value="">Todos</option>
-              <option value="offroad">Offroad</option>
-              <option value="road">Carretera</option>
-              <option value="mixed">Mixto</option>
-            </select>
+          <div className='TabsFilters'>
+            {['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'].map((category) => (
+              <EventTypeTab
+                key={category}
+                category={category}
+                isActive={filters.typology.includes(category)}
+                onClick={() => handleFilterChange('typology', category)}
+                icon={getEventTypeSvgIcon(category, filters.typology.includes(category) ? theme.colors.brandMain : theme.colors.defaultSubtle)}
+              />
+            ))}
           </div>
+          <div className='MoreFilters'>
+            <Button variant='outline' type="button" onClick={() => setShowModal(true)}>Otros Filtros<img src="/icons/filter.svg" alt='Filtros' /></Button>
 
-          <div>
-            <label>Experiencia:</label>
-            <select value={filters.experience || ''} onChange={(e) => handleFilterChange('experience', e.target.value)}>
-              <option value="">Todos</option>
-              <option value="none">Ninguno</option>
-              <option value="beginner">Principiante</option>
-              <option value="intermediate">Intermedio</option>
-              <option value="advanced">Avanzado</option>
-            </select>
-          </div>
+            {showModal && (
+              <ModalWrapper>
+                <Modal>
+                  <div className='Heading'>
+                    <h3>Otros Filtros</h3>
+                    <Button variant='ghost' type="button" onClick={() => setShowModal(false)}><img src='/icons/close.svg' alt='Close' /></Button>
+                  </div>
+                  <div className='ModalContent'>
+                    <div>
+                      <label>Terreno:</label>
+                      <Select value={filters.terrain || ''} onChange={(e) => handleFilterChange('terrain', e.target.value)}>
+                        <option value="">Todos</option>
+                        <option value="offroad">Offroad</option>
+                        <option value="road">Carretera</option>
+                        <option value="mixed">Mixto</option>
+                      </Select>
+                    </div>
 
-          <div>
-            <label>Ticket:</label>
-            <select value={filters.ticketType || ''} onChange={(e) => handleFilterChange('ticketType', e.target.value)}>
-              <option value="">Todos</option>
-              <option value="free">Gratis</option>
-              <option value="paid">De pago</option>
-            </select>
+                    <div>
+                      <label>Experiencia:</label>
+                      <Select value={filters.experience || ''} onChange={(e) => handleFilterChange('experience', e.target.value)}>
+                        <option value="">Todos</option>
+                        <option value="none">Ninguno</option>
+                        <option value="beginner">Principiante</option>
+                        <option value="intermediate">Intermedio</option>
+                        <option value="advanced">Avanzado</option>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label>Ticket:</label>
+                      <Select value={filters.ticketType || ''} onChange={(e) => handleFilterChange('ticketType', e.target.value)}>
+                        <option value="">Todos</option>
+                        <option value="free">Gratis</option>
+                        <option value="paid">De pago</option>
+                      </Select>
+                    </div>
+                  </div>
+                </Modal>
+                <div className='modalOverlay' />
+              </ModalWrapper>
+            )}
           </div>
         </SecondaryFilters>
       </FormContainer>
@@ -215,7 +236,15 @@ const SecondaryFilters = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   gap: ${({ theme }) => theme.sizing.sm};
+
+  .TabsFilters {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: ${({ theme }) => theme.sizing.sm};
+  }
 
   // div {
   // gap: 0.5rem;
@@ -289,4 +318,75 @@ const TimeFrame = styled.select`
   }
 `;
 
+const ModalWrapper = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
+  .modalOverlay {
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 26, 26, 0.90);
+    backdrop-filter: blur(12px);
+    position: absolute;
+  }
+`;
+
+const Modal = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  border-radius: 8px;
+  z-index: 1001;
+
+  .Heading {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 8px 8px 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.border.defaultSubtle};
+
+    h3 {
+      color: ${({ theme }) => theme.colors.defaultStrong};
+      text-align: center;
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on, 'ss04' on;
+
+      /* Titles/Desktop/Title 5/Semibold */
+      font-family: "Mona Sans";
+      font-size: 18px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 140%; /* 25.2px */
+    }
+  }
+
+  .ModalContent {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+
+      label {
+        min-width: 120px;
+      }
+    }
+  }
+`;
