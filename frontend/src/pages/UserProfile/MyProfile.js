@@ -6,7 +6,7 @@ import Button from '../../components/Button/Button';
 import UserProfileTab from './UserProfileTab';
 import GarageTab from './GarageTab';
 
-const UserProfile = () => {
+const MyProfile = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('Profile');
 
@@ -55,7 +55,7 @@ const UserProfile = () => {
   );
 };
 
-export default UserProfile;
+export default MyProfile;
 
 
 const ProfileHeader = styled.section`

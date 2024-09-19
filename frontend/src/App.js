@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import EventDetail from './pages/EventDetail';
 import CreateEvent from './pages/CreateEvent'
 import MyEvents from './pages/MyEvents';
-import UserProfile from './pages/UserProfile/UserProfile';
+import MyProfile from './pages/UserProfile/MyProfile';
 
 
 
@@ -22,7 +22,7 @@ function App() {
           <Route path="/events/:id/:slug" element={<EventDetail />} />
           <Route path="/create-event" element={<CreateEvent />} />
           <Route path="/my-events" element={<MyEvents />} />
-          <Route path="/my-profile" element={<UserProfile />} />
+          <Route path="/my-profile" element={<MyProfile />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -1,41 +1,58 @@
+import React, { useState } from 'react';
 import Button from "../../components/Button/Button";
+import AddVehicleModal from '../../components/Modal/AddVehicleModal';
 import styled from "styled-components";
 
-const GarageTab = ({ vehicles }) => (
-  <Garage>
-    <Container>
-      <Header>
-        <h3>Tu garaje</h3>
-        <Button variant='outline'><img src='/icons/add.svg' alt='Añadir' />Añadir moto</Button>
-      </Header>
-      {vehicles.length > 0 ? (
-        <VehicleGrid>
-          {vehicles.map(vehicle => (
-            <VehicleCard key={vehicle._id}>
-              <img className='Image' src={vehicle.image} alt={vehicle.brand} />
-              {vehicle.nickname.length > 0 ? (
-                <div className='VehicleData'>
-                  <p className='Brand'>{vehicle.brand}<span className='Model'> {vehicle.model}</span></p>
-                  <p className='Subtitle'>{vehicle.nickname}</p>
-                  <p className='Year'>2020</p>
-                </div>
-              ) : (
-                <div className='VehicleData'>
-                  <p className='Brand'>{vehicle.brand}</p>
-                  <p className='Subtitle'>{vehicle.model}</p>
-                  <p className='Year'>2020</p>
-                </div>
-              )}
-            </VehicleCard>
-          ))}
-        </VehicleGrid>
-      ) : (
-        <p>No tienes vehículos en tu garaje.</p>
-      )}
-    </Container>
-  </Garage>
+const GarageTab = ({ vehicles }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [userVehicles, setUserVehicles] = useState(vehicles);
 
-);
+  const handleVehicleCreated = (newVehicle) => {
+    setUserVehicles((prevVehicles) => [...prevVehicles, newVehicle]);
+  };
+
+  return (
+    <Garage>
+      <Container>
+        <Header>
+          <h3>Tu garaje</h3>
+          <Button variant='outline' onClick={() => setShowModal(true)}>
+            <img src='/icons/add.svg' alt='Añadir' />Añadir moto
+          </Button>
+        </Header>
+        {userVehicles.length > 0 ? (
+          <VehicleGrid>
+            {userVehicles.map(vehicle => (
+              <VehicleCard key={vehicle._id}>
+                <img className='Image' src={vehicle.image} alt={vehicle.brand} />
+                {vehicle.nickname.length > 0 ? (
+                  <div className='VehicleData'>
+                    <p className='Brand'>{vehicle.brand}<span className='Model'> {vehicle.model}</span></p>
+                    <p className='Subtitle'>{vehicle.nickname}</p>
+                    <p className='Year'>{vehicle.year}</p>
+                  </div>
+                ) : (
+                  <div className='VehicleData'>
+                    <p className='Brand'>{vehicle.brand}</p>
+                    <p className='Subtitle'>{vehicle.model}</p>
+                    <p className='Year'>{vehicle.year}</p>
+                  </div>
+                )}
+              </VehicleCard>
+            ))}
+          </VehicleGrid>
+        ) : (
+          <p>No tienes vehículos en tu garaje.</p>
+        )}
+      </Container>
+      <AddVehicleModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onVehicleCreated={handleVehicleCreated}
+      />
+    </Garage>
+  );
+};
 
 export default GarageTab;
 
