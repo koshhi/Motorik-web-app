@@ -2,13 +2,13 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../Button/Button';
-
+import { useAuth } from '../../context/AuthContext';
 
 const MainNavbar = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // Verificar si el usuario está autenticado
-  const isAuthenticated = !!localStorage.getItem('authToken');
+  const isAuthenticated = !!user && !!localStorage.getItem('authToken'); // Comprobar que `user` no es null
 
   const handleLogout = () => {
     // Eliminar el token del almacenamiento local
@@ -43,9 +43,11 @@ const MainNavbar = () => {
             <Link to="/my-events" className='NavLink'>
               <img src='/icons/my-events.svg' alt="Mis Eventos" /><p>Mis Eventos</p>
             </Link>
-            <Link to="/my-profile" className='NavLink'>
-              <img src='/icons/my-profile.svg' alt="Mi Perfil" /><p>Mi Perfil</p>
-            </Link>
+            {user && (
+              <Link to={`/user/${user.id}`} className='NavLink'>
+                <img src='/icons/my-profile.svg' alt="Mi Perfil" /><p>Mi Perfil</p>
+              </Link>
+            )}
           </NavLinks>
           <ActionsContainer>
             <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
@@ -69,6 +71,7 @@ const MainNavbar = () => {
 };
 
 export default MainNavbar;
+
 
 //Estilos del componente
 
@@ -130,3 +133,4 @@ export const ActionsContainer = styled.div`
   flex-direction: row;
   gap: 8px;
 `;
+

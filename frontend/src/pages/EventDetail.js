@@ -7,6 +7,7 @@ import MainNavbar from '../components/Navbar/MainNavbar';
 import Button from '../components/Button/Button';
 import EventFixedAction from '../components/EventFixedAction'
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -167,13 +168,13 @@ const EventDetail = () => {
               )}
             </div>
           </div>
-          <div className='EventOrganizer'>
+          <Link className='EventOrganizer' to={`/user/${event.owner.id}`}>
             <img className="UserAvatar" src={event.owner.userAvatar} alt="Event organizer" />
             <div className='UserData'>
               <p className='label'>Organizado por</p>
               <p className='username'>{event.owner.name} {event.owner.lastName}</p>
             </div>
-          </div>
+          </Link>
         </div>
 
       </EventHeader>

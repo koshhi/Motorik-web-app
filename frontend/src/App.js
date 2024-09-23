@@ -7,11 +7,12 @@ import Home from './pages/Home';
 import EventDetail from './pages/EventDetail';
 import CreateEvent from './pages/CreateEvent'
 import MyEvents from './pages/MyEvents';
-import MyProfile from './pages/UserProfile/MyProfile';
-
+import UserProfile from './pages/UserProfile/UserProfile';
+import UserGarage from './pages/UserProfile/UserGarage';
 
 
 function App() {
+
   return (
     <AuthProvider>
       <Router>
@@ -22,7 +23,8 @@ function App() {
           <Route path="/events/:id/:slug" element={<EventDetail />} />
           <Route path="/create-event" element={<CreateEvent />} />
           <Route path="/my-events" element={<MyEvents />} />
-          <Route path="/my-profile" element={<MyProfile />} />
+          <Route path="/user/:userId/garage" element={<UserGarage />} />
+          <Route path="/user/:userId" element={<UserProfile />} />
         </Routes>
       </Router>
     </AuthProvider>

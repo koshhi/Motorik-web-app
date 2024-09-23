@@ -53,7 +53,7 @@ const upload = multer({ storage })
 
 // Crear un vehículo con subida de imagen
 vehiclesRouter.post('/', auth, upload.single('image'), async (req, res) => {
-  const { brand, model, nickname } = req.body
+  const { brand, model, nickname, year } = req.body
 
   try {
     // Subir imagen a Cloudinary
@@ -68,7 +68,8 @@ vehiclesRouter.post('/', auth, upload.single('image'), async (req, res) => {
       model,
       nickname,
       image: imageUrl,
-      owner: req.user.id
+      owner: req.user.id,
+      year
     })
 
     const savedVehicle = await newVehicle.save()
@@ -92,7 +93,7 @@ vehiclesRouter.post('/', auth, upload.single('image'), async (req, res) => {
 // Actualizar un vehículo con subida de imagen
 vehiclesRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
   const { id } = req.params
-  const { brand, model, nickname } = req.body
+  const { brand, model, nickname, year } = req.body
 
   try {
     const vehicle = await Vehicle.findById(id)
@@ -115,6 +116,7 @@ vehiclesRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
     vehicle.brand = brand
     vehicle.model = model
     vehicle.nickname = nickname
+    vehicle.year = year
 
     const updatedVehicle = await vehicle.save()
 
@@ -125,12 +127,27 @@ vehiclesRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
   }
 })
 
-// Obtener todos los vehículos de un usuario
-vehiclesRouter.get('/user', auth, async (req, res) => {
+// // Obtener todos los vehículos de un usuario
+// vehiclesRouter.get('/user', auth, async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id).populate('vehicles')
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: 'User not found' })
+//     }
+
+//     res.status(200).json({ success: true, vehicles: user.vehicles })
+//   } catch (error) {
+//     console.error(error)
+//     res.status(500).json({ success: false, message: 'Internal Server Error' })
+//   }
+// })
+
+// Obtener todos los vehículos de un usuario por su ID
+vehiclesRouter.get('/user/:userId', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate('vehicles')
+    const user = await User.findById(req.params.userId).populate('vehicles')
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' })
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     res.status(200).json({ success: true, vehicles: user.vehicles })
@@ -193,6 +210,37 @@ vehiclesRouter.get('/:id', auth, async (req, res) => {
 // })
 
 // Eliminar un vehículo
+// vehiclesRouter.delete('/:id', auth, async (req, res) => {
+//   const { id } = req.params
+
+//   try {
+//     const vehicle = await Vehicle.findById(id)
+//     if (!vehicle) {
+//       return res.status(404).json({ success: false, message: 'Vehicle not found' })
+//     }
+
+//     // Verificar si el usuario autenticado es el propietario del vehículo
+//     if (vehicle.owner.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'Not authorized to delete this vehicle' })
+//     }
+
+//     // Usar deleteOne para eliminar el vehículo
+//     await vehicle.deleteOne()
+
+//     // Eliminar la referencia del vehículo del usuario
+//     const user = await User.findById(req.user.id)
+//     if (user) {
+//       user.vehicles = user.vehicles.filter(v => v.toString() !== id)
+//       await user.save()
+//     }
+
+//     res.status(200).json({ success: true, message: 'Vehicle deleted successfully' })
+//   } catch (error) {
+//     console.error(error)
+//     res.status(500).json({ success: false, message: 'Internal Server Error' })
+//   }
+// })
+
 vehiclesRouter.delete('/:id', auth, async (req, res) => {
   const { id } = req.params
 

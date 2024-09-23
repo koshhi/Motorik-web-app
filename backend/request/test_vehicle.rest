@@ -12,11 +12,13 @@ Content-Type: application/json
 
 ###
 
-### Obtener Todos los Vehículos del Usuario
-GET http://localhost:5002/api/vehicles/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NjQ2NTU5LCJleHAiOjE3MjYyNTEzNTl9.yxgFLST1qbjaoZ7QAZ0t6KCKONNnuVeFle7FJP-8-08
+# ### Obtener Todos los Vehículos del Usuario
+# GET http://localhost:5002/api/vehicles/user
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI2ODM1NDgxLCJleHAiOjE3Mjc0NDAyODF9.1hT9ygufpe3m9CvihkZKs0gaJH5cAb9t3sfc7REle0U
 
-###
+### Obtener todos los vehiculos de un usuario
+GET http://localhost:5002/api/vehicles/user/66d566bcc08191eee0ac1e4f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI3MDg3MjcwLCJleHAiOjE3Mjc2OTIwNzB9.HxXIjIoEt8W37YZ2G13tw2GkyunOd0tTkw2kDRYtW38
 
 ### Obtener un Vehículo por su ID
 GET http://localhost:5002/api/vehicles/66d05cff1ddb3bff4c6f32ee

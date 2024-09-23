@@ -12,6 +12,7 @@ import EventTerrainModal from './Modal/EventTerrainModal';
 import EventCapacityModal from './Modal/EventCapacityModal';
 import EventExperienceModal from './Modal/EventExperienceModal';
 import EventTicketModal from './Modal/EventTicketModal';
+import InputImage from './Input/InputImage';
 
 // Define las bibliotecas fuera del componente para evitar recrear el array
 const libraries = ['places'];

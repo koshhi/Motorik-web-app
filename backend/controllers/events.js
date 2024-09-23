@@ -2,6 +2,7 @@ const express = require('express')
 const Event = require('../models/Event')
 const User = require('../models/User')
 const dotenv = require('dotenv')
+const mongoose = require('mongoose')
 const auth = require('../middleware/auth')
 const { format, startOfToday, endOfToday, startOfTomorrow, endOfTomorrow, endOfWeek, endOfMonth } = require('date-fns')
 const eventsRouter = express.Router()
@@ -347,34 +348,76 @@ eventsRouter.get('/:id', async (req, res) => {
   }
 })
 
-// Obtener los eventos de un usario autenticado y separado por eventos pasado y futuros
-eventsRouter.get('/user/myevents', auth, async (req, res) => {
+// // Obtener los eventos de un usario autenticado y separado por eventos pasado y futuros
+// eventsRouter.get('/user/myevents', auth, async (req, res) => {
+//   try {
+//     const userId = req.user._id
+//     const today = new Date()
+
+//     // Obtener eventos futuros y pasados del usuario
+//     const futureEvents = await Event.find({
+//       owner: userId,
+//       startDate: { $gte: today }
+//     }).sort({ startDate: 1 })
+//       .populate('owner', 'name lastName userAvatar description')
+
+//     // Obtener eventos donde el usuario es un attendee
+//     // const attendeeEvents = await Event.find({
+//     //   attendees: userId
+//     // }).sort({ startDate: 1 }).populate('owner', 'name lastName userAvatar description')
+//     const attendeeEvents = await Event.find({
+//       'attendees.userId': userId
+//     }).sort({ startDate: 1 })
+//       .populate('owner', 'name lastName userAvatar description')
+//       .populate('attendees.userId', 'name lastName userAvatar')
+//       .populate('attendees.vehicleId', 'brand model nickname image')
+
+//     res.status(200).json({ success: true, futureEvents, attendeeEvents })
+//   } catch (error) {
+//     console.error(error)
+//     res.status(500).json({ success: false, message: 'Internal Server Error' })
+//   }
+// })
+
+// Obtener los eventos que organiza y a los que asiste un usuario por su ID
+eventsRouter.get('/:userId/events', async (req, res) => {
   try {
-    const userId = req.user._id
-    const today = new Date()
+    const userId = req.params.userId
 
-    // Obtener eventos futuros y pasados del usuario
+    // Validar que el ID proporcionado sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuario no válido'
+      })
+    }
+
+    // Convertir el userId a un ObjectId de Mongoose
+    const objectId = new mongoose.Types.ObjectId(userId)
+
+    // Obtener los eventos organizados por el usuario
     const futureEvents = await Event.find({
-      owner: userId,
-      startDate: { $gte: today }
-    }).sort({ startDate: 1 })
-      .populate('owner', 'name lastName userAvatar description')
+      owner: objectId,
+      startDate: { $gte: new Date() }
+    }).populate('owner')
 
-    // Obtener eventos donde el usuario es un attendee
-    // const attendeeEvents = await Event.find({
-    //   attendees: userId
-    // }).sort({ startDate: 1 }).populate('owner', 'name lastName userAvatar description')
+    // Obtener los eventos a los que asistirá el usuario
     const attendeeEvents = await Event.find({
-      'attendees.userId': userId
-    }).sort({ startDate: 1 })
-      .populate('owner', 'name lastName userAvatar description')
-      .populate('attendees.userId', 'name lastName userAvatar')
-      .populate('attendees.vehicleId', 'brand model nickname image')
+      'attendees.userId': objectId,
+      startDate: { $gte: new Date() }
+    }).populate('attendees.userId')
 
-    res.status(200).json({ success: true, futureEvents, attendeeEvents })
+    res.status(200).json({
+      success: true,
+      futureEvents,
+      attendeeEvents
+    })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: false, message: 'Internal Server Error' })
+    console.error('Error al obtener los eventos:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener los eventos del usuario'
+    })
   }
 })
 
