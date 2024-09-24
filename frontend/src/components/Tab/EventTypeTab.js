@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const EventTypeTab = ({ category, isActive, onClick, icon }) => {
   return (
-    <TabWrapper isActive={isActive} onClick={onClick}>
+    <TabWrapper $isActive={isActive} onClick={onClick}>
       {icon}
       <span>{category}</span>
     </TabWrapper>
@@ -15,7 +15,7 @@ export default EventTypeTab;
 
 const TabWrapper = styled.div`
   cursor: pointer;
-  border-bottom: 4px solid ${({ isActive, theme }) => (isActive ? theme.colors.brandMain : theme.fill.defaultMain)};
+  border-bottom: 4px solid ${({ $isActive, theme }) => ($isActive ? theme.colors.brandMain : theme.fill.defaultMain)};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,6 +37,6 @@ const TabWrapper = styled.div`
     font-weight: 600;
     line-height: 150%;
     font-size: 14px;
-    color: ${({ isActive, theme }) => (isActive ? theme.colors.brandMain : theme.colors.defaultSubtle)};
+    color: ${({ $isActive, theme }) => ($isActive ? theme.colors.brandMain : theme.colors.defaultSubtle)};
   }
 `;

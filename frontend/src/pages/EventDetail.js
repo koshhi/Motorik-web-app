@@ -18,7 +18,6 @@ const EventDetail = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
 
-  //console.log({ ParamsID: id });
 
   useEffect(() => {
     // Verificamos que el perfil del usuario haya cargado
@@ -28,8 +27,8 @@ const EventDetail = () => {
           const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/events/${id}`);
           setEvent(response.data.event);
 
-          console.log({ owner: response.data.event.owner });
-          console.log({ viewer: user });
+          // console.log({ owner: response.data.event.owner });
+          // console.log({ viewer: user });
 
           // Asegurarse de que tanto el evento como el usuario estén definidos
           if (user && response.data.event.owner && response.data.event.owner.id === user.id) {
@@ -152,7 +151,7 @@ const EventDetail = () => {
       <MainNavbar />
       <EventHeader>
         <div className='EventHeaderContainer'>
-          <Button variant="ghost">Atrás</Button>
+          <Button $variant="ghost">Atrás</Button>
           <div className='EventHeaderMain'>
             <div className='InnerHeaderLeft'>
               <h1>{event.title}</h1>
@@ -160,11 +159,11 @@ const EventDetail = () => {
               <span>4 plazas disponibles</span>
             </div>
             <div className='InnerHeaderRight'>
-              <Button size="small" variant="outline" alt="Compartir evento"><img className="Icon" src="/icons/share.svg" alt="share-icon" /></Button>
+              <Button size="small" $variant="outline" alt="Compartir evento"><img className="Icon" src="/icons/share.svg" alt="share-icon" /></Button>
               {isOwner ? (
-                <Button size="small" variant="outline" alt="Gestionar evento">Gestionar evento</Button>
+                <Button size="small" $variant="outline" alt="Gestionar evento">Gestionar evento</Button>
               ) : (
-                <Button onClick={handleEnroll} size="small" variant="outline" alt="Inscríbete en el evento">Inscríbete</Button>
+                <Button onClick={handleEnroll} size="small" $variant="outline" alt="Inscríbete en el evento">Inscríbete</Button>
               )}
             </div>
           </div>
@@ -204,8 +203,8 @@ const EventDetail = () => {
                     </div>
                   </div>
                   <div className='OrganizerActions'>
-                    <Button size="small" variant="ghost">Contactar</Button>
-                    <Button size="small" variant="outline">Seguir</Button>
+                    <Button size="small" $variant="ghost">Contactar</Button>
+                    <Button size="small" $variant="outline">Seguir</Button>
                   </div>
                 </div>
                 <p className='OrganizerDescription'>

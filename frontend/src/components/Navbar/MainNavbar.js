@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../Button/Button';
+import AccountDropdown from '../AccountDropdown';
 import { useAuth } from '../../context/AuthContext';
 
 const MainNavbar = () => {
@@ -9,14 +10,6 @@ const MainNavbar = () => {
   const { user } = useAuth();
 
   const isAuthenticated = !!user && !!localStorage.getItem('authToken'); // Comprobar que `user` no es null
-
-  const handleLogout = () => {
-    // Eliminar el token del almacenamiento local
-    localStorage.removeItem('authToken');
-
-    // Redirigir al login
-    navigate('/login', { state: { message: 'You have been logged out successfully.' } });
-  };
 
   const handleCreateEvent = () => {
     if (isAuthenticated) {
@@ -50,8 +43,8 @@ const MainNavbar = () => {
             )}
           </NavLinks>
           <ActionsContainer>
-            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
-            <Button size="small" variant="outlineInverse" onClick={handleLogout}>Logout</Button>
+            <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
+            <AccountDropdown userAvatar={user.userAvatar} />
           </ActionsContainer>
         </div>
       ) : (
@@ -60,9 +53,9 @@ const MainNavbar = () => {
             <img src='/motorik-logo.svg' alt="Motorik Logo" />
           </Link>
           <ActionsContainer>
-            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
-            <Link to="/login"><Button size="small" variant="outlineInverse">Entra</Button></Link>
-            <Link to="/signup"><Button size="small" variant="outlineInverse">Únete</Button></Link>
+            <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
+            <Link to="/login"><Button size="small" $variant="outlineInverse">Entra</Button></Link>
+            <Link to="/signup"><Button size="small" $variant="outlineInverse">Únete</Button></Link>
           </ActionsContainer>
         </div>
       )}

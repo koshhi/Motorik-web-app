@@ -15,7 +15,8 @@ const EventCardHorizontal = ({ event }) => {
     <>
       <EventRow>
         <div className='Date-col'>
-          <p>{event.dayDate} {event.monthDate}</p>
+          <p className='Date'>{event.dayDate} {event.monthDate}</p>
+          <p className='WeekDayDate'>{event.weekdayStart}</p>
         </div>
         <div className='Event-col'>
           <div className='Timeline'>
@@ -61,7 +62,7 @@ const EventCardHorizontal = ({ event }) => {
                     <div><ReactSVG src="/icons/attendees.svg" />{event.attendeesCount} asistentes</div>
                   </div>
                   <div className='tertiaryInfo'>
-                    <Button size="small" variant="outline">Gestionar Evento<img src="/icons/arrow-right.svg" /></Button>
+                    <Button size="small" $variant="outline">Gestionar Evento<img src="/icons/arrow-right.svg" /></Button>
                   </div>
                 </Right>
               </Event>
@@ -84,12 +85,16 @@ const EventRow = styled.div`
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: 1fr;
   grid-column-gap: 32px;
-  grid-row-gap: 0px
+  grid-row-gap: 0px;
 
   .Date-col { 
     grid-area: 1 / 1 / 2 / 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
 
-    p {
+    .Date {
       color: ${({ theme }) => theme.colors.defaultStrong};
       font-variant-numeric: lining-nums tabular-nums;
       font-feature-settings: 'ss01' on, 'ss04' on;
@@ -100,6 +105,18 @@ const EventRow = styled.div`
       font-style: normal;
       font-weight: 600;
       line-height: 140%; /* 25.2px */
+    }
+    .WeekDayDate {
+      color: var(--textIcon-default-medium, rgba(0, 0, 0, 0.50));
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on;
+
+      /* Body/Body 2/Medium */
+      font-family: "Mona Sans";
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 140%; /* 19.6px */
     }
   }
   .Event-col { 
@@ -114,6 +131,7 @@ const EventRow = styled.div`
       height: 100%;
       align-items: center;
       position: relative;
+      padding-top: 10px;
 
       &::before {
         content: '';
@@ -122,7 +140,7 @@ const EventRow = styled.div`
         height: 100%;
         position: absolute;
         left: 0px;
-        top: 8px;
+        top: 20px;
         background-image: radial-gradient(ellipse, ${({ theme }) => theme.border.defaultWeak} 2px, ${({ theme }) => theme.border.defaultWeak} 2px, transparent 2px);
         background-size: 16px 16px;
         background-position: -2px 8px;

@@ -165,7 +165,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
       <Modal>
         <div className='Heading'>
           <h3>{vehicle ? 'Editar Vehículo' : 'Añadir Vehículo'}</h3>
-          <Button variant="ghost" onClick={onClose}><img src='/icons/close.svg' alt='Close' /></Button>
+          <Button $variant="ghost" onClick={onClose}><img src='/icons/close.svg' alt='Close' /></Button>
         </div>
         <div className='ModalContent'>
           <form onSubmit={handleSubmit}>
@@ -238,11 +238,11 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
                 onChange={handleInputChange}
               />
             </div>
-            <Button type="submit" variant="outline">
+            <Button type="submit" $variant="outline">
               {vehicle ? 'Guardar Cambios' : 'Añadir Vehículo'}
             </Button>
             {vehicle && (
-              <Button type="button" variant="danger" onClick={handleDelete}>
+              <Button type="button" $variant="danger" onClick={handleDelete}>
                 Eliminar Vehículo
               </Button>
             )}

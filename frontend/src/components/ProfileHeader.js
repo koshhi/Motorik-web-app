@@ -1,35 +1,65 @@
+import { useState } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Button from './Button/Button';
+import Modal from './Modal/Modal';
+import EditProfileForm from './EditProfileForm';
 
 const ProfileHeader = ({ profileUser, user, userId }) => {
+  const location = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   if (!profileUser) {
-    return <div>Cargando perfil...</div>;  // Mostrar un mensaje mientras el perfil se carga
+    return <div>Cargando perfil...</div>;
   }
 
   return (
-    <ProfileHeaderWrapper>
-      <Container>
-        <div className='UserHeader'>
-          <div className='UserData'>
-            <img className='Avatar' src={profileUser.userAvatar} alt='user avatar' />
-            <div className='Data'>
-              <h1>{profileUser.name} {profileUser.lastName}</h1>
-              <p>Sevilla, España </p>
+    <>
+      <ProfileHeaderWrapper>
+        <Container>
+          <div className='UserHeader'>
+            <div className='UserData'>
+              <img className='Avatar' src={profileUser.userAvatar} alt='user avatar' />
+              <div className='Data'>
+                <h1>{profileUser.name} {profileUser.lastName}</h1>
+                <p>Sevilla, España </p>
+              </div>
             </div>
+            {user && user.id === userId && (
+              <Button onClick={openModal} size="small" $variant="outline">Editar perfil</Button>
+            )}
           </div>
-          {user && user.id === userId && (
-            <Button size="small" variant="outline">Editar perfil</Button>
-          )}
-        </div>
 
-        <SectionTabs>
-          <Link to={`/user/${userId}`} className='SectionTab'>Perfil</Link>
-          <Link to={`/user/${userId}/garage`} className='SectionTab Active'>Garaje</Link>
-        </SectionTabs>
-      </Container>
-    </ProfileHeaderWrapper>
+          <SectionTabs>
+            <Link
+              to={`/user/${userId}`}
+              className={`SectionTab ${location.pathname === `/user/${userId}` ? 'Active' : ''}`}
+            >
+              Perfil
+            </Link>
+            <Link
+              to={`/user/${userId}/garage`}
+              className={`SectionTab ${location.pathname === `/user/${userId}/garage` ? 'Active' : ''}`}
+            >
+              Garaje
+            </Link>
+          </SectionTabs>
+        </Container>
+      </ProfileHeaderWrapper>
+      {isModalOpen && (
+        <Modal title="Editar perfil" onClose={closeModal}>
+          <EditProfileForm profileUser={profileUser} onClose={closeModal} />
+        </Modal>
+      )}
+    </>
   );
 };
 

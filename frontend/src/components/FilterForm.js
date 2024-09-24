@@ -129,14 +129,14 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
             ))}
           </div>
           <div className='MoreFilters'>
-            <Button variant='outline' type="button" onClick={() => setShowModal(true)}>Otros Filtros<img src="/icons/filter.svg" alt='Filtros' /></Button>
+            <Button $variant='outline' type="button" onClick={() => setShowModal(true)}>Otros Filtros<img src="/icons/filter.svg" alt='Filtros' /></Button>
 
             {showModal && (
               <ModalWrapper>
                 <Modal>
                   <div className='Heading'>
                     <h3>Otros Filtros</h3>
-                    <Button variant='ghost' type="button" onClick={() => setShowModal(false)}><img src='/icons/close.svg' alt='Close' /></Button>
+                    <Button $variant='ghost' type="button" onClick={() => setShowModal(false)}><img src='/icons/close.svg' alt='Close' /></Button>
                   </div>
                   <div className='ModalContent'>
                     <div>

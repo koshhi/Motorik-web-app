@@ -118,14 +118,13 @@ const eventSchema = new Schema({
 
 // Virtual field: dayDate
 eventSchema.virtual('dayDate').get(function () {
-  // Get the day of the startDate
-  return this.startDate.getDate() // This returns the day as a number
+  return format(this.startDate, 'd', { locale: es })
 })
 
 // Virtual field: monthDate
 eventSchema.virtual('monthDate').get(function () {
-  // Get the abbreviated month of the startDate
-  return format(this.startDate, 'MMM') // This returns the month as an abbreviation (e.g., 'Jan', 'Feb')
+  const month = format(this.startDate, 'MMM', { locale: es })
+  return capitalizeFirstLetter(month)
 })
 // // Virtual field: partialDateStart
 // eventSchema.virtual('partialDateStart').get(function () {
@@ -169,7 +168,7 @@ const capitalizeFirstLetter = (string) => {
 
 // Virtual field: partialDateStart
 eventSchema.virtual('partialDateStart').get(function () {
-  const formattedDate = format(this.startDate, 'EEEE d MMM yyyy', { locale: es });
+  const formattedDate = format(this.startDate, 'EEEE d MMM yyyy', { locale: es })
   return capitalizeFirstLetter(formattedDate)
 })
 
@@ -189,6 +188,12 @@ eventSchema.virtual('partialDateEnd').get(function () {
   }
 
   return `${format(this.startDate, 'H:mm', { locale: es })} - ${formattedEndDate}`
+})
+
+// Virtual field: weekdayStart
+eventSchema.virtual('weekdayStart').get(function () {
+  const weekday = format(this.startDate, 'EEEE', { locale: es })
+  return capitalizeFirstLetter(weekday)
 })
 
 // Crear un índice geoespacial en las coordenadas

@@ -64,28 +64,6 @@ const UserProfile = () => {
 
   return (
     <>
-      <MainNavbar />
-      <ProfileHeader>
-        <Container>
-          <div className='UserHeader'>
-            <div className='UserData'>
-              <img className='Avatar' src={profileUser.userAvatar} alt='user avatar' />
-              <div className='Data'>
-                <h1>{profileUser.name} {profileUser.lastName}</h1>
-                <p>Sevilla, España </p>
-              </div>
-            </div>
-            {user && user.id === userId && (
-              <Button size="small" variant="outline">Editar perfil</Button>
-            )}
-          </div>
-
-          <SectionTabs>
-            <Link to={`/user/${userId}`} className='SectionTab Active'>Perfil</Link>
-            <Link to={`/user/${userId}/garage`} className='SectionTab'>Garaje</Link>
-          </SectionTabs>
-        </Container>
-      </ProfileHeader>
       <Profile>
         <Container>
           <div className='Grid'>
@@ -175,51 +153,6 @@ const UserProfile = () => {
 
 export default UserProfile;
 
-
-const ProfileHeader = styled.section`
-  background-color: ${({ theme }) => theme.fill.defaultSubtle};
-  align-items: center;
-  display:flex;
-  flex-direction: column;
-  
-  .UserHeader {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-
-    .UserData {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: ${({ theme }) => theme.sizing.lg};
-
-      .Avatar {
-        height: 120px;
-        width: 120px;
-        border-radius: ${({ theme }) => theme.radius.xs};
-      }
-
-      .Data {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-
-        h1 {
-          color: ${({ theme }) => theme.colors.defaultStrong};
-          font-variant-numeric: lining-nums tabular-nums;
-          font-feature-settings: 'ss01' on;
-          font-family: "Mona Sans";
-          font-size: 32px;
-          font-style: normal;
-          font-weight: 600;
-          line-height: 140%; /* 44.8px */
-        }
-      }
-    }
-
-  }
-`;
 
 const Container = styled.div`
   display: flex;

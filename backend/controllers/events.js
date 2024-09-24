@@ -324,31 +324,9 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
   }
 })
 
-// Obtener un evento por su ID
-eventsRouter.get('/:id', async (req, res) => {
-  const { id } = req.params
-  try {
-    // Buscar el evento por ID y popular los campos especificados del owner
-    const event = await Event.findById(id)
-      .populate('owner', 'name lastName userAvatar description')
-      .populate('attendees.userId', 'name lastName userAvatar')
-      .populate('attendees.vehicleId', 'brand model nickname image')
 
-    if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' })
-    }
 
-    res.status(200).json({
-      success: true,
-      event: event
-    })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: false, message: 'Internal Server Error' })
-  }
-})
-
-// // Obtener los eventos de un usario autenticado y separado por eventos pasado y futuros
+// Obtener los eventos de un usario autenticado y separado por eventos pasado y futuros
 // eventsRouter.get('/user/myevents', auth, async (req, res) => {
 //   try {
 //     const userId = req.user._id
@@ -378,6 +356,59 @@ eventsRouter.get('/:id', async (req, res) => {
 //     res.status(500).json({ success: false, message: 'Internal Server Error' })
 //   }
 // })
+
+// Obtener los eventos de un usuario autenticado (futuros y pasados)
+eventsRouter.get('/my-events', auth, async (req, res) => {
+  try {
+    const userId = req.user.id
+    const today = new Date()
+
+    // Obtener eventos futuros organizados por el usuario
+    const futureEvents = await Event.find({
+      owner: userId,
+      startDate: { $gte: today }
+    }).sort({ startDate: 1 })
+      .populate('owner', 'name lastName userAvatar description')
+
+    // Obtener eventos a los que el usuario asistirá
+    const attendeeEvents = await Event.find({
+      'attendees.userId': userId,
+      startDate: { $gte: today }
+    }).sort({ startDate: 1 })
+      .populate('owner', 'name lastName userAvatar description')
+      .populate('attendees.userId', 'name lastName userAvatar')
+      .populate('attendees.vehicleId', 'brand model nickname image')
+
+    res.status(200).json({ success: true, futureEvents, attendeeEvents })
+  } catch (error) {
+    console.error('Error al obtener los eventos del usuario:', error)
+    res.status(500).json({ success: false, message: 'Error al obtener los eventos' })
+  }
+})
+
+// Obtener un evento por su ID
+eventsRouter.get('/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    // Buscar el evento por ID y popular los campos especificados del owner
+    const event = await Event.findById(id)
+      .populate('owner', 'name lastName userAvatar description')
+      .populate('attendees.userId', 'name lastName userAvatar')
+      .populate('attendees.vehicleId', 'brand model nickname image')
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
+
+    res.status(200).json({
+      success: true,
+      event: event
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
 
 // Obtener los eventos que organiza y a los que asiste un usuario por su ID
 eventsRouter.get('/:userId/events', async (req, res) => {

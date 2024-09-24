@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const CardToogle = ({ category, isActive, onClick, icon }) => {
   return (
-    <Option isActive={isActive} onClick={onClick}>
+    <Option $isActive={isActive} onClick={onClick}>
       {icon}
       <span>{category}</span>
     </Option>
@@ -15,7 +15,7 @@ export default CardToogle;
 
 const Option = styled.div`
   cursor: pointer;
-  border: 1px solid ${({ isActive, theme }) => (isActive ? theme.border.brandMain : theme.border.defaultWeak)};
+  border: 1px solid ${({ $isActive, theme }) => ($isActive ? theme.border.brandMain : theme.border.defaultWeak)};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,6 +41,6 @@ const Option = styled.div`
     font-weight: 600;
     line-height: 150%;
     font-size: 14px;
-    color: ${({ isActive, theme }) => (isActive ? theme.colors.brandMain : theme.colors.defaultSubtle)};
+    color: ${({ $isActive, theme }) => ($isActive ? theme.colors.brandMain : theme.colors.defaultSubtle)};
   }
 `;

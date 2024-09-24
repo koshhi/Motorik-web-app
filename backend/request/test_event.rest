@@ -53,11 +53,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDk1MDAzY
 DELETE http://localhost:5002/api/events/66e2e36feb449daaefd6e2d8
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI2NTU2NjE5LCJleHAiOjE3MjcxNjE0MTl9.1ib6_QlnGDE2SE0jDdjDjpEz20DsTIvpACzS9DniEZk
 
-###
-
-### Test de MyEvents (obtener eventos futuros y pasados del usuario autenticado)
-GET http://localhost:5002/api/events/user/myevents
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI2NTEyOTIxLCJleHAiOjE3MjcxMTc3MjF9.Zo5DdzG9ehaw3Zzh4T3B25lszEiJKecgRDLh0-hJoqE
-Content-Type: application/json
-
+### Obtener eventos del usuario autenticado (My Events)
+GET http://localhost:5002/api/events/my-events
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI3MTEyOTg3LCJleHAiOjE3Mjc3MTc3ODd9.iS-JsEF3tbXtHrUKzuue1p1pVcN8JzDRJILGnxQIOFA
 

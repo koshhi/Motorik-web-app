@@ -84,80 +84,13 @@ const GarageTab = ({ vehicles }) => {
   };
 
   return (
-    // <Garage>
-    //   <Container>
-    //     <Header>
-    //       <h3>Tu garaje</h3>
-    //       <Button variant='outline' onClick={openAddModal}>
-    //         <img src='/icons/add.svg' alt='Añadir' />Añadir moto
-    //       </Button>
-    //     </Header>
-    //     {userVehicles.length > 0 ? (
-    //       <VehicleGrid>
-    //         {userVehicles.map(vehicle => (
-    //           <VehicleCard key={vehicle._id}>
-    //             <img className='Image' src={vehicle.image} alt={vehicle.brand} />
-    //             {vehicle.nickname.length > 0 ? (
-    //               <div className='VehicleData'>
-    //                 <p className='Brand'>{vehicle.brand}<span className='Model'> {vehicle.model}</span></p>
-    //                 <p className='Subtitle'>{vehicle.nickname}</p>
-    //                 <p className='Year'>{vehicle.year}</p>
-    //               </div>
-    //             ) : (
-    //               <div className='VehicleData'>
-    //                 <p className='Brand'>{vehicle.brand}</p>
-    //                 <p className='Subtitle'>{vehicle.model}</p>
-    //                 <p className='Year'>{vehicle.year}</p>
-    //               </div>
-    //             )}
-    //             <Button className='EditButton' variant="defaultInverse" onClick={() => openEditModal(vehicle)}><img src='/icons/edit-solid.svg' alt='Editar' /></Button>
-    //           </VehicleCard>
-    //         ))}
-    //       </VehicleGrid>
-    //     ) : (
-    //       <p>No tienes vehículos en tu garaje.</p>
-    //     )}
-    //   </Container>
-    //   <AddVehicleModal
-    //     isOpen={showModal}
-    //     onClose={() => setShowModal(false)}
-    //     onVehicleSaved={handleVehicleCreatedOrUpdated}
-    //     onVehicleDeleted={handleVehicleDeleted}
-    //     vehicle={vehicleToEdit}
-    //   />
-    // </Garage>
-
     <>
-      <MainNavbar />
-      <ProfileHeader profileUser={profileUser} user={user} userId={userId} />
-
-      {/* <ProfileHeader>
-        <Container>
-          <div className='UserHeader'>
-            <div className='UserData'>
-              <img className='Avatar' src={profileUser.userAvatar} alt='user avatar' />
-              <div className='Data'>
-                <h1>{profileUser.name} {profileUser.lastName}</h1>
-                <p>Sevilla, España </p>
-              </div>
-            </div>
-            {user && user.id === userId && (
-              <Button size="small" variant="outline">Editar perfil</Button>
-            )}
-          </div>
-
-          <SectionTabs>
-            <Link to={`/user/${user.id}`} className='SectionTab Active'>Perfil</Link>
-            <Link to={`/user/${user.id}/garage`} className='SectionTab'>Garaje</Link>
-          </SectionTabs>
-        </Container>
-      </ProfileHeader> */}
       <Garage>
         <Container>
           <Header>
-            <h3>Garaje de {isOwnGarage ? 'tu' : userId}</h3>
+            <h3>{isOwnGarage ? 'Tu Garaje' : 'Garaje'}</h3>
             {isOwnGarage && (
-              <Button variant='outline' onClick={openAddModal}>
+              <Button $variant='outline' onClick={openAddModal}>
                 <img src='/icons/add.svg' alt='Añadir' />Añadir moto
               </Button>
             )}
@@ -173,7 +106,7 @@ const GarageTab = ({ vehicles }) => {
                     <p className='Year'>{vehicle.year}</p>
                   </div>
                   {isOwnGarage && (
-                    <Button className='EditButton' variant="defaultInverse" onClick={() => openEditModal(vehicle)}>
+                    <Button className='EditButton' $variant="defaultInverse" onClick={() => openEditModal(vehicle)}>
                       <img src='/icons/edit-solid.svg' alt='Editar' />
                     </Button>
                   )}

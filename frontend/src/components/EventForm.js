@@ -310,7 +310,7 @@ const EventForm = forwardRef((props, ref) => {
                   if (errors.title) setErrors({ ...errors, title: '' });
                 }}
                 placeholder="Introduce el título del evento..."
-                variant={errors.title ? 'error' : ''}
+                $variant={errors.title ? 'error' : ''}
                 required
               />
               {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
@@ -351,7 +351,7 @@ const EventForm = forwardRef((props, ref) => {
                         className="inputFile"
                       />
                       <label
-                        for="file"
+                        htmlFor="file"
                         className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
                       >
                         <div className='labelContent'>
@@ -381,7 +381,7 @@ const EventForm = forwardRef((props, ref) => {
                         className="inputFile"
                       />
                       <label
-                        for="file"
+                        htmlFor="file"
                         className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
                       >
                         <div className='labelContent'>
@@ -407,7 +407,7 @@ const EventForm = forwardRef((props, ref) => {
                     if (errors.description) setErrors({ ...errors, description: '' });
                   }}
                   placeholder="Añade detalles a tu evento para que otros usuario puedan saber que de tratará tu evento..."
-                  variant={errors.description ? 'error' : ''}
+                  $variant={errors.description ? 'error' : ''}
                   required
                 />
                 {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
@@ -427,7 +427,7 @@ const EventForm = forwardRef((props, ref) => {
                           setStartDay(e.target.value);
                           if (errors.startDay) setErrors({ ...errors, startDay: '' });
                         }}
-                        variant={errors.startDay ? 'error' : ''}
+                        $variant={errors.startDay ? 'error' : ''}
                         placeholder="Start Day"
                         min={new Date().toISOString().split('T')[0]}
                         required
@@ -437,23 +437,11 @@ const EventForm = forwardRef((props, ref) => {
                           setStartTime(e.target.value);
                           if (errors.startTime) setErrors({ ...errors, startTime: '' });
                         }}
-                        variant={errors.startTime ? 'error' : ''}
+                        $variant={errors.startTime ? 'error' : ''}
                         placeholder="Start Time"
                         required
                       />
                     </div>
-                    {/* <InputText
-                      size="medium"
-                      type="datetime-local"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                        if (errors.startDate) setErrors({ ...errors, startDate: '' });
-                      }}
-                      placeholder="Start Date"
-                      variant={errors.startDate ? 'error' : ''}
-                      required
-                    /> */}
                     {errors.startTime && <ErrorMessage>{errors.startTime}</ErrorMessage>}
                     {errors.startDay && <ErrorMessage>{errors.startDay}</ErrorMessage>}
                   </div>
@@ -462,17 +450,6 @@ const EventForm = forwardRef((props, ref) => {
                   <label>Fin</label>
                   <div className='DateInputBlock'>
                     <div className='ComboBlock'>
-                      {/* <InputText size="medium" type="date" value={endDay}
-                        onChange={(e) => {
-                          setEndDay(e.target.value);
-                          if (errors.endDay) setErrors({ ...errors, endDay: '' });
-                        }}
-                        variant={errors.endDay ? 'error' : ''}
-                        placeholder="End Day"
-                        // min={new Date().toISOString().split('T')[0]}
-                        min={startDay}
-                        required
-                      /> */}
                       <InputText
                         size="medium"
                         type="date"
@@ -499,20 +476,11 @@ const EventForm = forwardRef((props, ref) => {
                             setErrors((prevErrors) => ({ ...prevErrors, endDay: '' }));
                           }
                         }}
-                        variant={errors.endDay ? 'error' : ''}
+                        $variant={errors.endDay ? 'error' : ''}
                         placeholder="End Day"
                         min={startDay}
                         required
                       />
-
-                      {/* <InputText size="medium" type="time" value={endTime}
-                        onChange={(e) => {
-                          setEndTime(e.target.value);
-                          if (errors.endTime) setErrors({ ...errors, endTime: '' });
-                        }}
-                        variant={errors.endTime ? 'error' : ''}
-                        placeholder="End Time" required
-                      /> */}
                       <InputText
                         size="medium"
                         type="time"
@@ -534,28 +502,13 @@ const EventForm = forwardRef((props, ref) => {
                             setErrors((prevErrors) => ({ ...prevErrors, endTime: '' }));
                           }
                         }}
-                        variant={errors.endTime ? 'error' : ''}
+                        $variant={errors.endTime ? 'error' : ''}
                         placeholder="End Time"
                         required
                       />
                     </div>
                     {errors.endDay && <ErrorMessage>{errors.endDay}</ErrorMessage>}
                     {errors.endTime && <ErrorMessage>{errors.endTime}</ErrorMessage>}
-
-
-                    {/* <InputText
-                      size="medium"
-                      type="datetime-local"
-                      value={endDate}
-                      onChange={(e) => {
-                        setEndDate(e.target.value);
-                        if (errors.endDate) setErrors({ ...errors, endDate: '' });
-                      }}
-                      placeholder="End Date"
-                      variant={errors.endDate ? 'error' : ''}
-                      required
-                    />
-                    {errors.endDate && <ErrorMessage>{errors.endDate}</ErrorMessage>} */}
                   </div>
                 </div>
               </div>
@@ -578,7 +531,7 @@ const EventForm = forwardRef((props, ref) => {
                         if (errors.location) setErrors({ ...errors, location: '' });
                       }}
                       placeholder="Introduce localización del evento"
-                      variant={errors.location ? 'error' : ''}
+                      $variant={errors.location ? 'error' : ''}
                       required
                     />
                   </Autocomplete>
