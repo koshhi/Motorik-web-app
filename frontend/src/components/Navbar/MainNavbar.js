@@ -2,21 +2,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../Button/Button';
-
+import AccountDropdown from '../AccountDropdown';
+import { useAuth } from '../../context/AuthContext';
 
 const MainNavbar = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // Verificar si el usuario está autenticado
-  const isAuthenticated = !!localStorage.getItem('authToken');
-
-  const handleLogout = () => {
-    // Eliminar el token del almacenamiento local
-    localStorage.removeItem('authToken');
-
-    // Redirigir al login
-    navigate('/login', { state: { message: 'You have been logged out successfully.' } });
-  };
+  const isAuthenticated = !!user && !!localStorage.getItem('authToken'); // Comprobar que `user` no es null
 
   const handleCreateEvent = () => {
     if (isAuthenticated) {
@@ -43,13 +36,15 @@ const MainNavbar = () => {
             <Link to="/my-events" className='NavLink'>
               <img src='/icons/my-events.svg' alt="Mis Eventos" /><p>Mis Eventos</p>
             </Link>
-            <Link to="/my-profile" className='NavLink'>
-              <img src='/icons/my-profile.svg' alt="Mi Perfil" /><p>Mi Perfil</p>
-            </Link>
+            {user && (
+              <Link to={`/user/${user.id}`} className='NavLink'>
+                <img src='/icons/my-profile.svg' alt="Mi Perfil" /><p>Mi Perfil</p>
+              </Link>
+            )}
           </NavLinks>
           <ActionsContainer>
-            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
-            <Button size="small" variant="outlineInverse" onClick={handleLogout}>Logout</Button>
+            <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
+            <AccountDropdown userAvatar={user.userAvatar} />
           </ActionsContainer>
         </div>
       ) : (
@@ -58,9 +53,9 @@ const MainNavbar = () => {
             <img src='/motorik-logo.svg' alt="Motorik Logo" />
           </Link>
           <ActionsContainer>
-            <Button size="small" variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
-            <Link to="/login"><Button size="small" variant="outlineInverse">Entra</Button></Link>
-            <Link to="/signup"><Button size="small" variant="outlineInverse">Únete</Button></Link>
+            <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
+            <Link to="/login"><Button size="small" $variant="outlineInverse">Entra</Button></Link>
+            <Link to="/signup"><Button size="small" $variant="outlineInverse">Únete</Button></Link>
           </ActionsContainer>
         </div>
       )}
@@ -69,6 +64,7 @@ const MainNavbar = () => {
 };
 
 export default MainNavbar;
+
 
 //Estilos del componente
 
@@ -130,3 +126,4 @@ export const ActionsContainer = styled.div`
   flex-direction: row;
   gap: 8px;
 `;
+

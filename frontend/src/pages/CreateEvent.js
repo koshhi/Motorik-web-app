@@ -62,8 +62,8 @@ const CreateEvent = () => {
         <Container>
           <Heading>Crea un evento</Heading>
           <Links>
-            <Button size="default" variant="outline" onClick={handleDiscard}>Descartar</Button>
-            <Button size="default" variant="default" onClick={handleCreateEvent}>Crear Evento</Button>
+            <Button size="default" $variant="outline" onClick={handleDiscard}>Descartar</Button>
+            <Button size="default" $variant="default" onClick={handleCreateEvent}>Crear Evento</Button>
           </Links>
         </Container>
       </Topbar>

@@ -10,8 +10,12 @@ const baseStyles = css`
   font-family: "Mona Sans";
   font-style: normal;
   font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+
   line-height: 150%;
-  border: 0;
+
+
   padding: ${({ size }) => {
     switch (size) {
       case 'medium':
@@ -32,18 +36,12 @@ const baseStyles = css`
         return '16px';
     }
   }};
-  border-radius: 8px;
-  font-family: 'Mona Sans';
-  font-weight: 600;
-  line-height: 100%;
-  border: 0;
-  cursor: pointer;
 `;
 
 // Estilos condicionales basados en props
 const variantStyles = css`
-  ${({ variant, theme }) => {
-    switch (variant) {
+  ${({ $variant, theme }) => {
+    switch ($variant) {
       default:
         return css`
           background-color: ${theme.fill.inverseMain};
@@ -89,7 +87,8 @@ const Button = styled.button`
   ${variantStyles}
 
     .Icon {
-      height: 16px;
+      height: 20px;
+      margin: 2px;
     }
 `;
 

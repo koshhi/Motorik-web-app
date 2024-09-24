@@ -25,8 +25,8 @@ const sizeStyles = css`
 
 // Mixin para los estilos de variantes y estados
 const variantStyles = css`
-  ${({ variant, theme }) => {
-    switch (variant) {
+  ${({ $variant, theme }) => {
+    switch ($variant) {
       case 'disabled':
         return css`
           background-color: ${theme.fill.defaultWeak};

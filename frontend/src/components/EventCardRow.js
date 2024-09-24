@@ -56,9 +56,9 @@ const EventCardRow = ({ event }) => {
           </div>
           <div className='tertiaryInfo'>
             {isOwner ? (
-              <Button size="small" variant="outline">Gestionar Evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
+              <Button size="small" $variant="outline">Gestionar Evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
             ) : (
-              <Button size="small" variant="outline">Ver evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
+              <Button size="small" $variant="outline">Ver evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
             )}
           </div>
         </Right>
