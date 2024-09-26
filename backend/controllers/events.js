@@ -324,39 +324,6 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
   }
 })
 
-
-
-// Obtener los eventos de un usario autenticado y separado por eventos pasado y futuros
-// eventsRouter.get('/user/myevents', auth, async (req, res) => {
-//   try {
-//     const userId = req.user._id
-//     const today = new Date()
-
-//     // Obtener eventos futuros y pasados del usuario
-//     const futureEvents = await Event.find({
-//       owner: userId,
-//       startDate: { $gte: today }
-//     }).sort({ startDate: 1 })
-//       .populate('owner', 'name lastName userAvatar description')
-
-//     // Obtener eventos donde el usuario es un attendee
-//     // const attendeeEvents = await Event.find({
-//     //   attendees: userId
-//     // }).sort({ startDate: 1 }).populate('owner', 'name lastName userAvatar description')
-//     const attendeeEvents = await Event.find({
-//       'attendees.userId': userId
-//     }).sort({ startDate: 1 })
-//       .populate('owner', 'name lastName userAvatar description')
-//       .populate('attendees.userId', 'name lastName userAvatar')
-//       .populate('attendees.vehicleId', 'brand model nickname image')
-
-//     res.status(200).json({ success: true, futureEvents, attendeeEvents })
-//   } catch (error) {
-//     console.error(error)
-//     res.status(500).json({ success: false, message: 'Internal Server Error' })
-//   }
-// })
-
 // Obtener los eventos de un usuario autenticado (futuros y pasados)
 eventsRouter.get('/my-events', auth, async (req, res) => {
   try {

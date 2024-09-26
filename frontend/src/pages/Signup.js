@@ -6,7 +6,7 @@ import Input from '../components/Input/InputText';
 import Button from '../components/Button/Button';
 
 const Signup = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -20,7 +20,7 @@ const Signup = () => {
     e.preventDefault();
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/signup`, {
-        username,
+        email,
         password,
         name,
         lastName,
@@ -46,7 +46,7 @@ const Signup = () => {
 
       } else {
         // Manejar error de signup
-        setError('Signup failed. Username might be taken.')
+        setError('Signup failed. Email might be taken.')
         navigate('/error');
       }
     } catch (error) {
@@ -59,9 +59,9 @@ const Signup = () => {
     <form onSubmit={handleSignup}>
       <Input
         type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
         required
       />
       <Input

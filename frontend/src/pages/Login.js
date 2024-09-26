@@ -8,7 +8,7 @@ import Button from '../components/Button/Button';
 
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/login`, { username, password });
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/login`, { email, password });
 
       // console.log(response)
 
@@ -41,7 +41,7 @@ const Login = () => {
         navigate('/');
 
       } else {
-        setError('Username or password is incorrect');
+        setError('Email or password is incorrect');
         navigate('/error', { state: { message: 'Login failed. Please try again.' } }); // Redirige a página de error
       }
     } catch (error) {
@@ -57,9 +57,9 @@ const Login = () => {
       <form onSubmit={handleLogin}>
         <Input
           type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <Input
