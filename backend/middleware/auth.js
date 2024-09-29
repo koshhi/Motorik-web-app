@@ -5,7 +5,7 @@ const auth = async (req, res, next) => {
   try {
     // Obtener el token de la cabecera Authorization
     const token = req.header('Authorization')?.replace('Bearer ', '')
-    console.log(token)
+    console.log({ authToken: token })
     // Si no hay token, retornamos un error
     if (!token) {
       return res.status(401).json({ success: false, message: 'Authentication required' })
@@ -13,7 +13,7 @@ const auth = async (req, res, next) => {
 
     // Verificar y decodificar el token usando la clave secreta
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    console.log('Decoded token:', decoded)
+    console.log('Decoded id:', decoded.id)
 
     // Buscar al usuario en la base de datos por su ID
     const user = await User.findById(decoded.id)

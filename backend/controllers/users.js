@@ -7,44 +7,136 @@ const usersRouter = express.Router()
 // const { sendVerificationEmail } = require('../services/emailService')
 // const { generateVerificationToken } = require('../services/tokenService')
 const tokenService = require('../services/tokenService')
-const { sendVerificationEmail } = require('../services/emailService')
+const { sendVerificationEmail, sendLoginEmail } = require('../services/emailService')
 
-usersRouter.post('/register', async (req, res) => {
-  const { email, password, name } = req.body
+// usersRouter.post('/check-or-register', async (req, res) => {
+//   const { email } = req.body
+
+//   try {
+//     let user = await User.findOne({ email })
+
+//     if (user) {
+//       // Si el usuario ya está registrado, enviar email de inicio de sesión
+//       const loginToken = tokenService.generateAuthToken(user)
+
+//       console.log({ 'LoginToken for existing user': loginToken })
+
+//       const loginLink = `http://localhost:5002/api/users/login-with-token?token=${loginToken}`
+//       const emailContent = `
+//         <h1>Welcome Back to Motorik</h1>
+//         <p>Click the link below to log in:</p>
+//         <a href="${loginLink}">Log In</a>
+//       `
+//       await sendLoginEmail(email, 'Log in to Motorik', emailContent)
+
+//       return res.status(200).json({ success: true, message: 'Login email sent.' })
+//     } else {
+//       // Si el usuario no está registrado, crear cuenta y enviar email de verificación
+//       const passwordHash = await bcrypt.hash('default_password', 10) // Contraseña por defecto
+//       user = new User({ email, passwordHash, isVerified: false })
+//       await user.save()
+
+//       const verificationToken = tokenService.generateVerificationToken(user)
+
+//       console.log({ 'VerificationToken for new user': verificationToken })
+
+//       const verificationLink = `http://localhost:5002/api/users/verify-email?token=${verificationToken}`
+//       const emailContent = `
+//         <h1>Join Motorik</h1>
+//         <p>Click the link below to confirm your registration:</p>
+//         <a href="${verificationLink}">Verify Email</a>
+//       `
+//       await sendVerificationEmail(email, 'Verify your email', emailContent)
+
+//       return res.status(200).json({ success: true, message: 'Verification email sent.' })
+//     }
+//   } catch (error) {
+//     console.error('Error processing email:', error)
+//     return res.status(500).json({ success: false, message: 'Error processing request.' })
+//   }
+// })
+
+// usersRouter.get('/login-with-token', async (req, res) => {
+//   const { token } = req.query
+
+//   try {
+//     // Verificar y decodificar el token que viene en la URL
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET)
+//     const user = await User.findById(decoded.userId)
+
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: 'User not found.' })
+//     }
+
+//     // Generar un nuevo token JWT de autenticación
+//     const authToken = tokenService.generateAuthToken(user)
+
+//     res.json({ success: true, token: authToken, user })
+
+//     // Redirigir a la página principal, donde el usuario estará logueado
+//     // res.redirect('http://localhost:5001')
+//   } catch (error) {
+//     return res.status(400).json({ success: false, message: 'Invalid or expired token.' })
+//   }
+// })
+
+usersRouter.post('/check-or-register', async (req, res) => {
+  const { email } = req.body
 
   try {
-    // Generar hash de la contraseña
-    const saltRounds = 10
-    const passwordHash = await bcrypt.hash(password, saltRounds)
+    let user = await User.findOne({ email })
 
-    // Crear nuevo usuario
-    const newUser = new User({
-      email,
-      name,
-      passwordHash
-    })
+    // Si el usuario ya está registrado, generar el Magic Link
+    if (user) {
+      const loginToken = tokenService.generateAuthToken(user)
+      const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
 
-    // Guardar el nuevo usuario en la base de datos
-    await newUser.save()
+      await sendLoginEmail(email, 'Log in to Motorik', `
+        <h1>Bienvenido de nuevo a Motorik</h1>
+        <p>Haz clic en el enlace para iniciar sesión:</p>
+        <a href="${loginLink}">Iniciar sesión</a>
+      `)
 
-    // Generar token de verificación
-    const verificationToken = tokenService.generateVerificationToken(newUser._id)
+      return res.status(200).json({ success: true, message: 'Login email sent.' })
+    } else {
+      // Si el usuario no está registrado, crearlo
+      user = new User({ email, isVerified: false })
+      await user.save()
 
-    // Crear contenido del correo de verificación
-    const verificationLink = `http://localhost:5002/api/users/verify-email?token=${verificationToken}`
-    const emailContent = `
-      <h1>Verifica tu correo electrónico</h1>
-      <p>Haz clic en el siguiente enlace para verificar tu correo:</p>
-      <a href="${verificationLink}">Verificar correo</a>
-    `
+      const loginToken = tokenService.generateAuthToken(user)
+      const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
 
-    // Enviar el correo de verificación
-    await sendVerificationEmail(newUser.email, 'Verificación de correo', emailContent)
+      await sendLoginEmail(email, 'Bienvenido a Motorik', `
+        <h1>Únete a Motorik</h1>
+        <p>Haz clic en el enlace para crear tu cuenta e iniciar sesión:</p>
+        <a href="${loginLink}">Crear cuenta</a>
+      `)
 
-    res.status(201).json({ success: true, message: 'Usuario registrado. Por favor, verifica tu correo.' })
+      return res.status(200).json({ success: true, message: 'Verification email sent.' })
+    }
   } catch (error) {
-    console.error('Error al registrar el usuario:', error)
-    res.status(500).json({ success: false, message: 'Error al registrar el usuario.' })
+    console.error('Error processing email:', error)
+    return res.status(500).json({ success: false, message: 'Error processing request.' })
+  }
+})
+
+usersRouter.get('/login-with-token', async (req, res) => {
+  const { token } = req.query
+
+  try {
+    // Verificar y decodificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const user = await User.findById(decoded.id)
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' })
+    }
+
+    // Generar nuevo token JWT para la sesión
+    const authToken = tokenService.generateAuthToken(user)
+    return res.json({ success: true, token: authToken, user })
+  } catch (error) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired token.' })
   }
 })
 
@@ -67,141 +159,136 @@ usersRouter.get('/verify-email', async (req, res) => {
     user.emailVerified = true
     await user.save()
 
-    return res.status(200).json({ success: true, message: 'Correo verificado exitosamente.' })
+    console.log('Email verificado')
+
+    const authToken = tokenService.generateAuthToken(user)
+    // res.cookie('authToken', authToken, { httpOnly: true })
+    res.json({ success: true, token: authToken, user })
+
+    res.redirect('http://localhost:5001') // Redirigir al home con el token en las cookies
+
+    // return res.status(200).json({ success: true, message: 'Correo verificado exitosamente.' })
   } catch (error) {
     console.error(error)
     return res.status(400).json({ success: false, message: 'Token inválido o expirado.' })
   }
 })
 
-// New Login de usuario
-usersRouter.post('/login', async (req, res) => {
-  const { email, password } = req.body
-
-  try {
-    // Buscar al usuario por email
-    const user = await User.findOne({ email })
-
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'Credenciales inválidas.' })
-    }
-
-    // Verificar la contraseña
-    const isMatch = await bcrypt.compare(password, user.passwordHash)
-
-    if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Credenciales inválidas.' })
-    }
-
-    // Verificar si el usuario ha confirmado su correo electrónico
-    if (!user.isVerified) {
-      return res.status(401).json({ success: false, message: 'Por favor, verifica tu correo antes de iniciar sesión.' })
-    }
-
-    // Generar el token JWT de autenticación
-    const authToken = tokenService.generateAuthToken(user)
-
-    // Guardar el token en una cookie HTTP-only
-    res.cookie('authToken', authToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Solo en producción
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 1 semana
-    })
-
-    return res.status(200).json({ success: true, message: 'Inicio de sesión exitoso.' })
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({ success: false, message: 'Error al iniciar sesión.' })
-  }
-})
-
-// Old Login de usuario
+// // New Login de usuario
 // usersRouter.post('/login', async (req, res) => {
 //   const { email, password } = req.body
+
 //   try {
+//     // Buscar al usuario por email
 //     const user = await User.findOne({ email })
-//     const passwordCorrect = user === null
-//       ? false
-//       : await bcrypt.compare(password, user.passwordHash)
 
-//     if (!(user && passwordCorrect)) {
-//       return res.status(401).json({
-//         error: 'invalid user or password'
-//       })
+//     if (!user) {
+//       return res.status(400).json({ success: false, message: 'Credenciales inválidas.' })
 //     }
 
-//     const userForToken = {
-//       id: user._id,
-//       email: user.email
+//     // Verificar la contraseña
+//     const isMatch = await bcrypt.compare(password, user.passwordHash)
+
+//     if (!isMatch) {
+//       return res.status(400).json({ success: false, message: 'Credenciales inválidas.' })
 //     }
 
-//     const token = jwt.sign(userForToken, process.env.JWT_SECRET, { expiresIn: '7d' })
+//     // Verificar si el usuario ha confirmado su correo electrónico
+//     if (!user.isVerified) {
+//       return res.status(401).json({ success: false, message: 'Por favor, verifica tu correo antes de iniciar sesión.' })
+//     }
 
-//     // Incluir más datos en la respuesta de autenticación
-//     res.json({
-//       success: true,
-//       name: user.name,
-//       lastName: user.lastName,
-//       email: user.email,
-//       userAvatar: user.userAvatar,
-//       description: user.description,
-//       vehicles: user.vehicles,
-//       id: user._id,
-//       token
+//     // Generar el token JWT de autenticación
+//     const authToken = tokenService.generateAuthToken(user)
+
+//     // Guardar el token en una cookie HTTP-only
+//     res.cookie('authToken', authToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === 'production', // Solo en producción
+//       sameSite: 'strict',
+//       maxAge: 7 * 24 * 60 * 60 * 1000 // 1 semana
 //     })
+
+//     return res.status(200).json({ success: true, message: 'Inicio de sesión exitoso.' })
+//   } catch (error) {
+//     console.error(error)
+//     return res.status(500).json({ success: false, message: 'Error al iniciar sesión.' })
+//   }
+// })
+
+// // Old Login de usuario
+// // usersRouter.post('/login', async (req, res) => {
+// //   const { email, password } = req.body
+// //   try {
+// //     const user = await User.findOne({ email })
+// //     const passwordCorrect = user === null
+// //       ? false
+// //       : await bcrypt.compare(password, user.passwordHash)
+
+// //     if (!(user && passwordCorrect)) {
+// //       return res.status(401).json({
+// //         error: 'invalid user or password'
+// //       })
+// //     }
+
+// //     const userForToken = {
+// //       id: user._id,
+// //       email: user.email
+// //     }
+
+// //     const token = jwt.sign(userForToken, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+// //     // Incluir más datos en la respuesta de autenticación
+// //     res.json({
+// //       success: true,
+// //       name: user.name,
+// //       lastName: user.lastName,
+// //       email: user.email,
+// //       userAvatar: user.userAvatar,
+// //       description: user.description,
+// //       vehicles: user.vehicles,
+// //       id: user._id,
+// //       token
+// //     })
+// //   } catch (error) {
+// //     console.log({ error })
+// //     res.status(500).json({ success: false, error: 'Internal Server Error' })
+// //   }
+// // })
+
+// // Signup de usuario
+// usersRouter.post('/signup', async (req, res) => {
+//   const { email, password, name, lastName, userAvatar, description } = req.body
+//   try {
+//     const existingUser = await User.findOne({ email })
+//     if (existingUser) {
+//       return res.status(409).json({ success: false, exists: true })
+//     }
+//     const hashedPassword = await bcrypt.hash(password, 10)
+//     const newUser = new User({
+//       email,
+//       passwordHash: hashedPassword,
+//       name,
+//       lastName,
+//       userAvatar,
+//       description
+//     })
+//     await newUser.save()
+
+//     // Generamos un token JWT tras el signup
+//     const token = jwt.sign({ id: newUser._id, email: newUser.email },
+//       process.env.JWT_SECRET,
+//       { expiresIn: '7d' }
+//     )
+//     // Enviar el token en la respuesta
+//     res.status(201).json({ success: true, token })
 //   } catch (error) {
 //     console.log({ error })
 //     res.status(500).json({ success: false, error: 'Internal Server Error' })
 //   }
 // })
 
-// Signup de usuario
-usersRouter.post('/signup', async (req, res) => {
-  const { email, password, name, lastName, userAvatar, description } = req.body
-  try {
-    const existingUser = await User.findOne({ email })
-    if (existingUser) {
-      return res.status(409).json({ success: false, exists: true })
-    }
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = new User({
-      email,
-      passwordHash: hashedPassword,
-      name,
-      lastName,
-      userAvatar,
-      description
-    })
-    await newUser.save()
-
-    // Generamos un token JWT tras el signup
-    const token = jwt.sign({ id: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    )
-    // Enviar el token en la respuesta
-    res.status(201).json({ success: true, token })
-  } catch (error) {
-    console.log({ error })
-    res.status(500).json({ success: false, error: 'Internal Server Error' })
-  }
-})
-
-// Obtener todos los usuarios con sus vehiculos
-usersRouter.get('/', async (req, res) => {
-  try {
-    const users = await User.find()
-      .populate('vehicles')
-    res.status(200).json({ success: true, users })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: false, message: 'Internal Server Error' })
-  }
-})
-
 // Profile del usurio logueado
-// Esta ruta debe ir antes del get usuario por su ID
 usersRouter.get('/profile', auth, async (req, res) => {
   try {
     // console.log('User ID from token:', req.user.id)
@@ -215,22 +302,6 @@ usersRouter.get('/profile', auth, async (req, res) => {
     res.status(200).json({ success: true, user })
   } catch (error) {
     console.error('Error retrieving profile:', error)
-    res.status(500).json({ success: false, message: 'Internal Server Error' })
-  }
-})
-
-// Obtener un usuario por su ID
-usersRouter.get('/:id', async (req, res) => {
-  const { id } = req.params
-  try {
-    const user = await User.findById(id)
-      .populate('vehicles')
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' })
-    }
-    res.status(200).json({ success: true, user })
-  } catch (error) {
-    console.error(error)
     res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
@@ -260,6 +331,34 @@ usersRouter.put('/profile', auth, async (req, res) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, message: 'Error updating profile.' })
+  }
+})
+
+// Obtener todos los usuarios con sus vehiculos
+usersRouter.get('/', async (req, res) => {
+  try {
+    const users = await User.find()
+      .populate('vehicles')
+    res.status(200).json({ success: true, users })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Obtener un usuario por su ID
+usersRouter.get('/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const user = await User.findById(id)
+      .populate('vehicles')
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+    res.status(200).json({ success: true, user })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
 

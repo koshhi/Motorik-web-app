@@ -8,12 +8,12 @@ const userSchema = new Schema({
     required: true,
     unique: true
   },
-  passwordHash: {
-    type: String,
-    required: function () {
-      return !this.googleId // Solo requerido si no es usuario de Google
-    }
-  },
+  // passwordHash: {
+  //   type: String,
+  //   required: function () {
+  //     return !this.googleId // Solo requerido si no es usuario de Google
+  //   }
+  // },
   name: {
     type: String,
     required: false
@@ -34,10 +34,7 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Vehicle' // Referencia al modelo Vehicle
   }],
-  googleId: {
-    type: String,
-    unique: true // Ensure it’s unique
-  },
+  googleId: { type: String, sparse: true },
   emailVerified: { type: Boolean, default: false },
   verificationToken: String
 }, { timestamps: true })

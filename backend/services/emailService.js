@@ -1,25 +1,39 @@
 // emailService.js
 require('dotenv').config()
 const sgMail = require('@sendgrid/mail')
-
-// Establecer la clave API de SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 async function sendVerificationEmail(to, subject, htmlContent) {
-  const msg = {
-    to,
-    from: 'motorik.events@gmail.com', // Verifica que el email esté autorizado en SendGrid
-    subject,
-    html: htmlContent
-  }
-
+  const msg = { to, from: 'motorik.events@gmail.com', subject, html: htmlContent }
   try {
     await sgMail.send(msg)
-    console.log(`Correo enviado a ${to}`)
+    console.log(`Verification email sent to ${to}`)
   } catch (error) {
-    console.error(`Error al enviar correo a ${to}:`, error)
-    throw new Error('Error al enviar el correo de verificación.')
+    console.error(`Error sending verification email: ${error}`)
+    throw new Error('Error sending verification email.')
   }
 }
 
-module.exports = { sendVerificationEmail }
+// async function sendLoginEmail(to, subject, htmlContent) {
+//   const msg = { to, from: 'motorik.events@gmail.com', subject, html: htmlContent }
+//   try {
+//     await sgMail.send(msg)
+//     console.log(`Login email sent to ${to}`)
+//   } catch (error) {
+//     console.error(`Error sending login email: ${error}`)
+//     throw new Error('Error sending login email.')
+//   }
+// }
+
+async function sendLoginEmail(to, subject, htmlContent) {
+  const msg = { to, from: 'motorik.events@gmail.com', subject, html: htmlContent }
+  try {
+    await sgMail.send(msg)
+    console.log(`Login email sent to ${to}`)
+  } catch (error) {
+    console.error(`Error sending login email: ${error}`)
+    throw new Error('Error sending login email.')
+  }
+}
+
+module.exports = { sendVerificationEmail, sendLoginEmail }

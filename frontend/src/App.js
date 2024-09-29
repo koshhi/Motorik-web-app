@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Signin from './pages/Signin';
+import VerifyEmail from './pages/VerifyEmail';
 import Home from './pages/Home';
 import EventDetail from './pages/EventDetail';
 import CreateEvent from './pages/CreateEvent'
@@ -13,17 +13,20 @@ import UserProfileLayout from './layouts/UserProfileLayout';
 import MyEventsLayout from './layouts/MyEventsLayout';
 import MyEventsSettings from './pages/MyEvents/MyEventsSettings';
 import MyEventsAttendees from './pages/MyEvents/MyEventsAttendees';
+import LoginWithToken from './components/LoginWithToken';
+
 
 
 function App() {
 
   return (
-    <AuthProvider>
-      <Router>
+
+    <Router>
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          {/* <Route path="/signin" element={<Signin />} /> */}
+          {/* <Route path="/signup" element={<Signup />} /> */}
           <Route path="/events/:id/:slug" element={<EventDetail />} />
           <Route path="/create-event" element={<CreateEvent />} />
           {/* <Route path="/my-events" element={<MyEvents />} /> */}
@@ -38,9 +41,15 @@ function App() {
             <Route index element={<UserProfile />} />
             <Route path="garage" element={<UserGarage />} />
           </Route>
+          <Route path="/signin" element={<Signin />} />
+          {/* <Route path="/enter-password" element={<EnterPassword />} /> */}
+          <Route path="/email-verification" element={<VerifyEmail />} />
+          <Route path="/login-with-token" element={<LoginWithToken />} />  {/* Ruta para la verificación del email */}
+
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
+
   );
 }
 

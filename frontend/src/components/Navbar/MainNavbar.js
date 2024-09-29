@@ -15,7 +15,7 @@ const MainNavbar = () => {
     if (isAuthenticated) {
       navigate('/create-event'); // Redirigir a la página de creación de eventos si está autenticado
     } else {
-      navigate('/login', { state: { message: 'You need to log in to create an event.' } }); // Redirigir al login si no está autenticado
+      navigate('/signin'); // Redirigir al login si no está autenticado
     }
   };
 
@@ -54,8 +54,7 @@ const MainNavbar = () => {
           </Link>
           <ActionsContainer>
             <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
-            <Link to="/login"><Button size="small" $variant="outlineInverse">Entra</Button></Link>
-            <Link to="/signup"><Button size="small" $variant="outlineInverse">Únete</Button></Link>
+            <Link to="/signin"><Button size="small" $variant="outlineInverse">Entra o únete</Button></Link>
           </ActionsContainer>
         </div>
       )}
