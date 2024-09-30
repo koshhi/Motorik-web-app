@@ -1,8 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// import Cookies from 'js-cookie';
-
 
 const AuthContext = createContext();
 
@@ -12,9 +10,8 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // const token = Cookies.get('authToken');
     const token = localStorage.getItem('authToken');
-    console.log(token)
+    // console.log(token)
 
     if (token) {
       axios
@@ -39,8 +36,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { email, password });
       localStorage.setItem('authToken', response.data.token); // Guardar el token en localStorage
-      // const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { email, password });
-      // Cookies.set('authToken', response.data.token);
       setUser(response.data.user);
       navigate('/'); // Redirigir a la home después del login
     } catch (error) {
@@ -49,7 +44,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Cookies.remove('authToken');
     localStorage.removeItem('authToken'); // Eliminar el token de localStorage
 
     setUser(null);

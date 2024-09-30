@@ -7,26 +7,6 @@ const LoginWithToken = () => {
   const { setUser } = useAuth();  // Obtener la función para actualizar el estado del usuario
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const token = new URLSearchParams(window.location.search).get('token'); // Obtener el token de la URL
-
-  //   const verifyUser = async () => {
-  //     try {
-  //       const response = await axios.get(`http://localhost:5002/api/users/verify-email?token=${token}`);
-  //       localStorage.setItem('authToken', response.data.token);  // Guardar el token
-  //       setUser(response.data.user);  // Actualizar el estado del AuthContext con los datos del usuario
-  //       navigate('/');  // Redirigir al home
-  //     } catch (error) {
-  //       console.error('Error verifying email:', error);
-  //       // Aquí puedes manejar el error, por ejemplo, mostrar un mensaje de error al usuario.
-  //     }
-  //   };
-
-  //   if (token) {
-  //     verifyUser();  // Solo se llama si hay un token en la URL
-  //   }
-  // }, [setUser, navigate]);
-
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('token');  // Capturar el token de la URL
 
@@ -48,8 +28,6 @@ const LoginWithToken = () => {
 
   return <div>Iniciando sesión...</div>;  // Mensaje mientras se inicia sesión
 
-
-  // return <div>Verificando email...</div>;  // Mostrar un mensaje mientras se verifica
 };
 
 export default LoginWithToken;

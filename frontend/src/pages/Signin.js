@@ -17,7 +17,7 @@ const Signin = () => {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/check-or-register`, { email });
 
       if (response.data.success) {
-        navigate('/email-verification');  // Redirigir a la vista de confirmación
+        navigate('/email-verification', { state: { email } });  // Pasar el email a VerifyEmail
       } else {
         setError('Error sending email, please try again.');
       }

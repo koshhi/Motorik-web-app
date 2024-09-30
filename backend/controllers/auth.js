@@ -1,18 +1,21 @@
 const express = require('express')
 const passport = require('passport')
 const authRouter = express.Router()
+const tokenService = require('../services/tokenService')
 
 // Ruta para iniciar la autenticación con Google
 authRouter.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email']
 }))
 
-// Callback de Google después de la autenticación
 authRouter.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    // Redirigir a la página principal después del éxito
-    res.redirect('/')
+  async (req, res) => {
+    // Generar el token JWT después de la autenticación exitosa
+    const authToken = tokenService.generateAuthToken(req.user)
+
+    // Redirigir al frontend con el token JWT en la URL
+    res.redirect(`http://localhost:5001/login-with-token?token=${authToken}`)
   }
 )
 
