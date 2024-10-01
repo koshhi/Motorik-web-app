@@ -161,6 +161,7 @@ export const theme = {
     md: '1.5rem', //24px
     lg: '2rem', //32px
     xl: '2.5rem',
+    xxl: '3rem'
   },
 
   radius: {

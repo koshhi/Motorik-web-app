@@ -14,15 +14,24 @@ authRouter.get('/google/callback',
     // Generar el token JWT después de la autenticación exitosa
     const authToken = tokenService.generateAuthToken(req.user)
 
+    const profileFilled = req.user.profileFilled
+
     // Redirigir al frontend con el token JWT en la URL
-    res.redirect(`http://localhost:5001/login-with-token?token=${authToken}`)
+    res.redirect(`http://localhost:5001/login-with-token?token=${authToken}&profileFilled=${profileFilled}`)
   }
 )
 
 // Facebook OAuth
 authRouter.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }))
-authRouter.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
-  res.redirect('/')
-})
+authRouter.get('/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/' }),
+  async (req, res) => {
+    const authToken = tokenService.generateAuthToken(req.user)
+    const profileFilled = req.user.profileFilled
+
+    // Redirigir al frontend con el token y profileFilled
+    res.redirect(`http://localhost:5001/login-with-token?token=${authToken}&profileFilled=${profileFilled}`)
+  }
+)
 
 module.exports = authRouter

@@ -30,11 +30,16 @@ const userSchema = new Schema({
     type: String,
     required: false
   },
+  profileFilled: {
+    type: Boolean,
+    default: false
+  },
   vehicles: [{
     type: Schema.Types.ObjectId,
     ref: 'Vehicle' // Referencia al modelo Vehicle
   }],
   googleId: { type: String, sparse: true },
+  facebookId: { type: String, sparse: true },
   emailVerified: { type: Boolean, default: false },
   verificationToken: String
 }, { timestamps: true })

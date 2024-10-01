@@ -8,14 +8,22 @@ const LoginWithToken = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('token');  // Capturar el token de la URL
+    const token = new URLSearchParams(window.location.search).get('token');
+    // const profileFilled = new URLSearchParams(window.location.search).get('profileFilled') === 'true';
 
     const loginWithToken = async () => {
       try {
         const response = await axios.get(`http://localhost:5002/api/users/login-with-token?token=${token}`);
         localStorage.setItem('authToken', response.data.token);  // Guardar el token
         setUser(response.data.user);  // Actualizar estado del usuario en el AuthContext
-        navigate('/');  // Redirigir al home
+        console.log(response.data.user)
+        console.log(response.data.user.profileFilled)
+
+        if (!response.data.user.profileFilled) {
+          navigate('/complete-profile');
+        } else {
+          navigate('/');
+        }
       } catch (error) {
         console.error('Error logging in with token:', error);
       }

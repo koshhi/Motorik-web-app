@@ -132,47 +132,51 @@ usersRouter.get('/login-with-token', async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' })
     }
 
+    const profileFilled = user.profileFilled
+    console.log({ profileFilled })
+
     // Generar nuevo token JWT para la sesión
     const authToken = tokenService.generateAuthToken(user)
-    return res.json({ success: true, token: authToken, user })
+
+    return res.json({ success: true, token: authToken, user, profileFilled })
   } catch (error) {
     return res.status(400).json({ success: false, message: 'Invalid or expired token.' })
   }
 })
 
-usersRouter.get('/verify-email', async (req, res) => {
-  const { token } = req.query
+// usersRouter.get('/verify-email', async (req, res) => {
+//   const { token } = req.query
 
-  if (!token) {
-    return res.status(400).json({ success: false, message: 'Token inválido o inexistente.' })
-  }
+//   if (!token) {
+//     return res.status(400).json({ success: false, message: 'Token inválido o inexistente.' })
+//   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    const user = await User.findById(decoded.userId)
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET)
+//     const user = await User.findById(decoded.userId)
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
-    }
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
+//     }
 
-    // Verificar el email
-    user.emailVerified = true
-    await user.save()
+//     // Verificar el email
+//     user.emailVerified = true
+//     await user.save()
 
-    console.log('Email verificado')
+//     console.log('Email verificado')
 
-    const authToken = tokenService.generateAuthToken(user)
-    // res.cookie('authToken', authToken, { httpOnly: true })
-    res.json({ success: true, token: authToken, user })
+//     const authToken = tokenService.generateAuthToken(user)
+//     // res.cookie('authToken', authToken, { httpOnly: true })
+//     res.json({ success: true, token: authToken, user })
 
-    res.redirect('http://localhost:5001') // Redirigir al home con el token en las cookies
+//     res.redirect('http://localhost:5001') // Redirigir al home con el token en las cookies
 
-    // return res.status(200).json({ success: true, message: 'Correo verificado exitosamente.' })
-  } catch (error) {
-    console.error(error)
-    return res.status(400).json({ success: false, message: 'Token inválido o expirado.' })
-  }
-})
+//     // return res.status(200).json({ success: true, message: 'Correo verificado exitosamente.' })
+//   } catch (error) {
+//     console.error(error)
+//     return res.status(400).json({ success: false, message: 'Token inválido o expirado.' })
+//   }
+// })
 
 // // New Login de usuario
 // usersRouter.post('/login', async (req, res) => {

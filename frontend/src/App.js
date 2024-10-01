@@ -14,6 +14,7 @@ import MyEventsLayout from './layouts/MyEventsLayout';
 import MyEventsSettings from './pages/MyEvents/MyEventsSettings';
 import MyEventsAttendees from './pages/MyEvents/MyEventsAttendees';
 import LoginWithToken from './components/LoginWithToken';
+import CompleteProfile from './pages/CompleteProfile';
 
 
 
@@ -45,7 +46,7 @@ function App() {
           {/* <Route path="/enter-password" element={<EnterPassword />} /> */}
           <Route path="/email-verification" element={<VerifyEmail />} />
           <Route path="/login-with-token" element={<LoginWithToken />} />  {/* Ruta para la verificación del email */}
-
+          <Route path="/complete-profile" element={<CompleteProfile />} />
         </Routes>
       </AuthProvider>
     </Router>

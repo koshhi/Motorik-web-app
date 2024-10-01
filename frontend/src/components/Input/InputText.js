@@ -2,8 +2,8 @@ import styled, { css } from 'styled-components';
 
 // Mixin para los estilos de tamaño
 const sizeStyles = css`
-  ${({ size, theme }) => {
-    switch (size) {
+  ${({ $size, theme }) => {
+    switch ($size) {
       case 'small':
         return css`
           padding: ${theme.sizing.xxs};
