@@ -2,6 +2,7 @@ const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth20').Strategy
 const FacebookStrategy = require('passport-facebook').Strategy
 const dotenv = require('dotenv')
+const cloudinary = require('cloudinary').v2
 
 dotenv.config()
 
@@ -17,12 +18,18 @@ passport.use(new GoogleStrategy({
     let user = await User.findOne({ googleId: profile.id })
 
     if (!user) {
+      let googleImageUrl = profile.photos[0].value
+      googleImageUrl = googleImageUrl.replace('=s96-c', '=s400-c')
+      const cloudinaryResult = await cloudinary.uploader.upload(googleImageUrl, {
+        folder: 'user_avatars',
+        use_filename: true
+      })
       user = new User({
         googleId: profile.id,
         email: profile.emails[0].value,
         name: profile.name.givenName,
         lastName: profile.name.familyName,
-        userAvatar: profile.photos[0].value,
+        userAvatar: cloudinaryResult.secure_url,
         emailVerified: true
       })
       await user.save()

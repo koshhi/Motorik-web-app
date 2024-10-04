@@ -233,59 +233,6 @@ const EventForm = forwardRef((props, ref) => {
       return formData
     }
   }));
-  //   const place = autocompleteRef.current.getPlace();
-  //   if (place && place.geometry) {
-  //     const formattedAddress = place.formatted_address;
-  //     setLocation(formattedAddress);
-
-  //     const addressComponents = place.address_components;
-  //     let locality = '';
-  //     let administrativeArea = '';
-  //     let country = '';
-
-  //     addressComponents.forEach(component => {
-  //       if (component.types.includes('locality')) {
-  //         locality = component.long_name;
-  //       }
-  //       if (component.types.includes('administrative_area_level_2')) {
-  //         administrativeArea = component.long_name;
-  //       }
-  //       if (component.types.includes('country')) {
-  //         country = component.long_name;
-  //       }
-  //     });
-
-  //     let shortLocation = locality && administrativeArea && locality !== administrativeArea
-  //       ? `${locality}, ${administrativeArea}, ${country}`
-  //       : `${administrativeArea}, ${country}`;
-
-  //     setShortLocation(shortLocation);
-
-  //     setCoordinates({
-  //       lat: place.geometry.location.lat(),
-  //       lng: place.geometry.location.lng(),
-  //     });
-  //   }
-  // };
-
-  // const onPlaceChanged = () => {
-  //   const place = autocompleteRef.current.getPlace();
-  //   if (place && place.geometry) {
-  //     const lat = place.geometry.location.lat();
-  //     const lng = place.geometry.location.lng();
-
-  //     // Asegúrate de que las coordenadas sean válidas
-  //     if (lat && lng) {
-  //       setLocation(place.formatted_address);
-  //       setCoordinates({ lat, lng });
-  //       setShortLocation(`${place.address_components[0].short_name}, ${place.address_components[1].short_name}`);
-  //     } else {
-  //       setError('Coordenadas inválidas. Por favor selecciona una ubicación válida.');
-  //     }
-  //   } else {
-  //     setError('No se pudieron obtener las coordenadas. Intenta de nuevo.');
-  //   }
-  // };
 
   const handleOpenModal = (modalId) => {
     setActiveModal(modalId);
@@ -660,9 +607,6 @@ const EventForm = forwardRef((props, ref) => {
 
 export default EventForm;
 
-
-
-//ddddddddd
 
 export const FormContainer = styled.div`
   display: flex;

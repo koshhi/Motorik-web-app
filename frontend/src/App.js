@@ -47,6 +47,7 @@ function App() {
           <Route path="/email-verification" element={<VerifyEmail />} />
           <Route path="/login-with-token" element={<LoginWithToken />} />  {/* Ruta para la verificación del email */}
           <Route path="/complete-profile" element={<CompleteProfile />} />
+          <Route path="/user/:userId/edit-profile" element={<CompleteProfile />} />
         </Routes>
       </AuthProvider>
     </Router>

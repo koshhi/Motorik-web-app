@@ -2,8 +2,8 @@ import styled, { css } from 'styled-components';
 
 // Mixin para los estilos de tamaño
 const sizeStyles = css`
-  ${({ size, theme }) => {
-    switch (size) {
+  ${({ $size, theme }) => {
+    switch ($size) {
       case 'small':
         return css`
           padding: ${theme.sizing.xxs};
@@ -76,6 +76,13 @@ const Select = styled.select`
   
   ${sizeStyles} /* Aplicar los estilos basados en el tamaño */
   ${variantStyles} /* Aplicar los estilos basados en la variante */
+
+  -webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background: url(https://api.iconify.design/akar-icons/chevron-down.svg) no-repeat center / contain;
+	background-size: 20px;
+	background-position: calc(100% - 10px);
 
   &:disabled {
     cursor: not-allowed;

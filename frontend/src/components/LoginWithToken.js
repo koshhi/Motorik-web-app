@@ -16,8 +16,8 @@ const LoginWithToken = () => {
         const response = await axios.get(`http://localhost:5002/api/users/login-with-token?token=${token}`);
         localStorage.setItem('authToken', response.data.token);  // Guardar el token
         setUser(response.data.user);  // Actualizar estado del usuario en el AuthContext
-        console.log(response.data.user)
-        console.log(response.data.user.profileFilled)
+        // console.log(response.data.user)
+        // console.log(response.data.user.profileFilled)
 
         if (!response.data.user.profileFilled) {
           navigate('/complete-profile');

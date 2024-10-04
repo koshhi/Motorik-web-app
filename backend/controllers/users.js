@@ -1,5 +1,6 @@
+const dotenv = require('dotenv')
 const express = require('express')
-const bcrypt = require('bcrypt')
+// const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const auth = require('../middleware/auth')
 const User = require('../models/User')
@@ -7,78 +8,23 @@ const usersRouter = express.Router()
 // const { sendVerificationEmail } = require('../services/emailService')
 // const { generateVerificationToken } = require('../services/tokenService')
 const tokenService = require('../services/tokenService')
-const { sendVerificationEmail, sendLoginEmail } = require('../services/emailService')
+const cloudinary = require('cloudinary').v2
+const multer = require('multer')
+const { sendLoginEmail } = require('../services/emailService')
 
-// usersRouter.post('/check-or-register', async (req, res) => {
-//   const { email } = req.body
+// Cargar variables de entorno
+dotenv.config()
 
-//   try {
-//     let user = await User.findOne({ email })
+// Configurar Cloudinary para usar la variable de entorno
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
-//     if (user) {
-//       // Si el usuario ya está registrado, enviar email de inicio de sesión
-//       const loginToken = tokenService.generateAuthToken(user)
-
-//       console.log({ 'LoginToken for existing user': loginToken })
-
-//       const loginLink = `http://localhost:5002/api/users/login-with-token?token=${loginToken}`
-//       const emailContent = `
-//         <h1>Welcome Back to Motorik</h1>
-//         <p>Click the link below to log in:</p>
-//         <a href="${loginLink}">Log In</a>
-//       `
-//       await sendLoginEmail(email, 'Log in to Motorik', emailContent)
-
-//       return res.status(200).json({ success: true, message: 'Login email sent.' })
-//     } else {
-//       // Si el usuario no está registrado, crear cuenta y enviar email de verificación
-//       const passwordHash = await bcrypt.hash('default_password', 10) // Contraseña por defecto
-//       user = new User({ email, passwordHash, isVerified: false })
-//       await user.save()
-
-//       const verificationToken = tokenService.generateVerificationToken(user)
-
-//       console.log({ 'VerificationToken for new user': verificationToken })
-
-//       const verificationLink = `http://localhost:5002/api/users/verify-email?token=${verificationToken}`
-//       const emailContent = `
-//         <h1>Join Motorik</h1>
-//         <p>Click the link below to confirm your registration:</p>
-//         <a href="${verificationLink}">Verify Email</a>
-//       `
-//       await sendVerificationEmail(email, 'Verify your email', emailContent)
-
-//       return res.status(200).json({ success: true, message: 'Verification email sent.' })
-//     }
-//   } catch (error) {
-//     console.error('Error processing email:', error)
-//     return res.status(500).json({ success: false, message: 'Error processing request.' })
-//   }
-// })
-
-// usersRouter.get('/login-with-token', async (req, res) => {
-//   const { token } = req.query
-
-//   try {
-//     // Verificar y decodificar el token que viene en la URL
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-//     const user = await User.findById(decoded.userId)
-
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: 'User not found.' })
-//     }
-
-//     // Generar un nuevo token JWT de autenticación
-//     const authToken = tokenService.generateAuthToken(user)
-
-//     res.json({ success: true, token: authToken, user })
-
-//     // Redirigir a la página principal, donde el usuario estará logueado
-//     // res.redirect('http://localhost:5001')
-//   } catch (error) {
-//     return res.status(400).json({ success: false, message: 'Invalid or expired token.' })
-//   }
-// })
+// Configurar Multer para manejo de archivos
+const storage = multer.diskStorage({})
+const upload = multer({ storage })
 
 usersRouter.post('/check-or-register', async (req, res) => {
   const { email } = req.body
@@ -90,7 +36,6 @@ usersRouter.post('/check-or-register', async (req, res) => {
     if (user) {
       const loginToken = tokenService.generateAuthToken(user)
       const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
-
       await sendLoginEmail(email, 'Log in to Motorik', `
         <h1>Bienvenido de nuevo a Motorik</h1>
         <p>Haz clic en el enlace para iniciar sesión:</p>
@@ -100,7 +45,11 @@ usersRouter.post('/check-or-register', async (req, res) => {
       return res.status(200).json({ success: true, message: 'Login email sent.' })
     } else {
       // Si el usuario no está registrado, crearlo
-      user = new User({ email, isVerified: false })
+      user = new User({
+        email,
+        isVerified: true
+      })
+
       await user.save()
 
       const loginToken = tokenService.generateAuthToken(user)
@@ -133,7 +82,7 @@ usersRouter.get('/login-with-token', async (req, res) => {
     }
 
     const profileFilled = user.profileFilled
-    console.log({ profileFilled })
+    // console.log({ profileFilled })
 
     // Generar nuevo token JWT para la sesión
     const authToken = tokenService.generateAuthToken(user)
@@ -310,31 +259,55 @@ usersRouter.get('/profile', auth, async (req, res) => {
   }
 })
 
-// Actualizar el perfil del usuario autenticado
-usersRouter.put('/profile', auth, async (req, res) => {
-  const { name, lastName, userAvatar, description, vehicles } = req.body
-
+// Endpoint para actualizar el perfil del usuario
+usersRouter.put('/profile', auth, upload.single('userAvatar'), async (req, res) => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        name,
-        lastName,
-        userAvatar,
-        description,
-        vehicles
-      },
-      { new: true } // Retorna el documento actualizado
-    )
+    console.log(req.body)
 
-    if (!updatedUser) {
+    const { name, lastName, description, address, locality, country, phonePrefix, phoneNumber, socialMediaLinks } = req.body
+
+    const user = await User.findById(req.user.id)
+
+    if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' })
     }
 
-    res.json({ success: true, user: updatedUser })
+    // Asegúrate de que el campo 'address' esté en el request body
+    if (!address) {
+      return res.status(400).json({ success: false, message: 'La dirección es obligatoria.' })
+    }
+
+    // Actualización de campos de texto
+    user.name = name || user.name
+    user.lastName = lastName || user.lastName
+    user.description = description || user.description
+    user.address = address || user.address
+    user.locality = locality || user.locality
+    user.country = country || user.country
+    user.phonePrefix = phonePrefix || user.phonePrefix
+    user.phoneNumber = phoneNumber || user.phoneNumber
+
+    // Manejar el campo de redes sociales
+    if (socialMediaLinks) {
+      user.socialMediaLinks = JSON.parse(socialMediaLinks) // Asumiendo que llega como string en un formulario
+    }
+
+    // Manejar la imagen si se ha subido un archivo
+    if (req.file) {
+      // Subir la imagen a Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'user_avatars'
+      })
+      user.userAvatar = result.secure_url // Guardar la URL segura de Cloudinary en el campo userAvatar
+    }
+
+    // Guardar los cambios en la base de datos
+    await user.save()
+
+    res.status(200).json({ success: true, user })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ success: false, message: 'Error updating profile.' })
+    console.error('Error actualizando el perfil:', error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
 

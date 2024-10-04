@@ -30,7 +30,7 @@ const ProfileHeader = ({ profileUser, user, userId }) => {
               <img className='Avatar' src={profileUser.userAvatar} alt='user avatar' />
               <div className='Data'>
                 <h1>{profileUser.name} {profileUser.lastName}</h1>
-                <p>Sevilla, España </p>
+                <p>{profileUser.locality}, {profileUser.country}</p>
               </div>
             </div>
             {user && user.id === userId && (

@@ -3,13 +3,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import styled from "styled-components";
-import MainNavbar from '../../components/Navbar/MainNavbar';
 import Button from "../../components/Button/Button";
 import AddVehicleModal from '../../components/Modal/AddVehicleModal';
-import ProfileHeader from '../../components/ProfileHeader';
 
 const GarageTab = ({ vehicles }) => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const { userId } = useParams();
   const [profileUser, setProfileUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -52,7 +50,6 @@ const GarageTab = ({ vehicles }) => {
     fetchProfile();
   }, [userId]);
 
-  // Verificar si el usuario autenticado está viendo su propio garaje
   const isOwnGarage = user && user.id === userId;
 
   const handleVehicleCreatedOrUpdated = (newVehicle) => {
@@ -63,14 +60,15 @@ const GarageTab = ({ vehicles }) => {
     } else {
       setUserVehicles((prevVehicles) => [...prevVehicles, newVehicle]);
     }
+    refreshUserData();
   };
 
   const handleVehicleDeleted = (deletedVehicleId) => {
-    // Elimina el vehículo de la lista de vehículos
     setUserVehicles((prevVehicles) =>
       prevVehicles.filter((vehicle) => vehicle._id !== deletedVehicleId)
     );
-    setShowModal(false); // Cerrar el modal tras eliminar el vehículo
+    setShowModal(false);
+    refreshUserData();
   };
 
   const openEditModal = (vehicle) => {
@@ -249,48 +247,3 @@ const Container = styled.div`
   max-width: 1400px;
   gap: ${({ theme }) => theme.sizing.md};
 `;
-
-// const ProfileHeader = styled.section`
-//   background-color: ${({ theme }) => theme.fill.defaultSubtle};
-//   align-items: center;
-//   display:flex;
-//   flex-direction: column;
-  
-//   .UserHeader {
-//     display: flex;
-//     flex-direction: row;
-//     justify-content: space-between;
-//     align-items: center;
-
-//     .UserData {
-//       display: flex;
-//       flex-direction: row;
-//       align-items: center;
-//       gap: ${({ theme }) => theme.sizing.lg};
-
-//       .Avatar {
-//         height: 120px;
-//         width: 120px;
-//         border-radius: ${({ theme }) => theme.radius.xs};
-//       }
-
-//       .Data {
-//         display: flex;
-//         flex-direction: column;
-//         align-items: flex-start;
-
-//         h1 {
-//           color: ${({ theme }) => theme.colors.defaultStrong};
-//           font-variant-numeric: lining-nums tabular-nums;
-//           font-feature-settings: 'ss01' on;
-//           font-family: "Mona Sans";
-//           font-size: 32px;
-//           font-style: normal;
-//           font-weight: 600;
-//           line-height: 140%; /* 44.8px */
-//         }
-//       }
-//     }
-
-//   }
-// `;

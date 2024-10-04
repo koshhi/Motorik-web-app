@@ -25,6 +25,8 @@ const UserProfileLayout = () => {
     fetchProfile();
   }, [userId]);
 
+  console.log(profileUser);
+
   if (!profileUser) {
     return <div>Cargando perfil...</div>;
   }

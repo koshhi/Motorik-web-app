@@ -36,7 +36,11 @@ const AccountDropdown = ({ userAvatar }) => {
     <AccountDropdownWrapper ref={dropdownRef} >
       <AccountDropdownButton onClick={toggleDropdown}>
         <img className="Hamburger" src="/icons/hamburger.svg" alt="hamburger menu" />
-        <img className="UserAvatar" src={userAvatar} alt="user avatar" />
+        {userAvatar ? (
+          <img className="UserAvatar" src={userAvatar} alt="user avatar" />
+        ) : (
+          <img className="DefaultIcon" src="/icons/helmet.svg" alt="default icon" />
+        )}
       </AccountDropdownButton>
 
       {isOpen && (
