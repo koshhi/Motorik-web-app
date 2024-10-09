@@ -18,9 +18,24 @@ const jwt = require('jsonwebtoken')
 //   })
 // }
 
-// Generar token JWT de Magic Link con expiración corta (15 minutos)
-const generateAuthToken = (user) => {
-  console.log('Creating LoginToken for user ID:', user._id)
+// Generar Token de Acceso
+const generateAccessToken = (user) => {
+  console.log('Creating AccessToken for user ID:', user._id)
+  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: '15m' // Expira en 15 minutos
+  })
+}
+
+// Generar Refresh Token
+const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: '7d' // Expira en 7 días
+  })
+}
+
+// Generar Token para Magic Link
+const generateMagicLinkToken = (user) => {
+  console.log('Creating MagicLinkToken for user ID:', user._id)
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: '15m' // Expira en 15 minutos
   })
@@ -39,6 +54,8 @@ const generateVerificationToken = (user) => {
 }
 
 module.exports = {
-  generateAuthToken,
+  generateAccessToken,
+  generateRefreshToken,
+  generateMagicLinkToken,
   generateVerificationToken
 }

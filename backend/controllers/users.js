@@ -1,12 +1,9 @@
 const dotenv = require('dotenv')
 const express = require('express')
-// const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const auth = require('../middleware/auth')
 const User = require('../models/User')
 const usersRouter = express.Router()
-// const { sendVerificationEmail } = require('../services/emailService')
-// const { generateVerificationToken } = require('../services/tokenService')
 const tokenService = require('../services/tokenService')
 const cloudinary = require('cloudinary').v2
 const multer = require('multer')
@@ -34,8 +31,12 @@ usersRouter.post('/check-or-register', async (req, res) => {
 
     // Si el usuario ya está registrado, generar el Magic Link
     if (user) {
-      const loginToken = tokenService.generateAuthToken(user)
-      const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
+      // const loginToken = tokenService.generateAuthToken(user)
+      const loginToken = tokenService.generateMagicLinkToken(user)
+
+      // const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
+      const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}`
+
       await sendLoginEmail(email, 'Log in to Motorik', `
         <h1>Bienvenido de nuevo a Motorik</h1>
         <p>Haz clic en el enlace para iniciar sesión:</p>
@@ -52,7 +53,8 @@ usersRouter.post('/check-or-register', async (req, res) => {
 
       await user.save()
 
-      const loginToken = tokenService.generateAuthToken(user)
+      const loginToken = tokenService.generateMagicLinkToken(user)
+      // const loginToken = tokenService.generateAuthToken(user)
       const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
 
       await sendLoginEmail(email, 'Bienvenido a Motorik', `
@@ -73,173 +75,129 @@ usersRouter.get('/login-with-token', async (req, res) => {
   const { token } = req.query
 
   try {
-    // Verificar y decodificar el token
+    // Verify and decode the token
+    console.log('Token received:', token)
+    console.log('JWT_SECRET:', process.env.JWT_SECRET)
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    console.log('Decoded token:', decoded)
+
     const user = await User.findById(decoded.id)
 
     if (!user) {
+      console.log('User not found with ID:', decoded.id)
       return res.status(404).json({ success: false, message: 'User not found.' })
     }
 
+    console.log('User found:', user)
+
     const profileFilled = user.profileFilled
-    // console.log({ profileFilled })
 
-    // Generar nuevo token JWT para la sesión
-    const authToken = tokenService.generateAuthToken(user)
+    // Generate new tokens
+    const authToken = tokenService.generateAccessToken(user)
+    console.log('Generated authToken:', authToken)
 
-    return res.json({ success: true, token: authToken, user, profileFilled })
+    const refreshToken = tokenService.generateRefreshToken(user)
+    console.log('Generated refreshToken:', refreshToken)
+
+    // Store the refresh token in the database
+    // user.refreshToken = refreshToken
+    // await user.save()
+    try {
+      user.refreshToken = refreshToken
+      await user.save()
+      console.log('User updated with new refreshToken.')
+    } catch (saveError) {
+      console.error('Error saving user with new refreshToken:', saveError)
+      return res.status(500).json({ success: false, message: 'Internal Server Error.' })
+    }
+    console.log('User updated with new refreshToken.')
+
+    // Set the refresh token as an HTTP-only cookie
+    try {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+      })
+      console.log('Refresh token cookie set.')
+    } catch (cookieError) {
+      console.error('Error setting refresh token cookie:', cookieError)
+      return res.status(500).json({ success: false, message: 'Internal Server Error.' })
+    }
+
+    console.log('Refresh token cookie set.')
+
+    return res.json({
+      success: true,
+      authToken,
+      user,
+      profileFilled
+    })
   } catch (error) {
+    console.error('Error in /login-with-token:', error)
     return res.status(400).json({ success: false, message: 'Invalid or expired token.' })
   }
 })
 
-// usersRouter.get('/verify-email', async (req, res) => {
-//   const { token } = req.query
+usersRouter.post('/refresh-token', async (req, res) => {
+  const refreshToken = req.cookies.refreshToken
 
-//   if (!token) {
-//     return res.status(400).json({ success: false, message: 'Token inválido o inexistente.' })
-//   }
+  if (!refreshToken) {
+    return res.status(401).json({ success: false, message: 'Refresh Token is required.' })
+  }
 
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-//     const user = await User.findById(decoded.userId)
+  try {
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+    const user = await User.findById(decoded.id)
 
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
-//     }
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ success: false, message: 'Invalid refresh token.' })
+    }
 
-//     // Verificar el email
-//     user.emailVerified = true
-//     await user.save()
+    // Generate a new access token
+    const authToken = tokenService.generateAccessToken(user)
 
-//     console.log('Email verificado')
+    // Optionally, implement refresh token rotation here
 
-//     const authToken = tokenService.generateAuthToken(user)
-//     // res.cookie('authToken', authToken, { httpOnly: true })
-//     res.json({ success: true, token: authToken, user })
+    return res.json({
+      success: true,
+      authToken
+    })
+  } catch (error) {
+    return res.status(403).json({ success: false, message: 'Invalid or expired refresh token.' })
+  }
+})
 
-//     res.redirect('http://localhost:5001') // Redirigir al home con el token en las cookies
+usersRouter.post('/logout', async (req, res) => {
+  const refreshToken = req.cookies.refreshToken
 
-//     // return res.status(200).json({ success: true, message: 'Correo verificado exitosamente.' })
-//   } catch (error) {
-//     console.error(error)
-//     return res.status(400).json({ success: false, message: 'Token inválido o expirado.' })
-//   }
-// })
+  try {
+    if (refreshToken) {
+      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+      const user = await User.findById(decoded.id)
 
-// // New Login de usuario
-// usersRouter.post('/login', async (req, res) => {
-//   const { email, password } = req.body
+      if (user) {
+        user.refreshToken = ''
+        await user.save()
+      }
+    }
 
-//   try {
-//     // Buscar al usuario por email
-//     const user = await User.findOne({ email })
+    // Clear the refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict'
+    })
 
-//     if (!user) {
-//       return res.status(400).json({ success: false, message: 'Credenciales inválidas.' })
-//     }
-
-//     // Verificar la contraseña
-//     const isMatch = await bcrypt.compare(password, user.passwordHash)
-
-//     if (!isMatch) {
-//       return res.status(400).json({ success: false, message: 'Credenciales inválidas.' })
-//     }
-
-//     // Verificar si el usuario ha confirmado su correo electrónico
-//     if (!user.isVerified) {
-//       return res.status(401).json({ success: false, message: 'Por favor, verifica tu correo antes de iniciar sesión.' })
-//     }
-
-//     // Generar el token JWT de autenticación
-//     const authToken = tokenService.generateAuthToken(user)
-
-//     // Guardar el token en una cookie HTTP-only
-//     res.cookie('authToken', authToken, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === 'production', // Solo en producción
-//       sameSite: 'strict',
-//       maxAge: 7 * 24 * 60 * 60 * 1000 // 1 semana
-//     })
-
-//     return res.status(200).json({ success: true, message: 'Inicio de sesión exitoso.' })
-//   } catch (error) {
-//     console.error(error)
-//     return res.status(500).json({ success: false, message: 'Error al iniciar sesión.' })
-//   }
-// })
-
-// // Old Login de usuario
-// // usersRouter.post('/login', async (req, res) => {
-// //   const { email, password } = req.body
-// //   try {
-// //     const user = await User.findOne({ email })
-// //     const passwordCorrect = user === null
-// //       ? false
-// //       : await bcrypt.compare(password, user.passwordHash)
-
-// //     if (!(user && passwordCorrect)) {
-// //       return res.status(401).json({
-// //         error: 'invalid user or password'
-// //       })
-// //     }
-
-// //     const userForToken = {
-// //       id: user._id,
-// //       email: user.email
-// //     }
-
-// //     const token = jwt.sign(userForToken, process.env.JWT_SECRET, { expiresIn: '7d' })
-
-// //     // Incluir más datos en la respuesta de autenticación
-// //     res.json({
-// //       success: true,
-// //       name: user.name,
-// //       lastName: user.lastName,
-// //       email: user.email,
-// //       userAvatar: user.userAvatar,
-// //       description: user.description,
-// //       vehicles: user.vehicles,
-// //       id: user._id,
-// //       token
-// //     })
-// //   } catch (error) {
-// //     console.log({ error })
-// //     res.status(500).json({ success: false, error: 'Internal Server Error' })
-// //   }
-// // })
-
-// // Signup de usuario
-// usersRouter.post('/signup', async (req, res) => {
-//   const { email, password, name, lastName, userAvatar, description } = req.body
-//   try {
-//     const existingUser = await User.findOne({ email })
-//     if (existingUser) {
-//       return res.status(409).json({ success: false, exists: true })
-//     }
-//     const hashedPassword = await bcrypt.hash(password, 10)
-//     const newUser = new User({
-//       email,
-//       passwordHash: hashedPassword,
-//       name,
-//       lastName,
-//       userAvatar,
-//       description
-//     })
-//     await newUser.save()
-
-//     // Generamos un token JWT tras el signup
-//     const token = jwt.sign({ id: newUser._id, email: newUser.email },
-//       process.env.JWT_SECRET,
-//       { expiresIn: '7d' }
-//     )
-//     // Enviar el token en la respuesta
-//     res.status(201).json({ success: true, token })
-//   } catch (error) {
-//     console.log({ error })
-//     res.status(500).json({ success: false, error: 'Internal Server Error' })
-//   }
-// })
+    return res.json({ success: true, message: 'Logged out successfully.' })
+  } catch (error) {
+    console.error('Error logging out:', error)
+    return res.status(400).json({ success: false, message: 'Error logging out.' })
+  }
+})
 
 // Profile del usurio logueado
 usersRouter.get('/profile', auth, async (req, res) => {
@@ -264,7 +222,7 @@ usersRouter.put('/profile', auth, upload.single('userAvatar'), async (req, res) 
   try {
     console.log(req.body)
 
-    const { name, lastName, description, address, locality, country, phonePrefix, phoneNumber, socialMediaLinks } = req.body
+    const { name, lastName, description, address, locality, country, phonePrefix, phoneNumber, socialMediaLinks, profileFilled } = req.body
 
     const user = await User.findById(req.user.id)
 
@@ -286,6 +244,7 @@ usersRouter.put('/profile', auth, upload.single('userAvatar'), async (req, res) 
     user.country = country || user.country
     user.phonePrefix = phonePrefix || user.phonePrefix
     user.phoneNumber = phoneNumber || user.phoneNumber
+    user.profileFilled = profileFilled || user.profileFilled
 
     // Manejar el campo de redes sociales
     if (socialMediaLinks) {

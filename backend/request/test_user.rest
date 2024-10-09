@@ -35,11 +35,11 @@ GET http://localhost:5002/api/users
 Content-Type: application/json
 
 ### Obtener info del usuario por ID
-GET http://localhost:5002/api/users/66d566bcc08191eee0ac1e4f
+GET http://localhost:5002/api/users/66fefc8cbb3871782b3d55c7
 Content-Type: application/json
 
 ### Obtener info del usuario autenticado
-GET http://localhost:5002/api/users/profile
+GET http://localhost:5002/api/users/66fefc8cbb3871782b3d55c7
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDU2NmJjYzA4MTkxZWVlMGFjMWU0ZiIsInVzZXJuYW1lIjoiY2VzYXJhbHZhcmV6bWFyaW5AZ21haWwuY29tIiwiaWF0IjoxNzI1NjQ2NTU5LCJleHAiOjE3MjYyNTEzNTl9.yxgFLST1qbjaoZ7QAZ0t6KCKONNnuVeFle7FJP-8-08
 Content-Type: application/json
 

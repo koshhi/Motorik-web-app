@@ -82,7 +82,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
               type="button"
               onClick={() => setShowLocationFields(!showLocationFields)}
             >
-              {municipality ? municipality : 'Obteniendo tu ubicación...'}
+              <img src="/icons/location.svg" alt="location icon" />{municipality ? municipality : 'Obteniendo tu ubicación...'}
             </Location>
             {showLocationFields && (
               <LocationDropdown>
@@ -107,13 +107,15 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                 />
               </LocationDropdown>
             )}
-            <TimeFrame value={filters.timeFilter || 'flexible'} onChange={(e) => handleFilterChange('timeFilter', e.target.value)}>
-              <option value="flexible">Fecha flexible</option>
-              <option value="today">Hoy</option>
-              <option value="tomorrow">Mañana</option>
-              <option value="this_week">Esta semana</option>
-              <option value="this_month">Este mes</option>
-            </TimeFrame>
+            <div className='TimeFrameWrapper'>
+              <TimeFrame value={filters.timeFilter || 'flexible'} onChange={(e) => handleFilterChange('timeFilter', e.target.value)}>
+                <option value="flexible">Fecha flexible</option>
+                <option value="today">Hoy</option>
+                <option value="tomorrow">Mañana</option>
+                <option value="this_week">Esta semana</option>
+                <option value="this_month">Este mes</option>
+              </TimeFrame>
+            </div>
           </div>
         </MainFilters>
         <SecondaryFilters>
@@ -229,7 +231,23 @@ const MainFilters = styled.div`
     gap: ${({ theme }) => theme.sizing.xs};
     border-radius: ${({ theme }) => theme.sizing.sm};
     background-color: ${({ theme }) => theme.fill.defaultMain};
-    box-shadow: 0px 7px 4px -4px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.16);}
+    box-shadow: 0px 7px 4px -4px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.16);
+  }
+
+  .TimeFrameWrapper {
+    position: relative;
+
+    &::before {
+      content: url(${process.env.CLIENT_URL}/icons/calendar.svg);
+      position: absolute;
+      left: 12px; 
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      z-index: 1;
+    }
+  }
 `;
 
 const SecondaryFilters = styled.div`
@@ -261,7 +279,7 @@ const SecondaryFilters = styled.div`
 `;
 
 const Location = styled.button`
-  background-color: ${({ theme }) => theme.fill.defaultMain};
+  // background-color: ${({ theme }) => theme.fill.defauMain};
   color: ${({ theme }) => theme.colors.defaultWeak};
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: 'ss01' on;
@@ -270,12 +288,22 @@ const Location = styled.button`
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  padding: 0px 12px;
+  padding: 0px 32px 0px 12px;
   height: 44px;
   cursor: pointer;
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+
+
+  -webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+  background: url(${process.env.CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
+	background-size: 24px;
+	background-position: calc(100% - 4px);
 
   &:hover {
     background-color: ${({ theme }) => theme.fill.defaultWeak};
@@ -309,9 +337,18 @@ const TimeFrame = styled.select`
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  padding: 0px 12px;
+  padding: 0px 32px 0px 38px;
   height: 44px;
   cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+
+  -webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+  background: url(${process.env.CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
+	background-size: 24px;
+	background-position: calc(100% - 4px);
 
   &:hover {
     background-color: #efefef;

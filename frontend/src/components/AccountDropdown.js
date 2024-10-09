@@ -1,11 +1,15 @@
 import styled from 'styled-components';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 
 const AccountDropdown = ({ userAvatar }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -14,7 +18,7 @@ const AccountDropdown = ({ userAvatar }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);  // Cerrar el menú si el clic está fuera del dropdown
+        setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -25,11 +29,7 @@ const AccountDropdown = ({ userAvatar }) => {
   }, [dropdownRef]);
 
   const handleLogout = () => {
-    // Eliminar el token del almacenamiento local
-    localStorage.removeItem('authToken');
-
-    // Redirigir a la home
-    navigate('/');
+    logout();
   };
 
   return (
@@ -39,7 +39,9 @@ const AccountDropdown = ({ userAvatar }) => {
         {userAvatar ? (
           <img className="UserAvatar" src={userAvatar} alt="user avatar" />
         ) : (
-          <img className="DefaultIcon" src="/icons/helmet.svg" alt="default icon" />
+          <div className='EmptyUserAvatar'>
+            <img className="UserAvatarIcon" src="/icons/helmet.svg" alt="default icon" />
+          </div>
         )}
       </AccountDropdownButton>
 
@@ -81,6 +83,22 @@ const AccountDropdownButton = styled.div`
     height: 28px;
     border-radius: 20px;
     overflow: hidden;
+  }
+
+  .EmptyUserAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: ${({ theme }) => theme.fill.inverseSubtle};
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .UserAvatarIcon {
+      width: 20px;
+      height: 20px;
+    }
   }
 
   .Hamburger {

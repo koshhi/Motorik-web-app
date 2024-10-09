@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 import styled from "styled-components";
 import Button from "../../components/Button/Button";
 import AddVehicleModal from '../../components/Modal/AddVehicleModal';
@@ -18,11 +18,7 @@ const GarageTab = ({ vehicles }) => {
     // Función para obtener los vehículos de un usuario
     const fetchVehicles = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/vehicles/user/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Incluir el token de autenticación
-          },
-        });
+        const response = await axiosClient.get(`/api/vehicles/user/${userId}`);
         const data = response.data;
 
         if (data.success) {
@@ -37,7 +33,7 @@ const GarageTab = ({ vehicles }) => {
 
     const fetchProfile = async () => {
       try {
-        const profileResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/${userId}`);
+        const profileResponse = await axiosClient.get(`/api/users/${userId}`);
         if (profileResponse.data.success) {
           setProfileUser(profileResponse.data.user);
         }
@@ -54,21 +50,24 @@ const GarageTab = ({ vehicles }) => {
 
   const handleVehicleCreatedOrUpdated = (newVehicle) => {
     if (vehicleToEdit) {
-      setUserVehicles((prevVehicles) => prevVehicles.map((vehicle) =>
-        vehicle._id === newVehicle._id ? newVehicle : vehicle
-      ));
+      setUserVehicles((prevVehicles) =>
+        prevVehicles.map((vehicle) =>
+          vehicle._id === newVehicle._id ? newVehicle : vehicle
+        )
+      );
     } else {
       setUserVehicles((prevVehicles) => [...prevVehicles, newVehicle]);
     }
     refreshUserData();
+    handleCloseModal(); // Cerrar el modal y resetear vehicleToEdit
   };
 
   const handleVehicleDeleted = (deletedVehicleId) => {
     setUserVehicles((prevVehicles) =>
       prevVehicles.filter((vehicle) => vehicle._id !== deletedVehicleId)
     );
-    setShowModal(false);
     refreshUserData();
+    handleCloseModal(); // Cerrar el modal y resetear vehicleToEdit
   };
 
   const openEditModal = (vehicle) => {
@@ -79,6 +78,11 @@ const GarageTab = ({ vehicles }) => {
   const openAddModal = () => {
     setVehicleToEdit(null);
     setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setVehicleToEdit(null);
   };
 
   return (
@@ -110,6 +114,13 @@ const GarageTab = ({ vehicles }) => {
                   )}
                 </VehicleCard>
               ))}
+              {isOwnGarage && (
+                <VehicleCard style={{ justifyContent: "center" }} onClick={openAddModal}>
+                  <div className='EmptyVehicleTrigger'>
+                    <img src='/icons/add-solid.svg' alt='Añadir' />Añadir moto
+                  </div>
+                </VehicleCard>
+              )}
             </VehicleGrid>
           ) : (
             <p>No tienes vehículos en tu garaje.</p>
@@ -118,7 +129,7 @@ const GarageTab = ({ vehicles }) => {
         {isOwnGarage && (
           <AddVehicleModal
             isOpen={showModal}
-            onClose={() => setShowModal(false)}
+            onClose={handleCloseModal}
             onVehicleSaved={handleVehicleCreatedOrUpdated}
             onVehicleDeleted={handleVehicleDeleted}
             vehicle={vehicleToEdit}
@@ -235,6 +246,14 @@ const VehicleCard = styled.li`
       font-weight: 500;
       line-height: 150%; /* 19.5px */
     }
+  }
+
+  .EmptyVehicleTrigger {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.sizing.xs};
   }
 `;
 

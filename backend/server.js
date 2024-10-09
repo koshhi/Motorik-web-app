@@ -8,21 +8,36 @@ const vehiclesRouter = require('./controllers/vehicle')
 const authRouter = require('./controllers/auth')
 const passport = require('passport')
 const session = require('express-session')
+const cookieParser = require('cookie-parser')
 require('./config/passport')
 
 dotenv.config()
 
+console.log('JWT_SECRET:', process.env.JWT_SECRET)
+
 const app = express()
-app.use(cors())
+// app.use(cors())
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+  })
+)
+app.use(cookieParser())
 app.use(express.json())
 
 // Configurar express-session
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your_secret_key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
-}))
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'your_secret_key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
+  })
+)
+
+app.use(passport.initialize())
+app.use(passport.session())
 
 // Rutas
 app.use('/api/users', usersRouter)
@@ -30,8 +45,6 @@ app.use('/api/login', usersRouter)
 app.use('/api/events', eventsRouter)
 app.use('/api/vehicles', vehiclesRouter)
 app.use('/auth', authRouter)
-app.use(passport.initialize())
-app.use(passport.session())
 
 // Conexión a MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)

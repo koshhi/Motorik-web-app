@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
 import Button from '../components/Button/Button';
 import InputText from '../components/Input/InputText';
@@ -13,6 +15,14 @@ import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 const libraries = ['places'];
 
 const CompleteProfile = () => {
+  const { userId } = useParams();
+  const isEditMode = Boolean(userId);
+  const pageTitle = isEditMode ? 'Editar perfil' : 'Completa tu perfil';
+  const navigate = useNavigate();
+
+  const { refreshUserData } = useAuth();
+
+
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
@@ -43,20 +53,6 @@ const CompleteProfile = () => {
   const onLoad = (autocompleteInstance) => {
     setAutocomplete(autocompleteInstance);
   };
-
-  // const onPlaceChanged = () => {
-  //   if (autocomplete !== null) {
-  //     const place = autocomplete.getPlace();
-  //     if (place && place.formatted_address) {
-  //       setFormData(prev => ({
-  //         ...prev,
-  //         address: place.formatted_address
-  //       }));
-  //     }
-  //   } else {
-  //     console.log('¡Autocomplete aún no está cargado!');
-  //   }
-  // };
 
   const onPlaceChanged = () => {
     if (autocomplete !== null) {
@@ -94,10 +90,7 @@ const CompleteProfile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await axiosClient.get('/api/users/profile');
 
         if (response.data.user) {
           const user = response.data.user;
@@ -119,30 +112,6 @@ const CompleteProfile = () => {
 
     fetchUserProfile();
   }, []);
-
-  // useEffect(() => {
-  //   if (isLoaded && window.google && addressRef.current) {
-  //     const autocomplete = new window.google.maps.places.Autocomplete(addressRef.current, {
-  //       types: ['geocode']
-  //     });
-
-  //     autocomplete.addListener('place_changed', () => {
-  //       const place = autocomplete.getPlace();
-
-  //       if (place && place.formatted_address) {
-  //         setFormData(prev => ({
-  //           ...prev,
-  //           address: place.formatted_address
-  //         }));
-  //       }
-  //     });
-  //   }
-  // }, [isLoaded]);
-
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData({ ...formData, [name]: value });
-  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -206,8 +175,6 @@ const CompleteProfile = () => {
     setErrors({});
 
     try {
-      const token = localStorage.getItem('authToken');
-
       // Crear el objeto FormData
       const data = new FormData();
       data.append('name', formData.name);
@@ -221,29 +188,36 @@ const CompleteProfile = () => {
       data.append('socialMediaLinks', JSON.stringify(formData.socialMediaLinks));
 
       if (file) {
-        data.append('userAvatar', file);  // Adjuntar archivo si está presente
+        data.append('userAvatar', file);
       }
 
+      data.append('profileFilled', true);
+
       // Enviar la solicitud multipart
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/users/profile`,
+      const response = await axiosClient.put(
+        '/api/users/profile',
         data,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
         }
       );
 
       if (response.data.success) {
-        alert('Perfil completado con éxito');
-        window.location.href = '/';  // Redirigir a la home después de completar el perfil
+        alert('Perfil actualizado con éxito');
+        await refreshUserData();
+        navigate(isEditMode ? `/user/${userId}` : '/');
       } else {
-        alert('Error completando el perfil');
+        alert(`Error al actualizar el perfil: ${response.data.message}`);
       }
     } catch (error) {
       console.error('Error completando el perfil:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(`Error al actualizar el perfil: ${error.response.data.message}`);
+      } else {
+        alert('Error al actualizar el perfil. Por favor, intenta de nuevo.');
+      }
     }
   };
 
@@ -256,16 +230,20 @@ const CompleteProfile = () => {
     <EditForm onSubmit={handleSubmit}>
       <Navigation>
         <div className='container'>
-          <div className='tabs'>
-            <div className='tab'>Completa tu perfil</div>
-            <div className='tab'>Marca tus intereses</div>
-            <div className='tab'>Añade tu garaje</div>
-          </div>
+          {isEditMode ? (
+            <h2>Editar perfil</h2>
+          ) : (
+            <div className='tabs'>
+              <div className='tab'>Completa tu perfil</div>
+              <div className='tab'>Marca tus intereses</div>
+              <div className='tab'>Añade tu garaje</div>
+            </div>
+          )}
           <Button type="submit">Guardar cambios</Button>
         </div>
       </Navigation>
       <div className='header'>
-        <h1>Completa tu perfil</h1>
+        <h1>{pageTitle}</h1>
       </div>
       <FormContainer>
         <div className='ImageContainer'>
@@ -468,6 +446,7 @@ const EditForm = styled.form`
   background: ${({ theme }) => theme.fill.defaultSubtle};
   position: relative;
   padding-bottom: 24px;
+  height: 100vh;
 
   label {
     color: ${({ theme }) => theme.colors.defaultStrong};

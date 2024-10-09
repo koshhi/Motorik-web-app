@@ -46,38 +46,56 @@ const variantStyles = css`
         return css`
           background-color: ${theme.fill.inverseMain};
           color: ${theme.colors.inverseMain};
-          border: 2px solid transparent;
+          border: 1px solid transparent;
         `;
       case 'defaultInverse':
         return css`
           background-color: ${theme.fill.defaultMain};
           color: ${theme.colors.defaultMain};
-          border: 2px solid transparent;
+          border: 1px solid transparent;
         `;
       case 'outline':
         return css`
           background-color: transparent;
-          border: 2px solid ${theme.border.defaultWeak};
+          border: 1px solid ${theme.border.defaultWeak};
           color: ${theme.colors.defaultMain};
         `;
       case 'outlineInverse':
         return css`
           background-color: transparent;
-          border: 2px solid ${theme.colors.inverseWeak};
+          border: 1px solid ${theme.colors.inverseWeak};
           color: ${theme.colors.inverseMain};
         `;
       case 'ghost':
         return css`
           background-color: transparent;
           color: ${theme.colors.defaultMain};
-          border: 2px solid transparent;
+          border: 1px solid transparent;
         `;
       case 'ghostInverse':
         return css`
           background-color: transparent;
           color: ${theme.colors.inverseMain};
-          border: 2px solid transparent;
+          border: 1px solid transparent;
         `;
+      case 'defaultDanger':
+        return css`
+          background-color: ${theme.fill.elserrorAlphaMain16};
+          color: ${theme.colors.errorMain};
+          border: 1px solid transparent;
+        `;
+      case 'outlineDanger':
+        return css`
+          background-color: transparent;
+          color: ${theme.colors.errorMain};
+          border: 1px solid ${theme.fill.elserrorAlphaMain16};
+        `;
+      case 'ghostDanger':
+        return css`
+            background-color: transparent;
+            color: ${theme.colors.errorMain};
+            border: 1px solid transparent;
+          `;
     }
   }}
 `;

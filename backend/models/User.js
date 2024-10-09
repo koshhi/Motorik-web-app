@@ -8,6 +8,10 @@ const userSchema = new Schema({
     required: true,
     unique: true
   },
+  refreshToken: {
+    type: String,
+    default: ''
+  },
   name: {
     type: String,
     required: false
@@ -70,13 +74,15 @@ userSchema.pre('save', function (next) {
   next()
 })
 
+// userSchema.virtual('id').get(function () {
+//   return this._id.toHexString()
+// })
+
 userSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id
     delete returnedObject._id
     delete returnedObject.__v
-    // Eliminamos la passwordhash
-    delete returnedObject.passwordHash
   }
 })
 

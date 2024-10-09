@@ -709,6 +709,8 @@ const Image = styled.div`
 
     .EventImageWrapper {
       transition: all 0.3s;
+      width: 100%;
+
       &:hover {
         opacity: 80%;
       }

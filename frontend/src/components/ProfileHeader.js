@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Button from './Button/Button';
-import Modal from './Modal/Modal';
-import EditProfileForm from './EditProfileForm';
+// import Modal from './Modal/Modal';
+// import EditProfileForm from './EditProfileForm';
 
 const ProfileHeader = ({ profileUser, user, userId }) => {
   const location = useLocation();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
+  // const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  // const openModal = () => {
+  //   setIsModalOpen(true);
+  // };
+
+  // const closeModal = () => {
+  //   setIsModalOpen(false);
+  // };
 
   if (!profileUser) {
     return <div>Cargando perfil...</div>;
@@ -33,8 +35,17 @@ const ProfileHeader = ({ profileUser, user, userId }) => {
                 <p>{profileUser.locality}, {profileUser.country}</p>
               </div>
             </div>
-            {user && user.id === userId && (
+            {/* {user && user.id === userId && (
               <Button onClick={openModal} size="small" $variant="outline">Editar perfil</Button>
+            )} */}
+            {user && user.id === userId && (
+              <Button
+                onClick={() => navigate(`/user/${userId}/edit-profile`)}
+                size="small"
+                $variant="outline"
+              >
+                Editar perfil
+              </Button>
             )}
           </div>
 
@@ -54,11 +65,11 @@ const ProfileHeader = ({ profileUser, user, userId }) => {
           </SectionTabs>
         </Container>
       </ProfileHeaderWrapper>
-      {isModalOpen && (
+      {/* {isModalOpen && (
         <Modal title="Editar perfil" onClose={closeModal}>
           <EditProfileForm profileUser={profileUser} onClose={closeModal} />
         </Modal>
-      )}
+      )} */}
     </>
   );
 };

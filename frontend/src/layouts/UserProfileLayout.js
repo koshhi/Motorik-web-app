@@ -7,7 +7,10 @@ import MainNavbar from '../components/Navbar/MainNavbar';
 
 const UserProfileLayout = () => {
   const { userId } = useParams();
+  console.log({ userIDfromUrl: userId })
+
   const { user } = useAuth();
+  console.log({ authUser: user })
   const [profileUser, setProfileUser] = useState(null);
 
   useEffect(() => {
@@ -24,8 +27,6 @@ const UserProfileLayout = () => {
 
     fetchProfile();
   }, [userId]);
-
-  console.log(profileUser);
 
   if (!profileUser) {
     return <div>Cargando perfil...</div>;

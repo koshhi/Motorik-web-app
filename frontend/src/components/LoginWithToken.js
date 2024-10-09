@@ -1,23 +1,24 @@
 import { useEffect } from 'react';
-import axios from 'axios';
+import axiosClient from '../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const LoginWithToken = () => {
-  const { setUser } = useAuth();  // Obtener la función para actualizar el estado del usuario
+  const { setUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('token');
-    // const profileFilled = new URLSearchParams(window.location.search).get('profileFilled') === 'true';
+    console.log('Token from URL:', token);
+
 
     const loginWithToken = async () => {
       try {
-        const response = await axios.get(`http://localhost:5002/api/users/login-with-token?token=${token}`);
-        localStorage.setItem('authToken', response.data.token);  // Guardar el token
-        setUser(response.data.user);  // Actualizar estado del usuario en el AuthContext
-        // console.log(response.data.user)
-        // console.log(response.data.user.profileFilled)
+        const response = await axiosClient.get(`/api/users/login-with-token?token=${token}`);
+        console.log('Response data:', response.data);
+
+        localStorage.setItem('authToken', response.data.authToken);
+        setUser(response.data.user);
 
         if (!response.data.user.profileFilled) {
           navigate('/complete-profile');
@@ -30,11 +31,11 @@ const LoginWithToken = () => {
     };
 
     if (token) {
-      loginWithToken();  // Solo ejecutar si hay un token en la URL
+      loginWithToken();
     }
   }, [setUser, navigate]);
 
-  return <div>Iniciando sesión...</div>;  // Mensaje mientras se inicia sesión
+  return <div>Iniciando sesión...</div>;
 
 };
 

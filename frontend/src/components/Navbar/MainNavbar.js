@@ -9,7 +9,7 @@ const MainNavbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const isAuthenticated = !!user && !!localStorage.getItem('authToken'); // Comprobar que `user` no es null
+  const isAuthenticated = !!user;
 
   const handleCreateEvent = () => {
     if (isAuthenticated) {

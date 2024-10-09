@@ -1,57 +1,249 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 import Button from '../../components/Button/Button';
 import InputText from '../Input/InputText';
 import InputImage from '../Input/InputImage';
+import Select from '../Select/Select';
 
 const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDeleted }) => {
   const [formData, setFormData] = useState({
     brand: '',
+    customBrand: '',
     model: '',
+    customModel: '',
     nickname: '',
     year: '',
     image: null,
   });
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const [isCustomBrand, setIsCustomBrand] = useState(false);
+  const [isCustomModel, setIsCustomModel] = useState(false);
+  const [brands, setBrands] = useState([]);
+  const [models, setModels] = useState([]);
   const fileInputRef = useRef();
 
   useEffect(() => {
-    if (vehicle) {
-      setFormData({
-        brand: vehicle.brand || '',
-        model: vehicle.model || '',
-        nickname: vehicle.nickname || '',
-        year: vehicle.year || '',
-        image: {
-          file: null,
-          previewUrl: vehicle.image,
-        },
-      });
-      setFile(null);
-    } else if (isOpen) {
-      setFormData({
-        brand: '',
-        model: '',
-        nickname: '',
-        year: '',
-        image: null,
-      });
-      setFile(null);
+    const fetchBrands = async () => {
+      try {
+        const response = await axiosClient.get('/api/vehicles/brands');
+        setBrands(response.data.brands);
+      } catch (error) {
+        console.error('Error al cargar las marcas:', error);
+      }
+    };
+    fetchBrands();
+  }, []);
+
+  const resetForm = () => {
+    setFormData({
+      brand: '',
+      customBrand: '',
+      model: '',
+      customModel: '',
+      nickname: '',
+      year: '',
+      image: null,
+    });
+    setFile(null);
+    setIsCustomBrand(false);
+    setIsCustomModel(false);
+    setModels([]);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      if (vehicle) {
+        // Establecer formData con los datos del vehículo para edición
+        setFormData({
+          brand: vehicle.brand || '',
+          customBrand: '',
+          model: vehicle.model || '',
+          customModel: '',
+          nickname: vehicle.nickname || '',
+          year: vehicle.year || '',
+          image: {
+            file: null,
+            previewUrl: vehicle.image,
+          },
+        });
+        setFile(null);
+
+        // Lógica para manejar marcas y modelos personalizados
+        if (brands.length > 0) {
+          if (!brands.includes(vehicle.brand)) {
+            setIsCustomBrand(true);
+            setFormData((prev) => ({
+              ...prev,
+              customBrand: vehicle.brand,
+              brand: '',
+            }));
+          } else {
+            setIsCustomBrand(false);
+          }
+        }
+
+        if (models.length > 0) {
+          if (!models.includes(vehicle.model)) {
+            setIsCustomModel(true);
+            setFormData((prev) => ({
+              ...prev,
+              customModel: vehicle.model,
+              model: '',
+            }));
+          } else {
+            setIsCustomModel(false);
+          }
+        }
+      } else {
+        // Reiniciar formData para agregar un nuevo vehículo
+        resetForm();
+      }
+    } else {
+      // Reiniciar formData al cerrar el modal
+      resetForm();
     }
-  }, [vehicle, isOpen]);
+  }, [isOpen, vehicle]);
+
+  useEffect(() => {
+    if (vehicle && brands.length > 0) {
+      if (!brands.includes(vehicle.brand)) {
+        setIsCustomBrand(true);
+        setFormData((prev) => ({
+          ...prev,
+          customBrand: vehicle.brand,
+          brand: '',
+        }));
+      } else {
+        setIsCustomBrand(false);
+        setFormData((prev) => ({
+          ...prev,
+          brand: vehicle.brand,
+        }));
+      }
+    }
+  }, [brands]);
+
+
+  useEffect(() => {
+    if (vehicle && models.length > 0) {
+      if (!models.includes(vehicle.model)) {
+        setIsCustomModel(true);
+        setFormData((prev) => ({
+          ...prev,
+          customModel: vehicle.model,
+          model: '',
+        }));
+      } else {
+        setIsCustomModel(false);
+        setFormData((prev) => ({
+          ...prev,
+          model: vehicle.model,
+        }));
+      }
+    }
+  }, [models]);
+
+  const loadModels = async (brand) => {
+    try {
+      const response = await axiosClient.get(`/api/vehicles/models?brand=${brand}`);
+      setModels(response.data.models);
+    } catch (error) {
+      console.error('Error al cargar los modelos:', error);
+    }
+  };
+
+  const handleBrandChange = (e) => {
+    const value = e.target.value;
+    if (value === 'Other Brand') {
+      setIsCustomBrand(true);
+      setIsCustomModel(true);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        brand: '',
+        customBrand: '',
+        model: '',
+        customModel: '',
+      }));
+      setModels([]);
+    } else {
+      setIsCustomBrand(false);
+      setIsCustomModel(false);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        brand: value,
+        customBrand: '',
+        model: '',
+        customModel: '',
+      }));
+      loadModels(value);
+    }
+  };
+
+  const handleCustomBrandChange = (e) => {
+    const value = e.target.value;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      customBrand: value,
+      model: '',
+      customModel: '',
+    }));
+    if (brands.includes(value)) {
+      setIsCustomBrand(false);
+      setIsCustomModel(false);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        brand: value,
+        customBrand: '',
+        model: '',
+        customModel: '',
+      }));
+      loadModels(value);
+    }
+  };
+
+
+  const handleModelChange = (e) => {
+    const value = e.target.value;
+    if (value === 'Other Model') {
+      setIsCustomModel(true);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        model: '',
+        customModel: '',
+      }));
+    } else {
+      setIsCustomModel(false);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        model: value,
+        customModel: '',
+      }));
+    }
+  };
+
+  const handleCustomModelChange = (e) => {
+    const value = e.target.value;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      customModel: value,
+    }));
+    if (models.includes(value)) {
+      setIsCustomModel(false);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        model: value,
+        customModel: '',
+      }));
+    }
+  };
 
   const handleDelete = async () => {
     if (!vehicle) return;
 
     try {
-      const authToken = localStorage.getItem('authToken');
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/vehicles/${vehicle._id}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      await axiosClient.delete(`/api/vehicles/${vehicle._id}`);
       onVehicleDeleted(vehicle._id); // Notificar que el vehículo fue eliminado
     } catch (error) {
       console.error('Error al eliminar el vehículo:', error);
@@ -60,38 +252,57 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prevFormData) => ({
+      ...prevFormData,
       [name]: value,
-    });
+    }));
   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      // Crear una URL temporal para mostrar la imagen en la previsualización
       const imagePreviewUrl = URL.createObjectURL(selectedFile);
-      setFormData({
-        ...formData,
+      setFormData((prevFormData) => ({
+        ...prevFormData,
         image: { file: selectedFile, previewUrl: imagePreviewUrl },
-      });
-      setFile(selectedFile); // Actualizar el estado de `file` también
+      }));
+      setFile(selectedFile);
     }
   };
-  // const handleClose = () => {
-  //   if (!vehicle) {
-  //     // Solo limpiamos si es un nuevo vehículo
-  //     setFormData({
-  //       brand: '',
-  //       model: '',
-  //       nickname: '',
-  //       year: '',
-  //       image: null,
-  //     });
-  //     setFile(null); // Reinicia el archivo
-  //   }
-  //   onClose(); // Llama a la función de cierre del modal
-  // };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (isCustomBrand) {
+      if (!formData.customBrand) {
+        newErrors.customBrand = 'Debes especificar la marca personalizada';
+      }
+    } else {
+      if (!formData.brand) {
+        newErrors.brand = 'La marca es obligatoria';
+      }
+    }
+
+    if (isCustomModel || isCustomBrand) {
+      if (!formData.customModel) {
+        newErrors.customModel = 'Debes especificar el modelo personalizado';
+      }
+    } else {
+      if (!formData.model) {
+        newErrors.model = 'El modelo es obligatorio';
+      }
+    }
+
+    if (!formData.year) {
+      newErrors.year = 'El año es obligatorio';
+    }
+
+    if (!formData.image?.file && !vehicle?.image) {
+      newErrors.file = 'La imagen es obligatoria';
+    }
+
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,8 +314,14 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
     }
 
     const vehicleFormData = new FormData();
-    vehicleFormData.append('brand', formData.brand);
-    vehicleFormData.append('model', formData.model);
+    vehicleFormData.append(
+      'brand',
+      isCustomBrand ? formData.customBrand : formData.brand
+    );
+    vehicleFormData.append(
+      'model',
+      isCustomModel ? formData.customModel : formData.model
+    );
     vehicleFormData.append('nickname', formData.nickname);
     vehicleFormData.append('year', formData.year);
 
@@ -113,21 +330,18 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
     }
 
     try {
-      const authToken = localStorage.getItem('authToken');
       let response;
       if (vehicle) {
         // Si se está editando, enviamos una solicitud PUT
-        response = await axios.put(`${process.env.REACT_APP_API_URL}/api/vehicles/${vehicle._id}`, vehicleFormData, {
+        response = await axiosClient.put(`/api/vehicles/${vehicle._id}`, vehicleFormData, {
           headers: {
-            Authorization: `Bearer ${authToken}`,
             'Content-Type': 'multipart/form-data',
           },
         });
       } else {
         // Si es un nuevo vehículo, enviamos una solicitud POST
-        response = await axios.post(`${process.env.REACT_APP_API_URL}/api/vehicles`, vehicleFormData, {
+        response = await axiosClient.post('/api/vehicles', vehicleFormData, {
           headers: {
-            Authorization: `Bearer ${authToken}`,
             'Content-Type': 'multipart/form-data',
           },
         });
@@ -144,106 +358,143 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.brand) newErrors.brand = 'La marca es obligatoria';
-    if (!formData.model) newErrors.model = 'El modelo es obligatorio';
-    if (!formData.year) newErrors.year = 'El año es obligatorio';
-
-    // Verifica si la imagen está en formData.image
-    if (!formData.image?.file && !vehicle?.image) {
-      newErrors.file = 'La imagen es obligatoria';
-    }
-
-    return newErrors;
-  };
-
   if (!isOpen) return null;
 
   return (
     <ModalOverlay>
       <Modal>
         <div className='Heading'>
-          <h3>{vehicle ? 'Editar Vehículo' : 'Añadir Vehículo'}</h3>
+          <h3>{vehicle ? 'Editar moto' : 'Añadir moto'}</h3>
           <Button $variant="ghost" onClick={onClose}><img src='/icons/close.svg' alt='Close' /></Button>
         </div>
         <div className='ModalContent'>
           <form onSubmit={handleSubmit}>
             <InputImage
-              imgSrc={formData.image?.previewUrl} // Vista previa de la imagen cargada
-              onChangeFile={handleFileChange} // Manejador de cambio de archivo
+              imgSrc={formData.image?.previewUrl}
+              onChangeFile={handleFileChange}
               fileInputRef={fileInputRef}
               inputFileId="vehicleImage"
-              errors={errors} // Manejo de errores
-              required={!vehicle} // Requerido solo si es un nuevo vehículo
+              errors={errors}
+              required={!vehicle}
             />
-
-
-
-            {/* <div>
-              {formData.image?.previewUrl && (
-                <div>
-                  <img src={formData.image.previewUrl} alt="Vista previa" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
-                </div>
-              )}
-              <label>Subir imagen:</label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                required={!vehicle} // Solo es requerido si se está añadiendo un vehículo
-              />
-              {errors.file && <p className="error">{errors.file}</p>}
-            </div> */}
-            <div>
+            <div className='FormItem'>
               <label>Marca:</label>
-              <InputText
-                type="text"
-                name="brand"
-                value={formData.brand}
-                onChange={handleInputChange}
-                required
-              />
-              {errors.brand && <p className="error">{errors.brand}</p>}
+              <div className='RowWrapper'>
+                <div className='BrandSelect'>
+                  <Select
+                    name="brand"
+                    onChange={handleBrandChange}
+                    value={isCustomBrand ? 'Other Brand' : formData.brand}
+                    required
+                    $size="large"
+                  >
+                    <option value="">Selecciona una marca</option>
+                    {brands.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                    <option value="Other Brand">Otra marca</option>
+                  </Select>
+                  {errors.brand && <p className="error">{errors.brand}</p>}
+                </div>
+                {isCustomBrand && (
+                  <>
+                    <div className='BrandSelect'>
+                      <InputText
+                        style={{ maxHeight: "50px" }}
+                        name="customBrand"
+                        value={formData.customBrand}
+                        onChange={handleCustomBrandChange}
+                        placeholder="Escribe la marca"
+                        required
+                        $size="large"
+                      />
+                      {errors.customBrand && (
+                        <p className="error">{errors.customBrand}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div>
+            <div className='FormItem'>
               <label>Modelo:</label>
-              <InputText
-                type="text"
-                name="model"
-                value={formData.model}
-                onChange={handleInputChange}
-                required
-              />
-              {errors.model && <p className="error">{errors.model}</p>}
+              <div className='RowWrapper'>
+                {!isCustomBrand && (
+                  <>
+                    <div className='BrandSelect'>
+                      <Select
+                        name="model"
+                        onChange={handleModelChange}
+                        value={isCustomModel ? 'Other Model' : formData.model}
+                        required
+                        $size="large"
+                      >
+                        <option value="">Selecciona un modelo</option>
+                        {models.map((model) => (
+                          <option key={model} value={model}>
+                            {model}
+                          </option>
+                        ))}
+                        <option value="Other Model">Otro modelo</option>
+                      </Select>
+                      {errors.model && <p className="error">{errors.model}</p>}
+                    </div>
+                  </>
+                )}
+                {(isCustomModel || isCustomBrand) && (
+                  <>
+                    <div className='BrandSelect'>
+                      <InputText
+                        style={{ maxHeight: "50px" }}
+                        name="customModel"
+                        value={formData.customModel}
+                        onChange={handleCustomModelChange}
+                        placeholder="Escribe el modelo"
+                        required
+                        $size="large"
+                      />
+                      {errors.customModel && (
+                        <p className="error">{errors.customModel}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div>
-              <label>Año:</label>
-              <InputText
-                type="number"
-                name="year"
-                value={formData.year}
-                onChange={handleInputChange}
-                required
-              />
-              {errors.year && <p className="error">{errors.year}</p>}
+            <div className='FormItem'>
+              <div className='RowWrapper'>
+                <div className='YearInput'>
+                  <label>Año:</label>
+                  <InputText
+                    type="number"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleInputChange}
+                    required
+                    $size="large"
+                  />
+                  {errors.year && <p className="error">{errors.year}</p>}
+                </div>
+                <div className='NicknameInput'>
+                  <label>Apodo (opcional):</label>
+                  <InputText
+                    type="text"
+                    name="nickname"
+                    value={formData.nickname}
+                    onChange={handleInputChange}
+                    $size="large"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label>Apodo (opcional):</label>
-              <InputText
-                type="text"
-                name="nickname"
-                value={formData.nickname}
-                onChange={handleInputChange}
-              />
-            </div>
-            <Button type="submit" $variant="outline">
-              {vehicle ? 'Guardar Cambios' : 'Añadir Vehículo'}
+            <Button style={{ justifyContent: "center" }} type="submit" size="medium">
+              {vehicle ? 'Guardar Cambios' : 'Guardar moto'}
             </Button>
             {vehicle && (
-              <Button type="button" $variant="danger" onClick={handleDelete}>
-                Eliminar Vehículo
+              <Button style={{ justifyContent: "center" }} type="button" $variant="outlineDanger" size="medium" onClick={handleDelete}>
+                Eliminar moto
               </Button>
             )}
           </form>
@@ -312,8 +563,42 @@ const Modal = styled.div`
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
     width: 100%;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+
+      .FormItem {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        width: 100%;
+
+        .RowWrapper {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          width: 100%;
+
+          .BrandSelect {
+            width: 100%;
+          }
+          
+          .YearInput,
+          .NicknameInput {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+          }
+        }
+      }
+    }
   }
 `;
 

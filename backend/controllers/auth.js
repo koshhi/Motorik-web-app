@@ -12,7 +12,7 @@ authRouter.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   async (req, res) => {
     // Generar el token JWT después de la autenticación exitosa
-    const authToken = tokenService.generateAuthToken(req.user)
+    const authToken = tokenService.generateAccessToken(req.user)
 
     const profileFilled = req.user.profileFilled
 
@@ -26,7 +26,7 @@ authRouter.get('/facebook', passport.authenticate('facebook', { scope: ['email']
 authRouter.get('/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/' }),
   async (req, res) => {
-    const authToken = tokenService.generateAuthToken(req.user)
+    const authToken = tokenService.generateAccessToken(req.user)
     const profileFilled = req.user.profileFilled
 
     // Redirigir al frontend con el token y profileFilled
