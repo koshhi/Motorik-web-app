@@ -24,7 +24,7 @@ const EventCardHorizontal = ({ event }) => {
             <div className='Line'></div>
           </div>
           <div className='EventCardWrapper'>
-            <Link to={`/events/${event._id}/${generateSlug(event.title)}`}>
+            <Link to={`/events/${event.id}/${generateSlug(event.title)}`}>
               <Event>
                 <Left>
                   <div className='eventTags'>

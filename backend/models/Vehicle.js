@@ -17,4 +17,14 @@ const vehicleSchema = new Schema({
   timestamps: true
 })
 
+// Establecer opciones toJSON y toObject
+vehicleSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    delete ret.__v
+    ret.id = ret._id.toString()
+  }
+})
+vehicleSchema.set('toObject', { virtuals: true })
+
 module.exports = mongoose.model('Vehicle', vehicleSchema)

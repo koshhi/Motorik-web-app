@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosClient from '../api/axiosClient';
+// import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import InputText from '../components/Input/InputText';
@@ -13,17 +14,24 @@ const Signin = () => {
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
       // Petición al backend para enviar el Magic Link
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/check-or-register`, { email });
+      const response = await axiosClient.post('/api/users/check-or-register', { email });
 
       if (response.data.success) {
-        navigate('/email-verification', { state: { email } });  // Pasar el email a VerifyEmail
+        navigate('/email-verification', { state: { email } });
       } else {
-        setError('Error sending email, please try again.');
+        setError(response.data.message || 'Error enviando el email, por favor intenta de nuevo.');
       }
-    } catch (error) {
-      setError('Error processing request, please try again.');
+    } catch (err) {
+      console.error('Error en Signin:', err);
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Error procesando la solicitud, por favor intenta de nuevo.');
+      }
     }
   };
 

@@ -61,7 +61,7 @@ const UserProfileTab = ({ user }) => {
               {user.vehicles && user.vehicles.length > 0 ? (
                 <ul className='VehicleList'>
                   {user.vehicles.map(vehicle => (
-                    <li key={vehicle._id} className='Vehicle'>
+                    <li key={vehicle.id} className='Vehicle'>
                       <div className='VehicleContent'>
                         <img src={vehicle.image} className='VehicleImage' alt={vehicle.brand + vehicle.model} />
                         {vehicle.nickname.length > 0 ? (
@@ -115,7 +115,7 @@ const UserProfileTab = ({ user }) => {
                 <div className='TabContent'>
                   {futureEvents.length > 0 ? (
                     futureEvents.map(event => (
-                      <EventCardRow key={event._id || event.id} event={event} />
+                      <EventCardRow key={event.id || event.id} event={event} />
                     ))
                   ) : (
                     <p>No tienes eventos futuros</p>
@@ -127,7 +127,7 @@ const UserProfileTab = ({ user }) => {
                 <div className='TabContent'>
                   {attendeeEvents.length > 0 ? (
                     attendeeEvents.map(event => (
-                      <EventCardRow key={event._id || event.id} event={event} />
+                      <EventCardRow key={event.id || event.id} event={event} />
                     ))
                   ) : (
                     <p>No tienes eventos como asistente</p>

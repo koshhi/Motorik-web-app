@@ -91,31 +91,6 @@ const eventSchema = new Schema({
   toObject: { virtuals: true }
 })
 
-// Virtual field: longDate
-// eventSchema.virtual('longDate').get(function () {
-//   const formattedStartDate = format(this.startDate, 'd MMM yyyy H:mm')
-//   let formattedEndDate = format(this.endDate, 'd MMM yyyy H:mm')
-
-//   // Check if the day is the same, reformat the end date
-//   if (this.startDate.getDate() === this.endDate.getDate()) {
-//     formattedEndDate = format(this.endDate, 'H:mm')
-//   }
-
-//   return `${formattedStartDate} - ${formattedEndDate}`
-// })
-
-// eventSchema.virtual('longDate').get(function () {
-//   const formattedStartDate = format(this.startDate, 'd MMM yyyy H:mm')
-//   let formattedEndDate = format(this.endDate, 'd MMM H:mm') // Removemos el año aquí por defecto
-
-//   // Si el evento dura más de un año, se vuelve a añadir el año en la fecha final
-//   if (this.startDate.getFullYear() !== this.endDate.getFullYear()) {
-//     formattedEndDate = format(this.endDate, 'd MMM yyyy H:mm')
-//   }
-
-//   return `${formattedStartDate} - ${formattedEndDate}`
-// })
-
 // Virtual field: dayDate
 eventSchema.virtual('dayDate').get(function () {
   return format(this.startDate, 'd', { locale: es })
@@ -126,27 +101,6 @@ eventSchema.virtual('monthDate').get(function () {
   const month = format(this.startDate, 'MMM', { locale: es })
   return capitalizeFirstLetter(month)
 })
-// // Virtual field: partialDateStart
-// eventSchema.virtual('partialDateStart').get(function () {
-//   return format(this.startDate, 'EEEE d MMM yyyy') // Ejemplo: "Jueves 16 Sep 2024"
-// })
-// // Virtual field: partialDateEnd
-// eventSchema.virtual('partialDateEnd').get(function () {
-//   let formattedEndDate
-
-//   // Si el evento termina el mismo día
-//   if (this.startDate.getDate() === this.endDate.getDate()) {
-//     formattedEndDate = format(this.endDate, 'H:mm')
-//   } else if (this.startDate.getFullYear() === this.endDate.getFullYear()) {
-//     // Si el evento dura más de un día
-//     formattedEndDate = format(this.endDate, 'd MMM H:mm')
-//   } else {
-//     formattedEndDate = format(this.endDate, 'd MMM yyyy H:mm')
-//     // Si el evento dura más de un año
-//   }
-
-//   return `${format(this.startDate, 'H:mm')} - ${formattedEndDate}`
-// })
 
 // Virtual field: longDate
 eventSchema.virtual('longDate').get(function () {
@@ -198,5 +152,15 @@ eventSchema.virtual('weekdayStart').get(function () {
 
 // Crear un índice geoespacial en las coordenadas
 eventSchema.index({ locationCoordinates: '2dsphere' })
+
+// Establecer opciones toJSON y toObject
+eventSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    delete ret.__v
+    ret.id = ret._id.toString()
+  }
+})
+eventSchema.set('toObject', { virtuals: true })
 
 module.exports = model('Event', eventSchema)

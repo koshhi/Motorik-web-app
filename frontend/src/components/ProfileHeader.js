@@ -1,23 +1,13 @@
-import { useState } from 'react';
 import styled from 'styled-components';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Button from './Button/Button';
-// import Modal from './Modal/Modal';
-// import EditProfileForm from './EditProfileForm';
 
-const ProfileHeader = ({ profileUser, user, userId }) => {
+const ProfileHeader = ({ profileUser, user }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userId } = useParams();
 
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // const openModal = () => {
-  //   setIsModalOpen(true);
-  // };
-
-  // const closeModal = () => {
-  //   setIsModalOpen(false);
-  // };
+  // console.log(profileUser)
 
   if (!profileUser) {
     return <div>Cargando perfil...</div>;
@@ -35,9 +25,6 @@ const ProfileHeader = ({ profileUser, user, userId }) => {
                 <p>{profileUser.locality}, {profileUser.country}</p>
               </div>
             </div>
-            {/* {user && user.id === userId && (
-              <Button onClick={openModal} size="small" $variant="outline">Editar perfil</Button>
-            )} */}
             {user && user.id === userId && (
               <Button
                 onClick={() => navigate(`/user/${userId}/edit-profile`)}
@@ -65,11 +52,6 @@ const ProfileHeader = ({ profileUser, user, userId }) => {
           </SectionTabs>
         </Container>
       </ProfileHeaderWrapper>
-      {/* {isModalOpen && (
-        <Modal title="Editar perfil" onClose={closeModal}>
-          <EditProfileForm profileUser={profileUser} onClose={closeModal} />
-        </Modal>
-      )} */}
     </>
   );
 };

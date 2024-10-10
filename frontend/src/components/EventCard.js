@@ -11,7 +11,7 @@ const EventCard = ({ event }) => {
   }
 
   return (
-    <Link to={`/events/${event._id}/${generateSlug(event.title)}`}>
+    <Link to={`/events/${event.id}/${generateSlug(event.title)}`}>
       <Event>
         <Top>
           <div className='eventTags'>

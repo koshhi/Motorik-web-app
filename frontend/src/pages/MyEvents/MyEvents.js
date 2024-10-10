@@ -96,7 +96,7 @@ const MyEvents = () => {
               ) : upcomingEvents.length > 0 ? (
                 <div className='List'>
                   {upcomingEvents.map((event) => (
-                    <EventCardHorizontal key={event._id} event={event} />
+                    <EventCardHorizontal key={event.id} event={event} />
                   ))}
                 </div>
               ) : (
@@ -112,7 +112,7 @@ const MyEvents = () => {
               ) : pastEvents.length > 0 ? (
                 <div className='List'>
                   {pastEvents.map((event) => (
-                    <EventCardHorizontal key={event._id} event={event} />
+                    <EventCardHorizontal key={event.id} event={event} />
                   ))}
                 </div>
               ) : (

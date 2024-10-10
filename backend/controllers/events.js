@@ -82,7 +82,7 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       experience,
       ticket: { type: ticketType, price: ticketPrice },
       capacity,
-      owner: req.user._id
+      owner: req.user.id
     })
 
     console.log({ newEvento: newEvent })
@@ -99,46 +99,6 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
-
-// Post de un evento
-// eventsRouter.post('/', auth, async (req, res) => {
-//   try {
-//     const {
-//       title, startDate, endDate, location, shortLocation, locationCoordinates,
-//       image, description, eventType, terrain, experience, ticket, capacity
-//     } = req.body
-
-//     // Validate required fields
-//     if (!title || !startDate || !endDate || !location || !locationCoordinates || !description || !eventType || !terrain || !experience || !ticket || !capacity) {
-//       return res.status(400).json({ success: false, message: 'All fields are required.' })
-//     }
-
-//     // Create the new event
-//     const newEvent = new Event({
-//       title,
-//       startDate,
-//       endDate,
-//       location,
-//       shortLocation,
-//       locationCoordinates,
-//       image,
-//       description,
-//       eventType,
-//       terrain,
-//       experience,
-//       ticket,
-//       capacity,
-//       owner: req.user._id
-//     })
-
-//     // Save the event to the database
-//     const savedEvent = await newEvent.save()
-//     return res.status(201).json({ success: true, event: savedEvent })
-//   } catch (error) {
-//     console.error(error)
-//     return res.status(500).json({ success: false, message: 'Internal Server Error' })
-//   }
-// })
 
 // Actualizar un evento
 eventsRouter.put('/:id', auth, async (req, res) => {
@@ -257,15 +217,6 @@ eventsRouter.get('/', async (req, res) => {
       .populate('owner', 'name lastName userAvatar description')
       .sort({ startDate: 1 })
 
-    // Si se proporcionan latitud y longitud, ordenar por proximidad
-    // if (lat && lng) {
-    //   events.sort((a, b) => {
-    //     const distanceA = calculateDistance(a.locationCoordinates.coordinates, [lng, lat])
-    //     const distanceB = calculateDistance(b.locationCoordinates.coordinates, [lng, lat])
-    //     return distanceA - distanceB
-    //   })
-    // }
-
     res.json({ events })
   } catch (error) {
     console.error(error)
@@ -302,12 +253,12 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
     }
 
     // Verificar si el usuario es el propietario del evento
-    if (event.owner.toString() === req.user._id) {
+    if (event.owner.toString() === req.user.id) {
       return res.status(403).json({ success: false, message: 'You cannot enroll in your own event' })
     }
 
     // Verificar si el usuario ya está inscrito
-    if (event.attendees.includes(req.user._id)) {
+    if (event.attendees.includes(req.user.id)) {
       return res.status(400).json({ success: false, message: 'You are already enrolled in this event' })
     }
 

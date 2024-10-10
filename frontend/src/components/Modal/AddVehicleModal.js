@@ -243,8 +243,8 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
     if (!vehicle) return;
 
     try {
-      await axiosClient.delete(`/api/vehicles/${vehicle._id}`);
-      onVehicleDeleted(vehicle._id); // Notificar que el vehículo fue eliminado
+      await axiosClient.delete(`/api/vehicles/${vehicle.id}`);
+      onVehicleDeleted(vehicle.id); // Notificar que el vehículo fue eliminado
     } catch (error) {
       console.error('Error al eliminar el vehículo:', error);
     }
@@ -333,7 +333,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle, onVehicleDe
       let response;
       if (vehicle) {
         // Si se está editando, enviamos una solicitud PUT
-        response = await axiosClient.put(`/api/vehicles/${vehicle._id}`, vehicleFormData, {
+        response = await axiosClient.put(`/api/vehicles/${vehicle.id}`, vehicleFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

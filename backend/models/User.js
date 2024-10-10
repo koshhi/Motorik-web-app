@@ -57,6 +57,10 @@ const userSchema = new Schema({
   verificationToken: String
 }, { timestamps: true })
 
+// userSchema.virtual('id').get(function () {
+//   return this._id.toHexString()
+// })
+
 userSchema.pre('save', function (next) {
   this.socialMediaLinks.forEach(link => {
     if (link.url.includes('instagram.com')) {
@@ -74,17 +78,15 @@ userSchema.pre('save', function (next) {
   next()
 })
 
-// userSchema.virtual('id').get(function () {
-//   return this._id.toHexString()
-// })
-
+// Establecer opciones toJSON y toObject
 userSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id
-    delete returnedObject._id
-    delete returnedObject.__v
+  virtuals: true,
+  transform: (doc, ret) => {
+    delete ret.__v
+    ret.id = ret._id.toString()
   }
 })
+userSchema.set('toObject', { virtuals: true })
 
 userSchema.plugin(uniqueValidator)
 

@@ -52,7 +52,7 @@ const GarageTab = ({ vehicles }) => {
     if (vehicleToEdit) {
       setUserVehicles((prevVehicles) =>
         prevVehicles.map((vehicle) =>
-          vehicle._id === newVehicle._id ? newVehicle : vehicle
+          vehicle.id === newVehicle.id ? newVehicle : vehicle
         )
       );
     } else {
@@ -64,7 +64,7 @@ const GarageTab = ({ vehicles }) => {
 
   const handleVehicleDeleted = (deletedVehicleId) => {
     setUserVehicles((prevVehicles) =>
-      prevVehicles.filter((vehicle) => vehicle._id !== deletedVehicleId)
+      prevVehicles.filter((vehicle) => vehicle.id !== deletedVehicleId)
     );
     refreshUserData();
     handleCloseModal(); // Cerrar el modal y resetear vehicleToEdit
@@ -100,7 +100,7 @@ const GarageTab = ({ vehicles }) => {
           {userVehicles.length > 0 ? (
             <VehicleGrid>
               {userVehicles.map(vehicle => (
-                <VehicleCard key={vehicle._id}>
+                <VehicleCard key={vehicle.id}>
                   <img className='Image' src={vehicle.image} alt={vehicle.brand} />
                   <div className='VehicleData'>
                     <p className='Brand'>{vehicle.brand}<span className='Model'> {vehicle.model}</span></p>

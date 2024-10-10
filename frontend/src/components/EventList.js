@@ -97,7 +97,7 @@ import FilterForm from './FilterForm';
 //           <div className="empty_state">No hay eventos con estos parámetros de búsqueda.</div>
 //         ) : (
 //           events.map((event) => (
-//             <EventCard key={event._id} event={event} />
+//             <EventCard key={event.id} event={event} />
 //           ))
 //         )}
 //       </EventsGrid>
@@ -208,7 +208,7 @@ import FilterForm from './FilterForm';
 //           <div className="empty_state">No hay eventos con estos parámetros de búsqueda.</div>
 //         ) : (
 //           events.map((event) => (
-//             <EventCard key={event._id} event={event} />
+//             <EventCard key={event.id} event={event} />
 //           ))
 //         )}
 //       </EventsGrid>
@@ -328,7 +328,7 @@ const EventList = () => {
           <div className="empty_state">No hay eventos con estos parámetros de búsqueda.</div>
         ) : (
           events.map(event => (
-            <EventCard key={event._id} event={event} />
+            <EventCard key={event.id} event={event} />
           ))
         )}
       </EventsGrid>
@@ -437,7 +437,7 @@ export default EventList;
 //       ) : (
 //         <EventsGrid>
 //           {events.map(event => (
-//             <EventCard key={event._id} event={event} />
+//             <EventCard key={event.id} event={event} />
 //           ))}
 //         </EventsGrid>
 //       )}

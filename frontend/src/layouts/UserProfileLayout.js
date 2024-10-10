@@ -1,44 +1,50 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import styled from 'styled-components';
+import axiosClient from '../api/axiosClient';
 import ProfileHeader from '../components/ProfileHeader';
 import MainNavbar from '../components/Navbar/MainNavbar';
+import useUserProfile from '../hooks/useUserProfile';
+
 
 const UserProfileLayout = () => {
   const { userId } = useParams();
-  console.log({ userIDfromUrl: userId })
+  const { user, refreshUserData } = useAuth();
+  const { profileUser, loadingProfile, errorProfile } = useUserProfile(userId);
 
-  const { user } = useAuth();
-  console.log({ authUser: user })
-  const [profileUser, setProfileUser] = useState(null);
+  if (loadingProfile) {
+    return <LoadingContainer>Cargando perfil...</LoadingContainer>;
+  }
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/${userId}`);
-        if (response.data.success) {
-          setProfileUser(response.data.user);
-        }
-      } catch (error) {
-        console.error('Error al obtener el perfil:', error);
-      }
-    };
-
-    fetchProfile();
-  }, [userId]);
+  if (errorProfile) {
+    return <ErrorContainer>{errorProfile}</ErrorContainer>;
+  }
 
   if (!profileUser) {
-    return <div>Cargando perfil...</div>;
+    return <ErrorContainer>Perfil no encontrado.</ErrorContainer>;
   }
 
   return (
     <>
       <MainNavbar />
-      <ProfileHeader profileUser={profileUser} user={user} userId={userId} />
-      <Outlet />
+      <ProfileHeader profileUser={profileUser} user={user} />
+      <Outlet context={{ profileUser }} />
     </>
   );
 };
 
 export default UserProfileLayout;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+`;
+
+const ErrorContainer = styled.div`
+  color: red;
+  text-align: center;
+  margin-top: 20px;
+`;

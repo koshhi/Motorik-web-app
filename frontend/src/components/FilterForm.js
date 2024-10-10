@@ -21,6 +21,32 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
   const [showLocationFields, setShowLocationFields] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const autocompleteRef = React.useRef(null);
+  const locationRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        locationRef.current &&
+        !locationRef.current.contains(event.target)
+      ) {
+        setShowLocationFields(false);
+      }
+    };
+
+    if (showLocationFields) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showLocationFields]);
+
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current.getPlace();
@@ -81,30 +107,35 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
             <Location
               type="button"
               onClick={() => setShowLocationFields(!showLocationFields)}
+              ref={locationRef}
             >
               <img src="/icons/location.svg" alt="location icon" />{municipality ? municipality : 'Obteniendo tu ubicación...'}
             </Location>
             {showLocationFields && (
-              <LocationDropdown>
-                <label>¿Dónde?</label>
-                <Autocomplete
-                  onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                  onPlaceChanged={handlePlaceSelect}
-                >
+              <LocationDropdown ref={dropdownRef}>
+                <div>
+                  <label>¿Dónde?</label>
+                  <Autocomplete
+                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                    onPlaceChanged={handlePlaceSelect}
+                  >
+                    <InputText
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Escribe una dirección"
+                    />
+                  </Autocomplete>
+                </div>
+                <div>
+                  <label>Radio (km):</label>
                   <InputText
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Escribe una dirección"
+                    type="number"
+                    value={filters.radius}
+                    onChange={(e) => handleFilterChange('radius', e.target.value)}
                   />
-                </Autocomplete>
+                </div>
 
-                <label>Radio (km):</label>
-                <InputText
-                  type="number"
-                  value={filters.radius}
-                  onChange={(e) => handleFilterChange('radius', e.target.value)}
-                />
               </LocationDropdown>
             )}
             <div className='TimeFrameWrapper'>
@@ -263,19 +294,6 @@ const SecondaryFilters = styled.div`
     align-items: center;
     gap: ${({ theme }) => theme.sizing.sm};
   }
-
-  // div {
-  // gap: 0.5rem;
-  //   display: flex;
-  //   flex-direction: row;
-  //   align-items: center;
-  //   justify-content: flex-start;
-  //   gap: ${({ theme }) => theme.sizing.xs};
-
-  //   InputText {
-  //     margin: 0px;
-  //   }
-  // }
 `;
 
 const Location = styled.button`

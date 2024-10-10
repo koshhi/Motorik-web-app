@@ -68,7 +68,7 @@ const EventDetail = () => {
 
   //     // Obtener el userId y vehicleId del usuario (puedes ajustar según cómo lo obtienes)
   //     const userId = user.id;
-  //     const vehicleId = user.vehicles[0]._id; // Suponiendo que el primer vehículo es el que usaremos
+  //     const vehicleId = user.vehicles[0].id; // Suponiendo que el primer vehículo es el que usaremos
 
 
   //     await axios.post(
@@ -100,7 +100,7 @@ const EventDetail = () => {
 
     if (user.vehicles.length === 1) {
       // Si solo tiene un vehículo, lo inscribimos directamente
-      enroll(user.vehicles[0]._id);
+      enroll(user.vehicles[0].id);
     } else {
       // Si tiene más de un vehículo, abrimos el modal
       setShowModal(true);
@@ -275,7 +275,7 @@ const EventDetail = () => {
               </div>
               <ul className='VehicleList'>
                 {user.vehicles.map((vehicle) => (
-                  <li key={vehicle._id} className='Vehicle' onClick={() => enroll(vehicle._id)}>
+                  <li key={vehicle.id} className='Vehicle' onClick={() => enroll(vehicle.id)}>
                     <div className='VehicleContent'>
                       <img src={vehicle.image} className='VehicleImage' alt={vehicle.brand + vehicle.model} />
                       <div className='VehicleData'>

@@ -1,66 +1,39 @@
 import styled from 'styled-components';
-import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 import { Link, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import MainNavbar from '../../components/Navbar/MainNavbar'
 import Button from '../../components/Button/Button';
 import EventCardRow from '../../components/EventCardRow'
+import useUserEvents from '../../hooks/useUserEvents';
+import useUserProfile from '../../hooks/useUserProfile';
+
+
 
 
 const UserProfile = () => {
   const { userId } = useParams()
-  const { user } = useAuth()
-  const [profileUser, setProfileUser] = useState(null)
-  const [futureEvents, setFutureEvents] = useState([])
-  const [attendeeEvents, setAttendeeEvents] = useState([])
+  const { user, refreshUserData } = useAuth();
+  const { profileUser, loadingProfile, errorProfile } = useUserProfile(userId);
+  const { futureEvents, attendeeEvents, loadingEvents, errorEvents } = useUserEvents(userId);
   const [activeSubTab, setActiveSubTab] = useState('organized')
 
-
-  useEffect(() => {
-    const fetchProfileAndEvents = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          console.error('Token no encontrado');
-          return;
-        }
-
-        // Realizar ambas peticiones de manera simultánea (perfil y eventos del usuario visitado)
-        const [profileResponse, eventsResponse] = await Promise.all([
-          fetch(`${process.env.REACT_APP_API_URL}/api/users/${userId}`),
-          axios.get(`${process.env.REACT_APP_API_URL}/api/events/${userId}/events`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-
-        const profileData = await profileResponse.json();
-        if (profileData.success) {
-          setProfileUser(profileData.user); // Establecer los datos del perfil visitado
-        }
-
-        if (eventsResponse.data.success) {
-          setFutureEvents(eventsResponse.data.futureEvents); // Eventos organizados por el usuario
-          setAttendeeEvents(eventsResponse.data.attendeeEvents); // Eventos a los que asistirá el usuario
-        }
-      } catch (error) {
-        console.error('Error al obtener datos:', error);
-      }
-    };
-
-    fetchProfileAndEvents();
-  }, [userId]);
-
-
-  // Retornar temprano si los datos del perfil no están listos
-  if (!profileUser) {
-    return <div>Cargando perfil...</div>;
-  }
 
   const handleTabChange = (tab) => setActiveSubTab(tab);
 
   const isOwnProfile = user && user.id === userId;
 
+  if (loadingProfile || loadingEvents) {
+    return <LoadingContainer>Cargando perfil y eventos...</LoadingContainer>;
+  }
+
+  if (errorProfile) {
+    return <ErrorContainer>{errorProfile}</ErrorContainer>;
+  }
+
+  if (errorEvents) {
+    return <ErrorContainer>{errorEvents}</ErrorContainer>;
+  }
 
   return (
     <>
@@ -71,13 +44,26 @@ const UserProfile = () => {
               <Bio>
                 <h3>Bio</h3>
                 <p className='Biography'>{profileUser.description}</p>
+                {profileUser.socialMediaLinks && profileUser.socialMediaLinks.length > 0 ? (
+                  <SocialMediaList>
+                    {profileUser.socialMediaLinks.map((socialMediaLink, index) => (
+                      <SocialMediaItem key={index}>
+                        <a href={socialMediaLink.url} target='_blank' rel='noreferrer'>
+                          {socialMediaLink.platform}
+                        </a>
+                      </SocialMediaItem>
+                    ))}
+                  </SocialMediaList>
+                ) : (
+                  <p>No tienes enlaces de redes sociales.</p>
+                )}
               </Bio>
               <Vehicles className="Vehicles">
                 <h3 className='BlockTitle'>Garaje</h3>
                 {profileUser.vehicles && profileUser.vehicles.length > 0 ? (
                   <ul className='VehicleList'>
                     {profileUser.vehicles.map(vehicle => (
-                      <li key={vehicle._id} className='Vehicle'>
+                      <li key={vehicle.id} className='Vehicle'>
                         <div className='VehicleContent'>
                           <img src={vehicle.image} className='VehicleImage' alt={vehicle.brand + vehicle.model} />
                           <div className='VehicleData'>
@@ -123,7 +109,7 @@ const UserProfile = () => {
                   <div className='TabContent'>
                     {futureEvents.length > 0 ? (
                       futureEvents.map(event => (
-                        <EventCardRow key={event._id || event.id} event={event} />
+                        <EventCardRow key={event.id || event.id} event={event} />
                       ))
                     ) : (
                       <p>No tienes eventos futuros</p>
@@ -135,7 +121,7 @@ const UserProfile = () => {
                   <div className='TabContent'>
                     {attendeeEvents.length > 0 ? (
                       attendeeEvents.map(event => (
-                        <EventCardRow key={event._id || event.id} event={event} />
+                        <EventCardRow key={event.id || event.id} event={event} />
                       ))
                     ) : (
                       <p>No tienes eventos como asistente</p>
@@ -363,7 +349,6 @@ const Achievements = styled.div`
   border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
 `;
 
-
 const EventsContainer = styled.div`
   grid-area: 1 / 5 / 2 / 13;
 
@@ -425,6 +410,38 @@ const EventsContainer = styled.div`
       display: flex;
       flex-direction: column;
       gap: 16px;
+    }
+  }
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+`;
+
+const ErrorContainer = styled.div`
+  color: red;
+  text-align: center;
+  margin-top: 20px;
+`;
+
+const SocialMediaList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+`;
+
+const SocialMediaItem = styled.li`
+  margin-bottom: 5px;
+
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
 `;
