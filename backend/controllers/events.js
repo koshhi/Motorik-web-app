@@ -154,20 +154,28 @@ eventsRouter.get('/', async (req, res) => {
       ticketType
     } = req.query
 
+    console.log('Received parameters:', { lat, lng, radius, eventTypes, timeFilter, terrain, experience, ticketType })
+
     const query = {}
 
+    // Parsear lat, lng y radius a números
+    const latNum = parseFloat(lat)
+    const lngNum = parseFloat(lng)
+    const radiusNum = parseFloat(radius) || 1000
+
     // Filtro de ubicación geoespacial
-    if (lat && lng) {
+    if (!isNaN(latNum) && !isNaN(lngNum)) {
       query.locationCoordinates = {
         $geoWithin: {
-          $centerSphere: [[lng, lat], radius / 6378.1] // Convertir el radio a radianes
+          $centerSphere: [[lngNum, latNum], radiusNum / 6378.1]
         }
       }
     }
 
     // Filtro de tipos de eventos (eventTypes)
     if (eventTypes) {
-      query.eventType = { $in: Array.isArray(eventTypes) ? eventTypes : [eventTypes] }
+      const eventTypesArray = [].concat(eventTypes)
+      query.eventType = { $in: eventTypesArray }
     }
 
     // Filtro de terreno
@@ -187,6 +195,38 @@ eventsRouter.get('/', async (req, res) => {
 
     // Filtrar eventos por tiempo
     const today = startOfToday()
+
+    // // Filtro de ubicación geoespacial
+    // if (lat && lng) {
+    //   query.locationCoordinates = {
+    //     $geoWithin: {
+    //       $centerSphere: [[lng, lat], radius / 6378.1] // Convertir el radio a radianes
+    //     }
+    //   }
+    // }
+
+    // // Filtro de tipos de eventos (eventTypes)
+    // if (eventTypes) {
+    //   query.eventType = { $in: Array.isArray(eventTypes) ? eventTypes : [eventTypes] }
+    // }
+
+    // // Filtro de terreno
+    // if (terrain) {
+    //   query.terrain = terrain
+    // }
+
+    // // Filtro de experiencia
+    // if (experience) {
+    //   query.experience = experience
+    // }
+
+    // // Filtro de tipo de ticket
+    // if (ticketType) {
+    //   query['ticket.type'] = ticketType
+    // }
+
+    // // Filtrar eventos por tiempo
+    // const today = startOfToday()
 
     query.startDate = { $gte: today }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
-import { getEventTypeIcon } from '../utils'
+import { getEventTypeIcon } from '../utilities'
 
 const EventCard = ({ event }) => {
 
@@ -44,9 +44,9 @@ const EventCard = ({ event }) => {
             </div>
           </div>
           <div className='secondaryInfo'>
-            <div><ReactSVG src="/icons/calendar.svg" />{event.partialDateStart} {event.partialDateEnd}</div>
-            <div><ReactSVG src="/icons/map-location.svg" />{event.shortLocation}</div>
-            <div><ReactSVG src="/icons/attendees.svg" />{event.attendeesCount} asistentes</div>
+            <div><ReactSVG src="/icons/calendar.svg" /><p>{event.partialDateStart} {event.partialDateEnd}</p></div>
+            <div><ReactSVG src="/icons/map-location.svg" /><p>{event.shortLocation}</p></div>
+            <div><ReactSVG src="/icons/attendees.svg" /><p>{event.attendeesCount} asistentes</p></div>
           </div>
           <div className='tertiaryInfo'>
             <div className='EventOrganizer'>

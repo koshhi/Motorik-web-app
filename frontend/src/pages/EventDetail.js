@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
-import { getEventTypeIcon } from '../utils';
+import { getEventTypeIcon } from '../utilities';
 import MainNavbar from '../components/Navbar/MainNavbar';
 import Button from '../components/Button/Button';
 import EventFixedAction from '../components/EventFixedAction'
@@ -44,53 +44,6 @@ const EventDetail = () => {
       fetchEventDetails();
     }
   }, [id, user, loading]);
-
-  // const handleEnroll = async () => {
-  //   try {
-  //     const token = localStorage.getItem('authToken');
-  //     console.log(token)
-  //     if (!token) {
-  //       alert('Debes estar autenticado para inscribirte en un evento');
-  //       return;
-  //     }
-
-  //     // Verificamos si el user está definido
-  //     if (!user || !user.id) {
-  //       alert('No se ha cargado el perfil del usuario correctamente.');
-  //       return;
-  //     }
-
-  //     // Verificamos si el usuario tiene vehículos
-  //     if (!user.vehicles || user.vehicles.length === 0) {
-  //       alert('No tienes vehículos registrados.');
-  //       return;
-  //     }
-
-  //     // Obtener el userId y vehicleId del usuario (puedes ajustar según cómo lo obtienes)
-  //     const userId = user.id;
-  //     const vehicleId = user.vehicles[0].id; // Suponiendo que el primer vehículo es el que usaremos
-
-
-  //     await axios.post(
-  //       `${process.env.REACT_APP_API_URL}/api/events/enroll/${id}`,
-  //       { userId, vehicleId },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     // Después de una inscripción exitosa, obtener los detalles actualizados del evento
-  //     const updatedEventResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/events/${id}`);
-  //     setEvent(updatedEventResponse.data.event);
-
-  //     alert('Inscripción exitosa');
-  //   } catch (error) {
-  //     console.error('Error enrolling in event:', error);
-  //     alert('Hubo un error al inscribirse en el evento');
-  //   }
-  // }
 
   const handleEnroll = () => {
     if (!user || !user.vehicles || user.vehicles.length === 0) {
@@ -156,14 +109,14 @@ const EventDetail = () => {
             <div className='InnerHeaderLeft'>
               <h1>{event.title}</h1>
               <span>Nuevo</span>
-              <span>4 plazas disponibles</span>
+              <span>{event.capacity} plazas disponibles</span>
             </div>
             <div className='InnerHeaderRight'>
               <Button size="small" $variant="outline" alt="Compartir evento"><img className="Icon" src="/icons/share.svg" alt="share-icon" /></Button>
               {isOwner ? (
                 <Button size="small" $variant="outline" alt="Gestionar evento">Gestionar evento</Button>
               ) : (
-                <Button onClick={handleEnroll} size="small" $variant="outline" alt="Inscríbete en el evento">Inscríbete</Button>
+                <Button onClick={handleEnroll} size="small" alt="Inscríbete en el evento">Inscríbete</Button>
               )}
             </div>
           </div>

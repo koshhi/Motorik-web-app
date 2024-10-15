@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import InputText from './Input/InputText';
 import Switch from './Switch.js';
 import InputTextArea from './Input/InputTextArea';
-import { getEventTypeIcon } from '../utils'
+import { getEventTypeIcon } from '../utilities'
 import EventTypeModal from './Modal/EventTypeModal';
 import EventTerrainModal from './Modal/EventTerrainModal';
 import EventCapacityModal from './Modal/EventCapacityModal';

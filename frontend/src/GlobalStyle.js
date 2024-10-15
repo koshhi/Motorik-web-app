@@ -51,6 +51,36 @@ table {
 body {
   font-family: 'MonaSans', sans-serif;
 }
+
+.pac-item {
+  border: 0px;
+  padding: 4px 8px;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.fill.defaultWeak};
+  }
+
+  span {
+    font-family: 'MonaSans', sans-serif;
+    line-height: 32px;
+  }
+  
+  .pac-icon {
+    background-image: url(${process.env.CLIENT_URL}/icons/location.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+}
+
+.pac-container {
+  border: 0px;
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  border-radius: 8px;
+  padding: 8px;
+}
+
 `;
 
 export default GlobalStyle;

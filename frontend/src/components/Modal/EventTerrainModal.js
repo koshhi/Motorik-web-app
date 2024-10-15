@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '../Button/Button';
 import CardToogle from '../Toogle/CardToogle';
-import { getEventTerrainSvgIcon } from '../../utils';
+import { getEventTerrainSvgIcon } from '../../utilities';
 import { theme } from '../../theme';
 import styled from 'styled-components';
 

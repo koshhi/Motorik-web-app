@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
-import { getEventTypeIcon } from '../utils'
+import { getEventTypeIcon } from '../utilities'
 import Button from './Button/Button';
 
 const EventCardRow = ({ event }) => {

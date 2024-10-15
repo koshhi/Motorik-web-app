@@ -3,68 +3,96 @@ import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import styled from 'styled-components';
 import InputText from "./Input/InputText"
 import EventTypeTab from './Tab/EventTypeTab';
-import { getEventTypeSvgIcon } from '../utils';
+import { getEventTypeSvgIcon } from '../utilities';
 import { theme } from '../theme';
 import Button from './Button/Button';
 import Select from './Select/Select'
+import InputRange from './Input/InputRange';
+import InputLocation from './Input/InputLocation';
+import { getMunicipality } from '../utils/GetMunicipality';
 
 const libraries = ['places'];
 
-
 const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
+  const minRadius = 10;
+  const maxRadius = 1000;
+
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState(filters.location?.address || '');
   const [showLocationFields, setShowLocationFields] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [tempAddress, setTempAddress] = useState(filters.location?.address || '');
+  const [tempRadius, setTempRadius] = useState(filters.radius || maxRadius);
   const autocompleteRef = React.useRef(null);
+  const inputRef = useRef(null);
   const locationRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  const toggleLocationFields = () => {
+    if (!showLocationFields) {
+      setTempAddress(address || '');
+      console.log(address);
+      setTempRadius(filters.radius);
+    }
+    setShowLocationFields(!showLocationFields);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Verifica si el clic es dentro del dropdown o en los botones
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target) &&
         locationRef.current &&
-        !locationRef.current.contains(event.target)
+        !locationRef.current.contains(event.target) &&
+        !event.target.closest('#applyButton') &&
+        !event.target.closest('#cancelButton')
       ) {
         setShowLocationFields(false);
       }
     };
 
     if (showLocationFields) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('click', handleClickOutside);
     } else {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, [showLocationFields]);
 
+  // Sincronizar 'address' y 'tempAddress' cuando 'filters.location' cambia
+  useEffect(() => {
+    if (filters.location?.address) {
+      setAddress(filters.location.address);
+      setTempAddress(filters.location.address);
+    }
+  }, [filters.location]);
 
   const handlePlaceSelect = () => {
+    console.log('handlePlaceSelect called');
     const place = autocompleteRef.current.getPlace();
-    if (place.geometry) {
-      const userLocation = {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      };
-      setFilters(prevFilters => ({
-        ...prevFilters,
-        location: userLocation
-      }));
+    console.log('Selected place:', place);
 
-      // Obtener el nombre del municipio y guardarlo
-      const userMunicipality = place.address_components?.[0]?.long_name || 'Unknown';
-      setMunicipality(userMunicipality);
-      localStorage.setItem('location', JSON.stringify(userLocation));
-      localStorage.setItem('municipality', userMunicipality);
+    if (place.geometry) {
+      const selectedAddress = place.formatted_address || '';
+      setTempAddress(selectedAddress);
+      setAddress(selectedAddress);
+      console.log('Temp Address updated to:', selectedAddress);
+
+      // Extraer el municipio usando la función auxiliar
+      const userMunicipality = getMunicipality(place.address_components || []);
+      console.log('User municipality:', userMunicipality);
+
+      // No actualizamos los filtros aquí; esperar a que el usuario haga clic en "Aplicar"
+    } else {
+      console.log('No geometry found for the selected place.');
     }
   };
 
@@ -75,7 +103,18 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
   };
 
   function handleFilterChange(type, value) {
-    if (type === 'typology') {
+    if (type === 'radius') {
+      // Asegurarse de que el valor es un número
+      const numericValue = Number(value);
+      if (isNaN(numericValue)) return;
+
+      // Limitar el valor entre minRadius y maxRadius
+      const radius = Math.min(Math.max(numericValue, minRadius), maxRadius);
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        [type]: radius,
+      }));
+    } else if (type === 'typology') {
       const updatedTypology = updateTypologyFilter(filters.typology, value);
       setFilters(prevFilters => ({
         ...prevFilters,
@@ -89,6 +128,64 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
     }
   }
 
+  const handleApply = (e) => {
+    e.preventDefault();
+
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place && place.geometry) {
+        const userLocation = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          address: tempAddress,
+        };
+
+        const userMunicipality = getMunicipality(place.address_components || []);
+        console.log('User municipality:', userMunicipality);
+
+        const validatedRadius = Math.min(Math.max(tempRadius, minRadius), maxRadius);
+
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          location: userLocation,
+          radius: validatedRadius,
+        }));
+
+        setMunicipality(userMunicipality);
+        localStorage.setItem('location', JSON.stringify(userLocation));
+        localStorage.setItem('municipality', userMunicipality);
+        setAddress(tempAddress);
+      } else {
+        // Si no se selecciona una nueva dirección, solo actualizamos el radio
+        const validatedRadius = Math.min(Math.max(tempRadius, minRadius), maxRadius);
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          radius: validatedRadius,
+        }));
+        console.log('Solo se actualizó el radio.');
+      }
+    } else {
+      // Si no se usa Autocomplete, simplemente actualizar el radio
+      const validatedRadius = Math.min(Math.max(tempRadius, minRadius), maxRadius);
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        radius: validatedRadius,
+      }));
+      console.log('Autocomplete no está cargado; solo se actualizó el radio.');
+    }
+
+    setShowLocationFields(false);
+  };
+
+
+  const handleCancel = (e) => {
+    e.preventDefault();
+
+    // Resetear los estados temporales a los valores actuales de los filtros
+    setTempAddress(address);
+    setTempRadius(filters.radius);
+    setShowLocationFields(false);
+  };
 
   if (loadError) {
     return <div>Error al cargar Google Maps API</div>;
@@ -106,34 +203,52 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
           <div className='filtersContainer'>
             <Location
               type="button"
-              onClick={() => setShowLocationFields(!showLocationFields)}
+              onClick={toggleLocationFields}
               ref={locationRef}
             >
               <img src="/icons/location.svg" alt="location icon" />{municipality ? municipality : 'Obteniendo tu ubicación...'}
             </Location>
             {showLocationFields && (
               <LocationDropdown ref={dropdownRef}>
-                <div>
-                  <label>¿Dónde?</label>
+                <div className='LocationAddressBlock'>
+                  <label htmlFor="locationInput">¿Dónde?</label>
                   <Autocomplete
-                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                    onLoad={(autocomplete) => {
+                      autocompleteRef.current = autocomplete;
+                      console.log('Autocomplete loaded:', autocomplete);
+                    }}
                     onPlaceChanged={handlePlaceSelect}
                   >
-                    <InputText
+                    <InputLocation
+                      ref={inputRef}
                       type="text"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      value={tempAddress}
+                      onChange={(e) => setTempAddress(e.target.value)}
                       placeholder="Escribe una dirección"
+                      id="locationInput"
+                      size="large"
+                      variant="default"
                     />
                   </Autocomplete>
                 </div>
-                <div>
-                  <label>Radio (km):</label>
-                  <InputText
-                    type="number"
-                    value={filters.radius}
-                    onChange={(e) => handleFilterChange('radius', e.target.value)}
+                <div className='LocationRadiusBlock'>
+                  <label htmlFor="radiusRange">Radio de búsqueda (km):</label>
+                  <InputRange
+                    min={minRadius}
+                    max={maxRadius}
+                    step={10}
+                    value={tempRadius}
+                    onChange={(e) => setTempRadius(Number(e.target.value))}
+                    label="Selecciona el radio:"
                   />
+                </div>
+                <div className='LocationDropdownButtons'>
+                  <Button type="button" id="applyButton" onClick={handleApply}>
+                    Aplicar
+                  </Button>
+                  <Button type="button" id="cancelButton" $variant="outline" onClick={handleCancel}>
+                    Cancelar
+                  </Button>
                 </div>
 
               </LocationDropdown>
@@ -341,7 +456,21 @@ const LocationDropdown = styled.div`
   border: 1px solid ${({ theme }) => theme.border.defaultSubtle};
   background-color: ${({ theme }) => theme.fill.defaultMain};
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.08);
-  z-index: 1;
+  z-index: 999;
+
+  .LocationDropdownButtons{
+    display: flex;
+    flex-direction: row;
+    gap: ${({ theme }) => theme.sizing.xs};
+    justify-content: flex-start;
+  }
+
+  .LocationAddressBlock,
+  .LocationRadiusBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
 `;
 
 
