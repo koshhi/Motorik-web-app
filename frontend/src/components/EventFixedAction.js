@@ -39,6 +39,7 @@ const EventFixedBar = styled.div`
   background-color: ${({ theme }) => theme.fill.defaultMain};
   border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
   box-shadow: 0px -2px 8px 0px rgba(26, 26, 26, 0.08);
+  z-index: 100;
 
 
   .Container {

@@ -10,9 +10,9 @@ import Select from '../components/Select/Select';
 import countryCodes from '../utils/CountryCodes';
 import { getPlatform, getIcon } from '../utils/socialMediaUtils';
 import { CircleFlag } from 'react-circle-flags';
-import { Autocomplete, useLoadScript } from '@react-google-maps/api';
+import { Autocomplete } from '@react-google-maps/api';
 
-const libraries = ['places'];
+// const libraries = ['places'];
 
 const CompleteProfile = () => {
   const { userId } = useParams();
@@ -41,12 +41,12 @@ const CompleteProfile = () => {
   const [errors, setErrors] = useState({});
   const addressRef = useRef(null);
 
-  // API de Google Maps
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries,
-    loading: 'async'
-  });
+  // // API de Google Maps
+  // const { isLoaded } = useLoadScript({
+  //   googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+  //   libraries,
+  //   loading: 'async'
+  // });
 
   const [autocomplete, setAutocomplete] = useState(null);
 
@@ -100,6 +100,8 @@ const CompleteProfile = () => {
             userAvatar: user.userAvatar || '',
             description: user.description || '',
             address: user.address || '',
+            locality: user.locality || '', // Añadido
+            country: user.country || '',   // Añadido
             phonePrefix: user.phonePrefix || '+34',
             phoneNumber: user.phoneNumber || '',
             socialMediaLinks: user.socialMediaLinks || []
@@ -223,7 +225,7 @@ const CompleteProfile = () => {
 
   const selectedCountry = countryCodes.find(code => code.dial_code === formData.phonePrefix);
 
-  if (!isLoaded) return <div>Cargando...</div>;
+  // if (!isLoaded) return <div>Cargando...</div>;
 
 
   return (
@@ -311,25 +313,27 @@ const CompleteProfile = () => {
         </div>
         <label>
           Dirección:
-          {isLoaded && (
-            <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-              <InputText
-                ref={addressRef}
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                $size="large"
-                placeholder="Introduce tu dirección"
-                $variant={errors.address ? 'error' : ''}
-                required
-              />
-            </Autocomplete>
-          )}
+          <Autocomplete
+            onLoad={onLoad}
+            onPlaceChanged={onPlaceChanged}
+          >
+            <InputText
+              ref={addressRef}
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              $size="large"
+              placeholder="Introduce tu dirección"
+              $variant={errors.address ? 'error' : ''}
+              required
+            />
+          </Autocomplete>
           {errors.address && <ErrorMsg>{errors.address}</ErrorMsg>}
 
           <p className='inputNote'>Tu dirección completa no se mostrará al público.</p>
         </label>
+
         {/* <label>
           Localidad:
           <InputText

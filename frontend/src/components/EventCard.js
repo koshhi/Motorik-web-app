@@ -4,63 +4,84 @@ import { Link } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
 import { getEventTypeIcon } from '../utilities'
 
-const EventCard = ({ event }) => {
+const EventCard = ({ event, maxWidth, clickable = true }) => {
 
   const generateSlug = (title) => {
     return title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
   }
 
-  return (
-    <Link to={`/events/${event.id}/${generateSlug(event.title)}`}>
-      <Event>
-        <Top>
-          <div className='eventTags'>
-            <div className='eventCategory'>
-              <p>{event.eventType}</p>
-            </div>
-            <div className='eventCategory'>
-              <p>{event.terrain}</p>
-            </div>
-          </div>
+  // Obtener el precio del primer ticket (puedes ajustar esto según tu lógica)
+  const firstTicket = event.tickets && event.tickets.length > 0 ? event.tickets[0] : null;
 
-          {event.image ? (
-            <img src={event.image} alt={event.title} className='event_card-image' />
-          ) : (
-            <div className='placeholderImage'>
-              <img src={getEventTypeIcon(event.eventType)} alt="empty state icon" className='placeholderImage-icon' />
+  const cardContent = (
+    <Event>
+      <Top>
+        <div className='eventTags'>
+          <div className='eventCategory'>
+            <p>{event.eventType}</p>
+          </div>
+          <div className='eventCategory'>
+            <p>{event.terrain}</p>
+          </div>
+        </div>
+
+        {event.image ? (
+          <img src={event.image} alt={event.title} className='event_card-image' />
+        ) : (
+          <div className='placeholderImage'>
+            <img src={getEventTypeIcon(event.eventType)} alt="empty state icon" className='placeholderImage-icon' />
+          </div>
+        )}
+      </Top>
+      <Bottom>
+        <div className='mainInfo'>
+          <h3>{event.title}</h3>
+          <div className="mainInfoDate">
+            <div className="mainInfoDateMonth">
+              <p>{event.monthDate}</p>
             </div>
-          )}
-        </Top>
-        <Bottom>
-          <div className='mainInfo'>
-            <h3>{event.title}</h3>
-            <div className="mainInfoDate">
-              <div className="mainInfoDateMonth">
-                <p>{event.monthDate}</p>
-              </div>
-              <div className="mainInfoDateDay">
-                <p>{event.dayDate}</p>
-              </div>
+            <div className="mainInfoDateDay">
+              <p>{event.dayDate}</p>
             </div>
           </div>
-          <div className='secondaryInfo'>
-            <div><ReactSVG src="/icons/calendar.svg" /><p>{event.partialDateStart} {event.partialDateEnd}</p></div>
-            <div><ReactSVG src="/icons/map-location.svg" /><p>{event.shortLocation}</p></div>
-            <div><ReactSVG src="/icons/attendees.svg" /><p>{event.attendeesCount} asistentes</p></div>
-          </div>
-          <div className='tertiaryInfo'>
-            <div className='EventOrganizer'>
-              <img className="UserAvatar" src={event.owner.userAvatar} alt="Event organizer" />
-              <div className='UserData'>
-                <p className='label'>Organizado por</p>
-                <p className='username'>{event.owner.name} {event.owner.lastName}</p>
-              </div>
+        </div>
+        <div className='secondaryInfo'>
+          <div><ReactSVG src="/icons/calendar.svg" /><p>{event.partialDateStart} {event.partialDateEnd}</p></div>
+          <div><ReactSVG src="/icons/map-location.svg" /><p>{event.shortLocation}</p></div>
+          <div><ReactSVG src="/icons/attendees.svg" /><p>{event.attendeesCount} asistentes</p></div>
+        </div>
+        <div className='tertiaryInfo'>
+          <div className='EventOrganizer'>
+            <img className="UserAvatar" src={event.owner.userAvatar} alt="Event organizer" />
+            <div className='UserData'>
+              <p className='label'>Organizado por</p>
+              <p className='username'>{event.owner.name} {event.owner.lastName}</p>
             </div>
-            <p className='EventPrice'>{event.ticket.price === 0 ? 'Gratis' : `$${event.ticket.price}`}</p>
           </div>
-        </Bottom>
-      </Event>
+          {firstTicket ? (firstTicket.type === 'free' ? 'Gratis' : `$${firstTicket.price}`) : 'No disponible'}
+        </div>
+      </Bottom>
+    </Event>
+  );
+
+
+  // return (
+  //   <Link style={{ maxWidth: maxWidth || '100%' }} to={`/events/${event.id}/${generateSlug(event.title)}`}>
+  //     <Event>
+
+  //     </Event>
+  //   </Link>
+  // );
+
+  return clickable ? (
+    <Link style={{ maxWidth: maxWidth || '100%' }} to={`/events/${event.id}/${generateSlug(event.title)}`}>
+      {cardContent}
     </Link>
+  ) : (
+    <div style={{ maxWidth: maxWidth || '100%' }}>
+      {cardContent}
+    </div>
+
   );
 };
 

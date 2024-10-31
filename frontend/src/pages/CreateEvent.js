@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import axios from 'axios';
+import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import EventForm from '../components/EventForm';
@@ -13,45 +13,66 @@ const CreateEvent = () => {
     navigate('/');
   };
 
+  // const handleCreateEvent = async () => {
+  //   if (eventFormRef.current) {
+  //     const formData = await eventFormRef.current.getFormData();
+
+  //     if (!formData) {
+  //       console.error('Errores en el formulario, no se puede enviar');
+  //       return;
+  //     }
+
+  //     // Mostrar el contenido de FormData
+  //     for (let pair of formData.entries()) {
+  //       console.log(pair[0] + ': ' + pair[1]);
+  //     }
+
+  //     try {
+  //       const authToken = localStorage.getItem('authToken');
+  //       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
+  //         headers: {
+  //           Authorization: `Bearer ${authToken}`,
+  //           'Content-Type': 'multipart/form-data',
+  //         },
+  //       });
+
+  //       if (response.data.success) {
+  //         navigate('/');
+  //       } else {
+  //         console.error('Error en la creación del evento');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error creando el evento:', error);
+  //     }
+  //   }
   const handleCreateEvent = async () => {
     if (eventFormRef.current) {
       const formData = await eventFormRef.current.getFormData();
 
-      console.log(formData)
-
       if (!formData) {
-        console.error("Errores en el formulario, no se puede enviar");
-        return;  // Salimos si hay errores
+        console.error('Errores en el formulario, no se puede enviar');
+        return;
       }
-
-      // Invertir las coordenadas antes de enviarlas
-      const locationCoordinates = JSON.parse(formData.get('locationCoordinates'));
-      locationCoordinates.coordinates = [locationCoordinates.coordinates[1], locationCoordinates.coordinates[0]]; // Invertir [lng, lat] a [lat, lng]
-      formData.set('locationCoordinates', JSON.stringify(locationCoordinates));
 
       // Mostrar el contenido de FormData
       for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
 
-      if (formData) {
-        try {
-          const authToken = localStorage.getItem('authToken');
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              'Content-Type': 'multipart/form-data',  // Esto asegura que Axios maneje el archivo binario correctamente
-            },
-          });
+      try {
+        const response = await axiosClient.post('/api/events', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
 
-          if (response.data.success) {
-            navigate('/');
-          } else {
-            console.error('Error en la creación del evento');
-          }
-        } catch (error) {
-          console.error('Error creando el evento:', error);
+        if (response.data.success) {
+          navigate('/');
+        } else {
+          console.error('Error en la creación del evento');
         }
+      } catch (error) {
+        console.error('Error creando el evento:', error);
       }
     }
   };
@@ -62,8 +83,12 @@ const CreateEvent = () => {
         <Container>
           <Heading>Crea un evento</Heading>
           <Links>
-            <Button size="default" $variant="outline" onClick={handleDiscard}>Descartar</Button>
-            <Button size="default" $variant="default" onClick={handleCreateEvent}>Crear Evento</Button>
+            <Button size="default" $variant="outline" onClick={handleDiscard}>
+              Descartar
+            </Button>
+            <Button size="default" $variant="default" onClick={handleCreateEvent}>
+              Crear Evento
+            </Button>
           </Links>
         </Container>
       </Topbar>
@@ -71,6 +96,7 @@ const CreateEvent = () => {
     </>
   );
 };
+
 
 export default CreateEvent;
 

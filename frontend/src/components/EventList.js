@@ -62,50 +62,103 @@ const EventList = () => {
     fetchEvents(filters);
   }, [filters]);
 
+  // useEffect(() => {
+  //   if (!localStorage.getItem('location')) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       async (position) => {
+  //         const userLocation = {
+  //           lat: position.coords.latitude,
+  //           lng: position.coords.longitude,
+  //         };
+
+  //         try {
+  //           const response = await axios.get(
+  //             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${userLocation.lat},${userLocation.lng}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
+  //           );
+  //           const addressData = response.data.results[0];
+  //           const userAddress = addressData.formatted_address || 'Unknown Address';
+  //           const userMunicipality = getMunicipality(addressData.address_components || []);
+  //           console.log('User municipality from geocoding:', userMunicipality);
+
+  //           const completeUserLocation = {
+  //             ...userLocation,
+  //             address: userAddress,
+  //           };
+
+  //           localStorage.setItem('location', JSON.stringify(completeUserLocation));
+  //           localStorage.setItem('municipality', userMunicipality);
+
+  //           setFilters((prevFilters) => ({
+  //             ...prevFilters,
+  //             location: completeUserLocation,
+  //           }));
+  //           setMunicipality(userMunicipality);
+  //         } catch (error) {
+  //           console.error(
+  //             'Error obteniendo el municipio:',
+  //             error.response ? error.response.data : error.message
+  //           );
+  //         }
+  //       },
+  //       (error) => {
+  //         console.error('Error obteniendo la ubicación del usuario', error);
+  //       }
+  //     );
+  //   }
+  // }, []);
+
   useEffect(() => {
     if (!localStorage.getItem('location')) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          try {
-            const response = await axios.get(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${userLocation.lat},${userLocation.lng}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
-            );
-            const addressData = response.data.results[0];
-            const userAddress = addressData.formatted_address || 'Unknown Address';
-            const userMunicipality = getMunicipality(addressData.address_components || []);
-            console.log('User municipality from geocoding:', userMunicipality);
-
-            const completeUserLocation = {
-              ...userLocation,
-              address: userAddress,
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
             };
 
-            localStorage.setItem('location', JSON.stringify(completeUserLocation));
-            localStorage.setItem('municipality', userMunicipality);
+            const geocoder = new window.google.maps.Geocoder();
 
-            setFilters((prevFilters) => ({
-              ...prevFilters,
-              location: completeUserLocation,
-            }));
-            setMunicipality(userMunicipality);
-          } catch (error) {
-            console.error(
-              'Error obteniendo el municipio:',
-              error.response ? error.response.data : error.message
-            );
+            geocoder.geocode({ location: userLocation }, (results, status) => {
+              if (status === 'OK') {
+                if (results[0]) {
+                  const addressData = results[0];
+                  const userAddress = addressData.formatted_address || 'Dirección desconocida';
+                  const userMunicipality = getMunicipality(addressData.address_components || []);
+                  console.log('User municipality from geocoding:', userMunicipality);
+
+                  const completeUserLocation = {
+                    ...userLocation,
+                    address: userAddress,
+                  };
+
+                  localStorage.setItem('location', JSON.stringify(completeUserLocation));
+                  localStorage.setItem('municipality', userMunicipality);
+
+                  setFilters((prevFilters) => ({
+                    ...prevFilters,
+                    location: completeUserLocation,
+                  }));
+                  setMunicipality(userMunicipality);
+                } else {
+                  console.error('No se encontraron resultados para la geocodificación.');
+                }
+              } else {
+                console.error('Geocoder failed debido a: ' + status);
+              }
+            });
+          },
+          (error) => {
+            console.error('Error obteniendo la ubicación del usuario', error);
           }
-        },
-        (error) => {
-          console.error('Error obteniendo la ubicación del usuario', error);
-        }
-      );
+        );
+      } else {
+        console.error('Geolocalización no es soportada por este navegador.');
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   return (
     <>

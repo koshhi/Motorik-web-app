@@ -13,9 +13,10 @@
     "react-circle-flags": "^0.0.20",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "react-select": "^5.8.0",
     "react-svg": "^16.1.34",
+    "react-toastify": "^10.0.6",
     "sass": "^1.77.8",
     "styled-components": "^6.1.12",
     "web-vitals": "^2.1.4"
@@ -25,17 +26,24 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server": "json-server -p3001 --watch db.json",
-    "cypress:open": "cypress open",
-    "test:e2e": "cypress run"
+    "server": "json-server -p3001 --watch db.json"
+  },
+  "overrides": {
+    "svgo": "^2.8.0",
+    "nth-check": "^2.1.1",
+    "resolve-url-loader": "^5.0.0",
+    "postcss": "^8.4.31"
   },
   "eslintConfig": {
     "env": {
-      "cypress/globals": true
+      "browser": true,
+      "es2021": true
     },
-    "extends": "react-app",
+    "extends": [
+      "react-app"
+    ],
     "plugins": [
-      "cypress"
+      "react-hooks"
     ]
   },
   "browserslist": {
@@ -52,9 +60,6 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.8",
-    "@testing-library/react": "^16.0.0",
-    "cypress": "^13.13.2",
-    "eslint-plugin-cypress": "^3.4.0",
-    "json-server": "^1.0.0-beta.1"
+    "@testing-library/react": "^16.0.0"
   }
 }

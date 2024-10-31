@@ -2,6 +2,32 @@ const { Schema, model } = require('mongoose')
 const { format } = require('date-fns')
 const { es } = require('date-fns/locale')
 
+const attendeeSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  vehicleId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Vehicle',
+    required: true
+  }
+}, { timestamps: true })
+
+const ticketSchema = new Schema({
+  type: {
+    type: String,
+    enum: ['free', 'paid'],
+    required: true
+  },
+  price: {
+    type: Number,
+    required: function () { return this.type === 'paid' },
+    default: 0
+  }
+}, { _id: false })
+
 const eventSchema = new Schema({
   title: {
     type: String,
@@ -56,30 +82,28 @@ const eventSchema = new Schema({
     enum: ['none', 'beginner', 'intermediate', 'advanced'],
     required: true
   },
-  ticket: {
-    type: { type: String, enum: ['free', 'paid'], required: true },
-    price: { type: Number, required: function () { return this.type === 'paid' } }
-  },
+  tickets: [ticketSchema],
   capacity: {
     type: Number,
     required: true
   },
+  availableSeats: {
+    type: Number,
+    required: true,
+    default: function () {
+      return this.capacity
+    }
+  },
+  approvalRequired: {
+    type: Boolean,
+    default: false,
+    required: true
+  },
   attendeesCount: {
     type: Number,
-    default: 0
+    default: 1
   },
-  attendees: [{
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    vehicleId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Vehicle',
-      required: true
-    }
-  }],
+  attendees: [attendeeSchema],
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -152,6 +176,13 @@ eventSchema.virtual('weekdayStart').get(function () {
 
 // Crear un índice geoespacial en las coordenadas
 eventSchema.index({ locationCoordinates: '2dsphere' })
+
+eventSchema.pre('save', function (next) {
+  if (this.isNew) {
+    this.availableSeats = this.capacity
+  }
+  next()
+})
 
 // Establecer opciones toJSON y toObject
 eventSchema.set('toJSON', {

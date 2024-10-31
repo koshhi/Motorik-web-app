@@ -1,102 +1,82 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import AxiosClient from '../api/axiosClient';
 import styled from 'styled-components';
+import useEvent from '../hooks/useEvent';
+import useEnroll from '../hooks/useEnroll';
 import { getEventTypeIcon } from '../utilities';
 import MainNavbar from '../components/Navbar/MainNavbar';
 import Button from '../components/Button/Button';
 import EventFixedAction from '../components/EventFixedAction'
-import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import Modal from '../components/Modal/Modal';
+import EventMap from '../components/EventMap';
+import { toast } from 'react-toastify';
 
 const EventDetail = () => {
   const { id } = useParams();
-  const [event, setEvent] = useState(null);
-  const { user, loading } = useAuth();
-  const [isOwner, setIsOwner] = useState(false);
+  const navigate = useNavigate();
+
+  const { user, loading: loadingAuth } = useAuth();
+  const { event, isOwner, loadingEvent, error, setEvent } = useEvent(id, user);
+
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [userEnrollment, setUserEnrollment] = useState(null);
+
+
+  const { enroll, loadingEnroll, errorEnroll } = useEnroll(id, user, (updatedEvent) => {
+    setEvent(updatedEvent);
+    // La notificación de éxito ya está manejada en el hook useEnroll
+  });
 
   const [showModal, setShowModal] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState(null);
-
 
   useEffect(() => {
-    // Verificamos que el perfil del usuario haya cargado
-    if (!loading) {
-      const fetchEventDetails = async () => {
-        try {
-          const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/events/${id}`);
-          setEvent(response.data.event);
-
-          // console.log({ owner: response.data.event.owner });
-          // console.log({ viewer: user });
-
-          // Asegurarse de que tanto el evento como el usuario estén definidos
-          if (user && response.data.event.owner && response.data.event.owner.id === user.id) {
-            setIsOwner(true);
-          } else {
-            setIsOwner(false);
-          }
-        } catch (error) {
-          console.error('Error fetching event details:', error);
-        }
-      };
-
-      fetchEventDetails();
+    if (event && user) {
+      const enrolled = event.attendees.find(attendee => attendee.userId._id === user.id);
+      if (enrolled) {
+        setIsEnrolled(true);
+        setUserEnrollment(enrolled);
+      } else {
+        setIsEnrolled(false);
+        setUserEnrollment(null);
+      }
     }
-  }, [id, user, loading]);
+  }, [event, user]);
 
   const handleEnroll = () => {
     if (!user || !user.vehicles || user.vehicles.length === 0) {
-      alert('No tienes vehículos registrados.');
+      toast.error('No tienes vehículos registrados.');
       return;
     }
 
     if (user.vehicles.length === 1) {
       // Si solo tiene un vehículo, lo inscribimos directamente
-      enroll(user.vehicles[0].id);
+      enroll(user.vehicles[0]._id); // Asegúrate de usar el campo correcto (por lo general, _id)
     } else {
       // Si tiene más de un vehículo, abrimos el modal
       setShowModal(true);
     }
   };
 
-  const enroll = async (vehicleId) => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        alert('Debes estar autenticado para inscribirte en un evento');
-        return;
-      }
-
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/events/enroll/${id}`,
-        { userId: user.id, vehicleId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Actualizar el evento con los asistentes después de la inscripción
-      const updatedEventResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/events/${id}`);
-      setEvent(updatedEventResponse.data.event);
-
-      alert('Inscripción exitosa');
-    } catch (error) {
-      console.error('Error enrolling in event:', error);
-      alert('Hubo un error al inscribirse en el evento');
-    } finally {
-      setShowModal(false);
-    }
+  const handleVehicleSelect = (vehicleId) => {
+    enroll(vehicleId);
+    setShowModal(false);
   };
 
+  if (loadingAuth || loadingEvent) return <p>Cargando...</p>;
+  if (error || !event) return <p>Evento no encontrado</p>;
 
+  // Verificar si las coordenadas existen y son válidas
+  const hasValidCoordinates =
+    event.locationCoordinates &&
+    Array.isArray(event.locationCoordinates.coordinates) &&
+    event.locationCoordinates.coordinates.length === 2 &&
+    typeof event.locationCoordinates.coordinates[0] === 'number' &&
+    typeof event.locationCoordinates.coordinates[1] === 'number';
 
-
-  if (loading) return <p>Cargando...</p>;
-  if (!event) return <p>Evento no encontrado</p>;
-
+  // Extraer lat y lng correctamente
+  const [lng, lat] = hasValidCoordinates ? event.locationCoordinates.coordinates : [undefined, undefined];
 
 
   return (
@@ -104,19 +84,42 @@ const EventDetail = () => {
       <MainNavbar />
       <EventHeader>
         <div className='EventHeaderContainer'>
-          <Button $variant="ghost">Atrás</Button>
+          <Button $variant="ghost" onClick={() => navigate(-1)}><img src="/icons/chevron-left.svg" alt="back-icon" />Atrás</Button>
           <div className='EventHeaderMain'>
             <div className='InnerHeaderLeft'>
-              <h1>{event.title}</h1>
-              <span>Nuevo</span>
-              <span>{event.capacity} plazas disponibles</span>
+              <h1 className='EventTitle'>{event.title}</h1>
+              <div className='HeaderTagWrapper'>
+                <p className='HeaderTag'>{event.availableSeats} plazas</p>
+                <p className='HeaderTag'>{event.eventType}</p>
+                <p className='HeaderTag'>{event.terrain}</p>
+              </div>
+              <p></p>
             </div>
             <div className='InnerHeaderRight'>
               <Button size="small" $variant="outline" alt="Compartir evento"><img className="Icon" src="/icons/share.svg" alt="share-icon" /></Button>
               {isOwner ? (
-                <Button size="small" $variant="outline" alt="Gestionar evento">Gestionar evento</Button>
+                <Link to={`/events/manage/${event.id}`}>
+                  <Button size="small" $variant="outline" aria-label="Gestionar evento">
+                    Gestionar evento
+                  </Button>
+                </Link>
               ) : (
-                <Button onClick={handleEnroll} size="small" alt="Inscríbete en el evento">Inscríbete</Button>
+                isEnrolled ? (
+                  <Link to={`/events/${event.id}/enrollment-details`}>
+                    <Button size="small" $variant="primary" aria-label="Ver detalles de inscripción">
+                      Ver mi inscripción
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={handleEnroll}
+                    size="small"
+                    aria-label="Inscríbete en el evento"
+                    disabled={event.availableSeats <= 0 || loadingEnroll}
+                  >
+                    {loadingEnroll ? 'Inscribiendo...' : 'Inscríbete'}
+                  </Button>
+                )
               )}
             </div>
           </div>
@@ -165,6 +168,12 @@ const EventDetail = () => {
                 </p>
               </EventOrganizerCard>
             </div>
+            {/* <EventTags>
+              <h3>Etiquetas</h3>
+              <p className='Tag'>Tipo: {event.eventType}</p>
+              <p className='Tag'>Terreno: {event.terrain}</p>
+              <p className='Tag'>Experience: {event.experience}</p>
+            </EventTags> */}
           </EventContent>
           <EventSummary>
             <DateAndLocation>
@@ -190,36 +199,72 @@ const EventDetail = () => {
                   <p className='ShortLocation'>{event.shortLocation}</p>
                 </div>
               </div>
+              <EventMap lat={lat} lng={lng} maxHeight="200px" mobileHeight="120px" borderRadius="0px" />
+
             </DateAndLocation>
             <Attendees>
+              <div className='AttendeeCancel'>
+                <p>¿No puedes asistir? </p>
+                <Button $variant="ghost" >Cancelar incripción <img src="/icons/arrow-right.svg" alt="new window icon" /></Button>
+              </div>
               <p className='Heading'>Asistentes <span className='AttendeeCounter'>{event.attendeesCount}</span></p>
               <ul className='AttendeesList'>
-                {event.attendees.map((attendee, index) => (
-                  <li key={index} className='Attendee'>
+                <li className='Attendee'>
+                  <div className='Images'>
+                    <img
+                      className="AttendeeImg"
+                      src={event.owner.userAvatar}
+                      alt="Organizador"
+                    />
+                    <img
+                      className='VehicleImg'
+                      src={event.owner.userAvatar}
+                      alt="Vehiculo Organizador" />
+                  </div>
+                  <div className='Info'>
+                    <p className='AttendeeName'>
+                      {event.owner.name} {event.owner.lastName}
+                    </p>
+                    <p className='AttendeeVehicle'>
+                      Organizer's Bike
+                    </p>
+                  </div>
+                  <div className='OrganizerBadge'>
+                    <img src="/icons/organizer-helmet.svg" alt="Organizer badge" />
+                    Organizador
+                  </div>
+                </li>
+
+                {event.attendees.map((attendee) => (
+                  <li key={attendee._id || `${attendee.userId?.id}-${attendee.vehicleId?.id}`} className='Attendee'>
                     <div className='Images'>
-                      <img className='AttendeeImg' src={attendee.userId.userAvatar} alt="attendee avatar" />
-                      <img className='VehicleImg' src={attendee.vehicleId.image} alt="attendee avatar" />
+                      <img
+                        className="AttendeeImg"
+                        src={attendee.userId?.userAvatar || '/default-avatar.png'}
+                        alt={`${attendee.userId?.name || 'Asistente'} ${attendee.userId?.lastName || ''}`}
+                      />
+                      <img
+                        className='VehicleImg'
+                        src={attendee.vehicleId?.image || '/default-vehicle.png'}
+                        alt={`${attendee.vehicleId?.brand || 'Vehículo'} ${attendee.vehicleId?.model || ''}`}
+                      />
                     </div>
                     <div className='Info'>
                       <p className='AttendeeName'>
-                        {attendee.userId.name} {attendee.userId.lastName}
+                        {attendee.userId?.name || 'Nombre'} {attendee.userId?.lastName || 'Apellido'}
                       </p>
                       <p className='AttendeeVehicle'>
-                        {attendee.vehicleId.brand} {attendee.vehicleId.model}
+                        {attendee.vehicleId?.brand || 'Marca'} {attendee.vehicleId?.model || 'Modelo'}
                       </p>
                     </div>
                   </li>
                 ))}
+
               </ul>
             </Attendees>
-            <p>Tipo: {event.eventType}</p>
-            <p>Terreno: {event.terrain}</p>
-            <p>Capacity: {event.capacity}</p>
-            <p>Experience: {event.experience}</p>
-            <p>From {event.startDate} to {event.endDate}</p>
           </EventSummary>
         </div>
-        {showModal && (
+        {/* {showModal && (
           <div className='modalWrapper'>
             <Modal onClose={() => setShowModal(false)}>
               <div className='Heading'>
@@ -248,13 +293,39 @@ const EventDetail = () => {
             </Modal>
             <div className='modalOverlay'></div>
           </div>
+        )} */}
+        {showModal && (
+          <Modal onClose={() => setShowModal(false)}>
+            <ModalHeading>
+              <h3>Indica qué moto usarás:</h3>
+              <p>Al inscribir tu moto en el evento haces más fácil que otras personas se inscriban en el evento.</p>
+            </ModalHeading>
+            <VehicleList>
+              {user.vehicles.map((vehicle) => (
+                <li key={vehicle._id} className='Vehicle' onClick={() => handleVehicleSelect(vehicle._id)}>
+                  <div className='VehicleContent'>
+                    <img src={vehicle.image} className='VehicleImage' alt={`${vehicle.brand} ${vehicle.model}`} />
+                    <div className='VehicleData'>
+                      <p className='Brand'>{vehicle.brand}</p>
+                      <div className='Name'>
+                        <p className='Subtitle'>{vehicle.model}</p>
+                        {vehicle.nickname && <p className='Subtitle'> - {vehicle.nickname}</p>}
+                      </div>
+                    </div>
+                  </div>
+                  <p className='Label'>Seleccionar</p>
+                </li>
+              ))}
+            </VehicleList>
+            {errorEnroll && <ErrorMessage>{errorEnroll}</ErrorMessage>}
+          </Modal>
         )}
       </EventBody>
       <EventFixedAction
         eventName={event.title}
         eventDate={event.longDate}
-        availableSeats="4"
-        price={event.ticket.price}
+        availableSeats={event.availableSeats}
+        price={event.ticket?.price || 0} // Asegúrate de que `ticket` existe
       />
     </>
   );
@@ -294,8 +365,45 @@ const EventHeader = styled.section`
         flex-wrap: wrap;
         gap: ${({ theme }) => theme.sizing.sm};
 
-        h1 {
+        .EventTitle {
           margin: 0px;
+          color: var(--text-icon-default-main, #292929);
+          font-variant-numeric: lining-nums tabular-nums;
+          font-feature-settings: 'ss01' on;
+
+          /* Titles/Mobile/Title 1/Bold */
+          font-family: "Mona Sans";
+          font-size: 28px;
+          font-style: normal;
+          font-weight: 700;
+          line-height: 140%; /* 39.2px */
+        }
+        .HeaderTagWrapper {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: ${({ theme }) => theme.sizing.xs};
+
+          .HeaderTag {
+            display: flex;
+            min-height: 24px;
+            padding: ${({ theme }) => theme.sizing.xxs} ${({ theme }) => theme.sizing.xs};
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--Spacing-md, 24px);
+            background: var(--bg-default-main, #FFF);
+            border: 1px solid var(--border-default-weak, #DCDCDC);
+
+            // box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+            color: var(--text-icon-default-main, #292929);
+            font-family: "Mona Sans";
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 100%; /* 10px */
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+          }
         }
       }
 
@@ -373,162 +481,162 @@ const EventBody = styled.section`
 
   }
 
-  .modalWrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  // .modalWrapper {
+  //   position: fixed;
+  //   top: 0;
+  //   left: 0;
+  //   width: 100vw;
+  //   height: 100vh;
+  //   z-index: 1000;
+  //   display: flex;
+  //   flex-direction: column;
+  //   align-items: center;
+  //   justify-content: center;
 
-    .modalOverlay {
-      width: 100%;
-      height: 100%;
-      background: rgba(26, 26, 26, 0.90);
-      backdrop-filter: blur(12px);
-      position: absolute;
-    }
-  }
+  //   .modalOverlay {
+  //     width: 100%;
+  //     height: 100%;
+  //     background: rgba(26, 26, 26, 0.90);
+  //     backdrop-filter: blur(12px);
+  //     position: absolute;
+  //   }
+  // }
 `;
 
-const Modal = styled.div`
-  display: flex;
-  padding: var(--Spacing-md, 24px);
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--Spacing-md, 24px);
-  background-color: ${({ theme }) => theme.fill.defaultMain};
-  border-radius: 8px;
-  z-index: 1001;
+// const Modal = styled.div`
+//   display: flex;
+//   padding: var(--Spacing-md, 24px);
+//   flex-direction: column;
+//   align-items: flex-start;
+//   gap: var(--Spacing-md, 24px);
+//   background-color: ${({ theme }) => theme.fill.defaultMain};
+//   border-radius: 8px;
+//   z-index: 1001;
 
-  .Heading {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${({ theme }) => theme.sizing.xs};
+//   .Heading {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: flex-start;
+//     gap: ${({ theme }) => theme.sizing.xs};
 
-    h3 {
-      color: ${({ theme }) => theme.colors.defaultStrong};
-      text-align: center;
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on, 'ss04' on;
+//     h3 {
+//       color: ${({ theme }) => theme.colors.defaultStrong};
+//       text-align: center;
+//       font-variant-numeric: lining-nums tabular-nums;
+//       font-feature-settings: 'ss01' on, 'ss04' on;
 
-      /* Titles/Desktop/Title 5/Semibold */
-      font-family: "Mona Sans";
-      font-size: 18px;
-      font-style: normal;
-      font-weight: 600;
-      line-height: 140%; /* 25.2px */
-    }
+//       /* Titles/Desktop/Title 5/Semibold */
+//       font-family: "Mona Sans";
+//       font-size: 18px;
+//       font-style: normal;
+//       font-weight: 600;
+//       line-height: 140%; /* 25.2px */
+//     }
 
-    p {
-      color: ${({ theme }) => theme.colors.defaultWeak}; 
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
+//     p {
+//       color: ${({ theme }) => theme.colors.defaultWeak}; 
+//       font-variant-numeric: lining-nums tabular-nums;
+//       font-feature-settings: 'ss01' on;
 
-      /* Body/Body 1/Regular */
-      font-family: "Mona Sans";
-      font-size: 16px;
-      font-style: normal;
-      font-weight: 400;
-      line-height: 150%; /* 24px */
-    }
-  }
+//       /* Body/Body 1/Regular */
+//       font-family: "Mona Sans";
+//       font-size: 16px;
+//       font-style: normal;
+//       font-weight: 400;
+//       line-height: 150%; /* 24px */
+//     }
+//   }
 
-  .VehicleList {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    align-self: stretch;
+//   .VehicleList {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: flex-start;
+//     gap: 8px;
+//     align-self: stretch;
 
-    .Vehicle {
-      cursor: pointer;
-      border-radius: var(--Spacing-xs, 8px);
-      border: 1px solid ${({ theme }) => theme.border.defaultWeak}; 
-      background-color: ${({ theme }) => theme.fill.defaultMain}; 
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      padding-right: 16px;
+//     .Vehicle {
+//       cursor: pointer;
+//       border-radius: var(--Spacing-xs, 8px);
+//       border: 1px solid ${({ theme }) => theme.border.defaultWeak}; 
+//       background-color: ${({ theme }) => theme.fill.defaultMain}; 
+//       width: 100%;
+//       display: flex;
+//       flex-direction: row;
+//       align-items: center;
+//       justify-content: space-between;
+//       padding-right: 16px;
 
-      &:hover {
-        border: 1px solid ${({ theme }) => theme.border.brandMain}; 
-        box-shadow: 0px 0px 0px 1px ${({ theme }) => theme.border.brandMain}; 
-      }
+//       &:hover {
+//         border: 1px solid ${({ theme }) => theme.border.brandMain}; 
+//         box-shadow: 0px 0px 0px 1px ${({ theme }) => theme.border.brandMain}; 
+//       }
 
-      .Label {
-        color: ${({ theme }) => theme.colors.brandMain}; 
-        font-variant-numeric: lining-nums tabular-nums;
-        font-feature-settings: 'ss01' on;
+//       .Label {
+//         color: ${({ theme }) => theme.colors.brandMain}; 
+//         font-variant-numeric: lining-nums tabular-nums;
+//         font-feature-settings: 'ss01' on;
 
-        /* Body/Body 2/Semibold */
-        font-family: "Mona Sans";
-        font-size: 14px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 140%; /* 19.6px */
-      }
+//         /* Body/Body 2/Semibold */
+//         font-family: "Mona Sans";
+//         font-size: 14px;
+//         font-style: normal;
+//         font-weight: 600;
+//         line-height: 140%; /* 19.6px */
+//       }
 
-      .VehicleContent {
-        display: flex;
-        padding: var(--Spacing-xs, 8px) var(--Spacing-sm, 16px) var(--Spacing-xs, 8px) var(--Spacing-xs, 8px);
-        align-items: center;
-        gap: 16px;
-        align-self: stretch;
+//       .VehicleContent {
+//         display: flex;
+//         padding: var(--Spacing-xs, 8px) var(--Spacing-sm, 16px) var(--Spacing-xs, 8px) var(--Spacing-xs, 8px);
+//         align-items: center;
+//         gap: 16px;
+//         align-self: stretch;
 
-        .VehicleData {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
+//         .VehicleData {
+//           display: flex;
+//           flex-direction: column;
+//           align-items: flex-start;
 
-          .Brand {
-            color: var(--text-icon-default-main, #292929);
-            font-variant-numeric: lining-nums tabular-nums;
-            font-feature-settings: 'ss01' on;
+//           .Brand {
+//             color: var(--text-icon-default-main, #292929);
+//             font-variant-numeric: lining-nums tabular-nums;
+//             font-feature-settings: 'ss01' on;
 
-            /* Body/Body 2/Medium */
-            font-family: "Mona Sans";
-            font-size: 14px;
-            font-style: normal;
-            font-weight: 500;
-            line-height: 140%; /* 19.6px */
-          }
+//             /* Body/Body 2/Medium */
+//             font-family: "Mona Sans";
+//             font-size: 14px;
+//             font-style: normal;
+//             font-weight: 500;
+//             line-height: 140%; /* 19.6px */
+//           }
 
-          .Name {
-            display: inline-flex;
-            gap: ${({ theme }) => theme.sizing.xxs}; 
+//           .Name {
+//             display: inline-flex;
+//             gap: ${({ theme }) => theme.sizing.xxs}; 
 
-            .Subtitle {
-              color: var(--text-icon-default-main, #292929);
-              font-variant-numeric: lining-nums tabular-nums;
-              font-feature-settings: 'ss01' on;
+//             .Subtitle {
+//               color: var(--text-icon-default-main, #292929);
+//               font-variant-numeric: lining-nums tabular-nums;
+//               font-feature-settings: 'ss01' on;
 
-              /* Body/Body 1/Semibold */
-              font-family: "Mona Sans";
-              font-size: 16px;
-              font-style: normal;
-              font-weight: 600;
-              line-height: 150%; /* 24px */
-            }
-          }
-        }
+//               /* Body/Body 1/Semibold */
+//               font-family: "Mona Sans";
+//               font-size: 16px;
+//               font-style: normal;
+//               font-weight: 600;
+//               line-height: 150%; /* 24px */
+//             }
+//           }
+//         }
 
-        .VehicleImage {
-          width: 80px;
-          height: 80px;
-          border-radius: var(--Spacing-xxs, 4px);
-        }
-      }
-    }
-  }
-`;
+//         .VehicleImage {
+//           width: 80px;
+//           height: 80px;
+//           border-radius: var(--Spacing-xxs, 4px);
+//         }
+//       }
+//     }
+//   }
+// `;
 
 const EventContent = styled.div`
   grid-area: 1 / 1 / 2 / 8;
@@ -669,6 +777,33 @@ const EventOrganizerCard = styled.div`
   }
 `;
 
+// const EventTags = styled.div`
+//   display: flex;
+//   flex-direction: row;
+//   flex-wrap: wrap;
+//   gap: 8px;
+
+//   .Tag {
+//     display: flex;
+//     padding: var(--Spacing-xxs, 4px) var(--Spacing-xs, 8px);
+//     border-radius: var(--Spacing-xs, 8px);
+//     border: 1px solid var(--border-default-weak, #DCDCDC);
+//     justify-content: center;
+//     align-items: center;
+//     gap: var(--Spacing-none, 0px);
+//     color: var(--text-icon-default-strong, #464646);
+//     font-variant-numeric: lining-nums tabular-nums;
+//     font-feature-settings: 'ss01' on;
+
+//     /* Caption/Medium */
+//     font-family: "Mona Sans";
+//     font-size: 12px;
+//     font-style: normal;
+//     font-weight: 500;
+//     line-height: 150%; /* 18px */
+//   }
+// `;
+
 const EventSummary = styled.div`
   grid-area: 1 / 8 / 2 / 13;
   display: flex;
@@ -681,6 +816,7 @@ const DateAndLocation = styled.div`
   border-radius: ${({ theme }) => theme.sizing.sm};
   border: 1px solid ${({ theme }) => theme.border.defaultSubtle};
   background-color: ${({ theme }) => theme.fill.defaultMain};
+  overflow: hidden;
 
   .DateRow {
     display: flex;
@@ -759,7 +895,7 @@ const DateAndLocation = styled.div`
 
   .LocationRow {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
     flex-direction: row;
     gap: ${({ theme }) => theme.sizing.sm};
@@ -817,18 +953,42 @@ const DateAndLocation = styled.div`
 const Attendees = styled.div`
   display: flex;
   flex-direction: column;
-  align-item: flex-start;
-  gap: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-default-subtle, #EFEFEF);
+  background: var(--bg-default-main, #FFF);
+  overflow: hidden;
 
   .AttendeesList {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 8px;
+    padding: 16px;
+  }
+
+  .OrganizerBadge {
+    display: flex;
+    padding: 4px;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    align-self: stretch;
+    background: ${({ theme }) => theme.fill.brandAlphaMain16};
+    color: ${({ theme }) => theme.colors.brandMain};
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'ss01' on;
+    /* Caption/Medium */
+    font-family: "Mona Sans";
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 150%; /* 18px */
+
   }
 
   .Heading {
     color: var(--text-icon-default-main, #292929);
+    padding: 16px 16px 0px 16px;
     font-variant-numeric: lining-nums tabular-nums;
     font-feature-settings: 'ss01' on;
 
@@ -843,7 +1003,7 @@ const Attendees = styled.div`
     align-items: center;
 
     .AttendeeCounter {
-      color: var(--text-icon-brand-main, #F65703);
+      color: ${({ theme }) => theme.colors.brandMain};
       text-align: center;
       font-variant-numeric: lining-nums tabular-nums;
       font-feature-settings: 'ss01' on;
@@ -858,32 +1018,43 @@ const Attendees = styled.div`
       min-width: 24px;
       height: 24px;
       border-radius: 48px;
-      background: var(--bg-brand-alpha-main-16, rgba(246, 87, 3, 0.16));
+      background-color: ${({ theme }) => theme.fill.brandAlphaMain16};
     }
   }
 
+  .AttendeeCancel {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: ${({ theme }) => theme.fill.defaultSubtle};
+    border-bottom: 1px solid ${({ theme }) => theme.border.defaultSubtle};
+  }
 
   .Attendee {
-    width: 146px;
+    width: 120px;
     display: flex;
-    padding: 16px 8px;
+    padding: 16px 0px 0px 0px;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;    
     align-items: center;
-    gap: 8px;
-    align-self: stretch;
+    align-self: flex-start;
     border-radius: ${({ theme }) => theme.radius.xs};
     border: 1px solid ${({ theme }) => theme.border.defaultSubtle};
     background-color: ${({ theme }) => theme.fill.defaultMain};
+    overflow: hidden;
 
     .Info {
       width: 100%;
+      padding: 8px 8px;
     }
 
     .Images {
       display: flex;
       flex-direction: row;
       align-items: center;
+      padding: 0px 8px;
     }
   }
 
@@ -939,5 +1110,140 @@ const Attendees = styled.div`
     font-style: normal;
     font-weight: 500;
     line-height: 150%; /* 18px */
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.errorMain};
+  font-variant-numeric: lining-nums tabular-nums;
+  /* Body 2/Medium */
+  font-family: "Satoshi Variable";
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;         
+`;
+
+const ModalHeading = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
+
+  h3 {
+    color: ${({ theme }) => theme.colors.defaultStrong};
+    text-align: center;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'ss01' on, 'ss04' on;
+
+    /* Titles/Desktop/Title 5/Semibold */
+    font-family: "Mona Sans";
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 140%; /* 25.2px */
+  }
+
+  p {
+    color: ${({ theme }) => theme.colors.defaultWeak}; 
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'ss01' on;
+
+    /* Body/Body 1/Regular */
+    font-family: "Mona Sans";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 150%; /* 24px */
+  }
+`;
+
+const VehicleList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  align-self: stretch;
+
+  .Vehicle {
+    cursor: pointer;
+    border-radius: var(--Spacing-xs, 8px);
+    border: 1px solid ${({ theme }) => theme.border.defaultWeak}; 
+    background-color: ${({ theme }) => theme.fill.defaultMain}; 
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 16px;
+
+    &:hover {
+      border: 1px solid ${({ theme }) => theme.border.brandMain}; 
+      box-shadow: 0px 0px 0px 1px ${({ theme }) => theme.border.brandMain}; 
+    }
+
+    .Label {
+      color: ${({ theme }) => theme.colors.brandMain}; 
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on;
+
+      /* Body/Body 2/Semibold */
+      font-family: "Mona Sans";
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 140%; /* 19.6px */
+    }
+
+    .VehicleContent {
+      display: flex;
+      padding: var(--Spacing-xs, 8px) var(--Spacing-sm, 16px) var(--Spacing-xs, 8px) var(--Spacing-xs, 8px);
+      align-items: center;
+      gap: 16px;
+      align-self: stretch;
+
+      .VehicleData {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        .Brand {
+          color: var(--text-icon-default-main, #292929);
+          font-variant-numeric: lining-nums tabular-nums;
+          font-feature-settings: 'ss01' on;
+
+          /* Body/Body 2/Medium */
+          font-family: "Mona Sans";
+          font-size: 14px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 140%; /* 19.6px */
+        }
+
+        .Name {
+          display: inline-flex;
+          gap: ${({ theme }) => theme.sizing.xxs}; 
+
+          .Subtitle {
+            color: var(--text-icon-default-main, #292929);
+            font-variant-numeric: lining-nums tabular-nums;
+            font-feature-settings: 'ss01' on;
+
+            /* Body/Body 1/Semibold */
+            font-family: "Mona Sans";
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 150%; /* 24px */
+          }
+        }
+      }
+
+      .VehicleImage {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--Spacing-xxs, 4px);
+      }
+    }
   }
 `;

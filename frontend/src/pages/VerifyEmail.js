@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
 import Button from '../components/Button/Button';
 
@@ -27,7 +27,7 @@ const VerifyEmail = () => {
 
   const handleResend = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/users/check-or-register`, { email });
+      await axiosClient.post('/api/users/check-or-register', { email }); // Línea actualizada
       setSeconds(10);  // Reiniciar el temporizador
       setCanResend(false);  // Deshabilitar el botón de nuevo
     } catch (error) {

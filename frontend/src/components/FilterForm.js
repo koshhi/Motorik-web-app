@@ -1,26 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Autocomplete, useLoadScript } from '@react-google-maps/api';
 import styled from 'styled-components';
-import InputText from "./Input/InputText"
+import InputText from "./Input/InputText";
 import EventTypeTab from './Tab/EventTypeTab';
 import { getEventTypeSvgIcon } from '../utilities';
 import { theme } from '../theme';
 import Button from './Button/Button';
-import Select from './Select/Select'
+import Select from './Select/Select';
 import InputRange from './Input/InputRange';
 import InputLocation from './Input/InputLocation';
 import { getMunicipality } from '../utils/GetMunicipality';
+import { Autocomplete } from '@react-google-maps/api';
 
-const libraries = ['places'];
+// const libraries = ['places'];
 
 const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
   const minRadius = 10;
   const maxRadius = 1000;
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries,
-  });
+  // const { isLoaded, loadError } = useLoadScript({
+  //   googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+  //   libraries,
+  // });
 
   const [address, setAddress] = useState(filters.location?.address || '');
   const [showLocationFields, setShowLocationFields] = useState(false);
@@ -186,14 +186,6 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
     setTempRadius(filters.radius);
     setShowLocationFields(false);
   };
-
-  if (loadError) {
-    return <div>Error al cargar Google Maps API</div>;
-  }
-
-  if (!isLoaded) {
-    return <div>Cargando mapa...</div>;
-  }
 
   return (
     <Filter>
