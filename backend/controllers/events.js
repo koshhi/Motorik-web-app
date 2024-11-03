@@ -227,6 +227,166 @@ eventsRouter.get('/:id/enrollment', auth, async (req, res) => {
   }
 })
 
+// Obtener la lista de tickets de un evento
+eventsRouter.get('/:id/tickets', auth, async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const event = await Event.findById(id).select('tickets')
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
+
+    res.status(200).json({ success: true, tickets: event.tickets })
+  } catch (error) {
+    console.error('Error fetching tickets:', error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Crear un nuevo ticket para un evento
+eventsRouter.post('/:id/tickets', auth, async (req, res) => {
+  const { id } = req.params
+  const { type, price } = req.body
+
+  try {
+    const event = await Event.findById(id)
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
+
+    // Verificar si el usuario autenticado es el propietario del evento
+    if (event.owner.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to add tickets to this event' })
+    }
+
+    // Validar los datos del ticket
+    if (!type || !['free', 'paid'].includes(type)) {
+      return res.status(400).json({ success: false, message: 'Invalid ticket type' })
+    }
+
+    if (type === 'paid' && (price === undefined || isNaN(price))) {
+      return res.status(400).json({ success: false, message: 'Price is required for paid tickets' })
+    }
+
+    // Crear y agregar el nuevo ticket
+    const newTicket = { type, price: type === 'paid' ? Number(price) : 0 }
+    event.tickets.push(newTicket)
+
+    // Si el nuevo ticket es de tipo 'paid', establecer 'approvalRequired' a false
+    if (newTicket.type === 'paid' && event.approvalRequired) {
+      event.approvalRequired = false
+    }
+
+    // Guardar el evento actualizado
+    await event.save()
+
+    res.status(201).json({ success: true, tickets: event.tickets })
+  } catch (error) {
+    console.error('Error adding ticket:', error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Actualizar un ticket existente
+eventsRouter.put('/:id/tickets/:ticketId', auth, async (req, res) => {
+  const { id, ticketId } = req.params
+  const { type, price } = req.body
+
+  try {
+    const event = await Event.findById(id)
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
+
+    // Verificar si el usuario autenticado es el propietario del evento
+    if (event.owner.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update tickets for this event' })
+    }
+
+    // Encontrar el ticket por su ID
+    const ticket = event.tickets.id(ticketId)
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' })
+    }
+
+    // Validar los datos del ticket
+    if (!type || !['free', 'paid'].includes(type)) {
+      return res.status(400).json({ success: false, message: 'Invalid ticket type' })
+    }
+
+    if (type === 'paid' && (price === undefined || isNaN(price))) {
+      return res.status(400).json({ success: false, message: 'Price is required for paid tickets' })
+    }
+
+    // Actualizar los campos del ticket
+    ticket.type = type
+    ticket.price = type === 'paid' ? Number(price) : 0
+
+    // Verificar si el evento tiene algún ticket de tipo 'paid'
+    const isEventPaid = event.tickets.some((t) => t.type === 'paid')
+
+    // Si el evento es de pago y 'approvalRequired' es true, establecerlo en false
+    if (isEventPaid && event.approvalRequired) {
+      event.approvalRequired = false
+    }
+
+    // Guardar el evento actualizado
+    await event.save()
+
+    res.status(200).json({ success: true, ticket })
+  } catch (error) {
+    console.error('Error updating ticket:', error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// Eliminar un ticket existente
+eventsRouter.delete('/:id/tickets/:ticketId', auth, async (req, res) => {
+  const { id, ticketId } = req.params
+
+  try {
+    const event = await Event.findById(id)
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' })
+    }
+
+    // Verificar si el usuario autenticado es el propietario del evento
+    if (event.owner.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete tickets from this event' })
+    }
+
+    // Encontrar el ticket por su ID y eliminarlo
+    const ticket = event.tickets.id(ticketId)
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' })
+    }
+
+    ticket.remove()
+
+    // Después de eliminar el ticket, verificar si el evento aún es de pago
+    const isEventPaid = event.tickets.some((t) => t.type === 'paid')
+
+    // Si ya no hay tickets de pago y 'approvalRequired' es false, podríamos permitir al organizador habilitarlo nuevamente
+    if (!isEventPaid) {
+      // Opcional: Dejar 'approvalRequired' como está o notificar al organizador
+      // Por ahora, no hacemos cambios automáticos
+    }
+
+    // Guardar el evento actualizado
+    await event.save()
+
+    res.status(200).json({ success: true, message: 'Ticket deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting ticket:', error)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
 // Eliminar un evento por id
 eventsRouter.delete('/:id', auth, async (req, res) => {
   const { id } = req.params
@@ -363,6 +523,17 @@ eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
       }
     }
 
+    // Determinar si el evento es de pago
+    const isEventPaid = parsedTickets.some((ticket) => ticket.type === 'paid')
+
+    // Validar que 'approvalRequired' sea 'false' si el evento es de pago
+    if (isEventPaid && parsedApprovalRequired) {
+      return res.status(400).json({
+        success: false,
+        message: 'Los eventos de pago no pueden requerir aprobación.'
+      })
+    }
+
     // Actualizar los campos del evento
     event.title = title
     event.startDate = new Date(startDate)
@@ -413,6 +584,7 @@ eventsRouter.get('/:id', async (req, res) => {
   }
 })
 
+// Crear un evento
 eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
   try {
     // Extraer campos del cuerpo de la solicitud
@@ -507,6 +679,17 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
           return res.status(400).json({ success: false, message: `Paid ticket at index ${index} must have a valid 'price'.` })
         }
       }
+    }
+
+    // Determinar si el evento es de pago
+    const isEventPaid = parsedTickets.some((ticket) => ticket.type === 'paid')
+
+    // Validar que 'approvalRequired' sea 'false' si el evento es de pago
+    if (isEventPaid && parsedApprovalRequired) {
+      return res.status(400).json({
+        success: false,
+        message: 'Los eventos de pago no pueden requerir aprobación.'
+      })
     }
 
     // Manejar la carga de la imagen si se proporciona

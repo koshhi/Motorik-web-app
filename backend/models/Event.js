@@ -26,7 +26,7 @@ const ticketSchema = new Schema({
     required: function () { return this.type === 'paid' },
     default: 0
   }
-}, { _id: false })
+})
 
 const eventSchema = new Schema({
   title: {
@@ -113,6 +113,19 @@ const eventSchema = new Schema({
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
+})
+
+// Validación antes de guardar
+eventSchema.pre('validate', function (next) {
+  const isEventPaid = this.tickets.some((ticket) => ticket.type === 'paid')
+
+  if (isEventPaid && this.approvalRequired) {
+    this.invalidate(
+      'approvalRequired',
+      'Los eventos de pago no pueden requerir aprobación.'
+    )
+  }
+  next()
 })
 
 // Virtual field: dayDate

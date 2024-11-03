@@ -125,6 +125,18 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTime, startDay, endDay, isEndTimeChanged, endTime, endDay]);
 
+  // Función para determinar si el evento es de pago
+  const isEventPaid = () => {
+    return formData.tickets.some(ticket => ticket.type === 'paid');
+  };
+
+  // Efecto para forzar 'approvalRequired' a 'false' si el evento es de pago
+  useEffect(() => {
+    if (isEventPaid() && formData.approvalRequired) {
+      setFormData(prevData => ({ ...prevData, approvalRequired: false }));
+    }
+  }, [formData.tickets]);
+
   // Función de validación del formulario
   const validateForm = () => {
     const newErrors = {};
@@ -669,7 +681,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 )}
 
                 <Option style={{ borderBottom: 0 }}>
-                  <div className="Title">
+                  {/* <div className="Title">
                     <img src="/icons/approval-required.svg" alt="Aprobación requerida" /> Aprobación requerida
                   </div>
                   <Switch
@@ -677,7 +689,24 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                     onChange={(value) =>
                       setFormData((prevData) => ({ ...prevData, approvalRequired: value }))
                     }
-                  />
+                  /> */}
+                  <div className="Title">
+                    <img src="/icons/approval-required.svg" alt="Aprobación requerida" /> Aprobación requerida
+                  </div>
+                  <div>
+                    <Switch
+                      value={formData.approvalRequired}
+                      onChange={(value) =>
+                        setFormData((prevData) => ({ ...prevData, approvalRequired: value }))
+                      }
+                      disabled={isEventPaid()}
+                    />
+                    {isEventPaid() && (
+                      <DisabledMessage>
+                        Solo los eventos gratuitos pueden requerir aprobación.
+                      </DisabledMessage>
+                    )}
+                  </div>
                 </Option>
 
                 {/* Renderizar modales según el estado */}
@@ -1358,4 +1387,11 @@ const TicketItem = styled.div`
   & > button {
     margin-left: auto;
   }
+`;
+
+
+const DisabledMessage = styled.p`
+  font-size: 12px;
+  color: #888;
+  margin-top: 5px;
 `;

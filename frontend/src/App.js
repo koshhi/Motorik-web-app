@@ -20,6 +20,7 @@ import EnrollmentDetails from './pages/EnrollmentDetails';
 import EventManagement from './layouts/EventManagement';
 import ManageEvent from './components/EventManagement/ManageEvent';
 import ManageEventAttendees from './components/EventManagement/ManageEventAttendees';
+import ManageEventRegistration from './components/EventManagement/ManageEventRegistration';
 import EditEvent from './components/EditEvent';
 
 import { ToastContainer } from 'react-toastify';
@@ -41,6 +42,7 @@ function App() {
             <Route path="/events/manage/:id" element={<EventManagement />}>
               <Route index element={<ManageEvent />} />
               <Route path="attendees" element={<ManageEventAttendees />} />
+              <Route path="registration" element={<ManageEventRegistration />} />
               {/* <Route path="participants" element={<Participants />} />
             <Route path="communications" element={<Communications />} /> */}
             </Route>
