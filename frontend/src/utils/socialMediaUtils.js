@@ -1,3 +1,5 @@
+// utils/socialMediaUtils.js
+
 // Función para determinar la plataforma en base a la URL
 export const getPlatform = (url) => {
   if (url.includes('instagram.com')) return 'Instagram';

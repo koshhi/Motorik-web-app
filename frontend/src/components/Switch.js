@@ -17,7 +17,7 @@ export default Switch;
 
 const SwitchContainer = styled.div`
   height: 24px;
-  width: 40px;
+  width: 44px;
   background-color: ${({ theme, $isOn }) => $isOn ? theme.fill.brandMain : theme.fill.defaultStrong};
   padding: 2px;
   border-radius: 24px;

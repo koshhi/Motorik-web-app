@@ -4,34 +4,47 @@ import MainNavbar from '../components/Navbar/MainNavbar';
 import EventManagementHeader from '../components/EventManagementHeader';
 import styled from 'styled-components';
 import axiosClient from '../api/axiosClient';
+// import { useAuth } from '../context/AuthContext';
+import { EventProvider } from '../context/EventContext';
+
 
 const EventManagement = () => {
   const { id } = useParams();
+  // const { user } = useAuth();
   const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchEventDetails = async () => {
+    const fetchEvent = async () => {
       try {
         const response = await axiosClient.get(`/api/events/${id}`);
-        setEventDetails(response.data.event);
-      } catch (error) {
-        console.error('Error fetching event details:', error);
+        if (response.data.success) {
+          setEventDetails(response.data.event);
+        } else {
+          setError(response.data.message || 'Error al obtener el evento.');
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Error al obtener el evento.');
       } finally {
         setLoading(false);
       }
     };
-    fetchEventDetails();
+
+    fetchEvent();
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!eventDetails) return <p>Event not found</p>;
+  if (loading) return <p>Cargando...</p>;
+  if (error) return <p>{error}</p>;
+  if (!eventDetails) return <p>Evento no encontrado</p>;
 
   return (
     <>
       <MainNavbar />
-      <EventManagementHeader eventDetails={eventDetails} />
-      <Outlet context={{ eventDetails }} />
+      <EventProvider initialEventDetails={eventDetails}>
+        <EventManagementHeader />
+        <Outlet />
+      </EventProvider>
     </>
   );
 };

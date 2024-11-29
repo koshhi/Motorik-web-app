@@ -145,6 +145,9 @@ export const theme = {
     brandAlphaMain16: hexToRgba("#f65703", 0.16), // International Orange Alpha
     errorMain: "#f04438", // Red Orange.500
     elserrorAlphaMain16: "rgba(240, 68, 56, 0.1600)", // Red Orange Alpha
+    elserrorAlphaMain24: hexToRgba("#f04438", 0.24),
+    elserrorAlphaMain32: "rgba(240, 68, 56, 0.3200)", // Red Orange Alpha
+    elserrorAlphaMain48: hexToRgba("#f04438", 0.48),
     successMain: "#12b76a", // Chateau Green.500
     successAlphaMain16: "rgba(18, 183, 106, 0.1600)", // Chateau Green Alpha
     warningMain: "#9e77ed", // Medium Purple.500
@@ -165,6 +168,7 @@ export const theme = {
   },
 
   radius: {
+    xxs: '0.25rem', //4px 
     xs: '0.5rem', //8px
     sm: '1rem',
     md: '1.5rem',

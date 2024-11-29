@@ -1,25 +1,37 @@
 import styled from 'styled-components';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Button from './Button/Button';
+import { useEventContext } from '../context/EventContext';
 
-const EventManagementHeader = ({ eventDetails }) => {
+
+const EventManagementHeader = () => {
+  const { eventDetails } = useEventContext();
   const location = useLocation();
-  const { id } = useParams(); // ID del evento
+  const { id } = useParams();
   const navigate = useNavigate();
+
+  if (!eventDetails) {
+    return <p>Detalles del evento no disponibles.</p>;
+  }
 
   const { title } = eventDetails;
 
-  console.log(eventDetails)
+  // console.log(eventDetails)
 
   return (
     <>
       <HeaderWrapper>
         <Container>
           <div className='Header'>
-            <Button $variant="ghost" onClick={() => navigate(-1)}><img src="/icons/chevron-left.svg" alt="Back button" />Back</Button>
+            <Button $variant="ghost" onClick={() => navigate(-1)}>
+              <img src="/icons/chevron-left.svg" alt="Back button" />Back
+            </Button>
             <div className='Data'>
               <h1 className='EventTitle'>{title}</h1>
-              <Button $variant="outline" as={Link} to={`/events/${id}/${title}`}>Ver página del evento<img src="/icons/arrow-right-up.svg" alt="new window icon" /></Button>
+              <Button $variant="outline" as={Link} to={`/events/${id}/${title}`}>
+                Ver página del evento
+                <img src="/icons/arrow-right-up.svg" alt="new window icon" />
+              </Button>
             </div>
           </div>
           <SectionTabs>

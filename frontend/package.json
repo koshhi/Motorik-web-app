@@ -7,11 +7,15 @@
     "@react-oauth/google": "^0.12.1",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.3",
+    "i18next": "^23.16.8",
+    "i18next-browser-languagedetector": "^8.0.0",
+    "i18next-http-backend": "^3.0.1",
     "js-cookie": "^3.0.5",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-circle-flags": "^0.0.20",
     "react-dom": "^18.3.1",
+    "react-i18next": "^15.1.1",
     "react-router-dom": "^6.26.0",
     "react-scripts": "^5.0.1",
     "react-select": "^5.8.0",
@@ -32,7 +36,8 @@
     "svgo": "^2.8.0",
     "nth-check": "^2.1.1",
     "resolve-url-loader": "^5.0.0",
-    "postcss": "^8.4.31"
+    "postcss": "^8.4.31",
+    "cross-spawn": "^7.0.5"
   },
   "eslintConfig": {
     "env": {
@@ -60,6 +65,7 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.8",
-    "@testing-library/react": "^16.0.0"
+    "@testing-library/react": "^16.0.0",
+    "typescript": "^4.9.5"
   }
 }

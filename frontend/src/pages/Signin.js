@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axiosClient from '../api/axiosClient';
-// import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import InputText from '../components/Input/InputText';
@@ -11,6 +11,7 @@ const Signin = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { t } = useTranslation('signin');
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +52,8 @@ const Signin = () => {
           <p>Únete o entra a Motorik</p>
         </Header>
         <OauthSignin>
-          <h2 className='Title'>Unete o entra en un click</h2>
+          {/* <h2 className='Title'>{t('oauthTitle')}Unete o entra en un click</h2> */}
+          <h2 className='Title'>{t('oauthTitle')}</h2>
           <p className='Subtitle'>Entra con tu cuenta de Google o Facebook</p>
           <div className='OauthButtons'>
             <Button className='GoogleSignin' onClick={handleGoogleSignin} $variant="outline" size="medium"><img src="icons/google-color.svg" alt="Google logo" /><p>Continuar con Google</p><img src="icons/chevron-right.svg" alt="arrow icon" /></Button>

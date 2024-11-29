@@ -376,7 +376,7 @@ const MainFilters = styled.div`
     position: relative;
 
     &::before {
-      content: url(${process.env.CLIENT_URL}/icons/calendar.svg);
+      content: url(${process.env.REACT_APP_CLIENT_URL}/icons/calendar.svg);
       position: absolute;
       left: 12px; 
       top: 50%;
@@ -426,7 +426,7 @@ const Location = styled.button`
   -webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
-  background: url(${process.env.CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
+  background: url(${process.env.REACT_APP_CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
 	background-size: 24px;
 	background-position: calc(100% - 4px);
 
@@ -485,7 +485,7 @@ const TimeFrame = styled.select`
   -webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
-  background: url(${process.env.CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
+  background: url(${process.env.REACT_APP_CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
 	background-size: 24px;
 	background-position: calc(100% - 4px);
 

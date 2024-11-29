@@ -1,12 +1,24 @@
+// ManageEventAttendees.js
+
 import React from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axiosClient from '../../api/axiosClient';
+import { useEventContext } from '../../context/EventContext';
+import { toast } from 'react-toastify';
 import styled from 'styled-components';
+import Button from '../Button/Button';
+import Tag from '../Tag';
+import Typography from '../Typography';
+import { theme } from '../../theme';
+
+
 
 const ManageEventAttendees = () => {
-  const { eventDetails } = useOutletContext();
-  const { capacity, attendees } = eventDetails;
+  const { eventDetails, setEventDetails } = useEventContext();
+  const { capacity, attendees } = eventDetails || { capacity: 0, attendees: [] };
 
-  console.log({ eventoRecibido: eventDetails })
+
+  // console.log({ eventoRecibido: eventDetails })
 
   let percentage = 0;
 
@@ -17,6 +29,42 @@ const ManageEventAttendees = () => {
     // Evento sin capacidad limitada
     percentage = 100; // La barra estará siempre llena
   }
+
+  // Función para aprobar una inscripción
+  const handleApprove = async (attendeeId) => {
+    try {
+      const response = await axiosClient.post(`/api/events/${eventDetails.id}/attendees/${attendeeId}/approve`);
+      if (response.data.success) {
+        toast.success(response.data.message);
+        // Actualizar el estado localmente
+        const updatedAttendees = attendees.map((attendee) =>
+          attendee._id === attendeeId ? { ...attendee, status: 'attending' } : attendee
+        );
+        setEventDetails({ ...eventDetails, attendees: updatedAttendees });
+      }
+    } catch (error) {
+      console.error('Error al aprobar la inscripción:', error);
+      toast.error('Error al aprobar la inscripción.');
+    }
+  };
+
+  // Función para rechazar una inscripción
+  const handleReject = async (attendeeId) => {
+    try {
+      const response = await axiosClient.post(`/api/events/${eventDetails.id}/attendees/${attendeeId}/reject`);
+      if (response.data.success) {
+        toast.success(response.data.message);
+        // Actualizar el estado localmente
+        const updatedAttendees = attendees.map((attendee) =>
+          attendee._id === attendeeId ? { ...attendee, status: 'not attending' } : attendee
+        );
+        setEventDetails({ ...eventDetails, attendees: updatedAttendees });
+      }
+    } catch (error) {
+      console.error('Error al rechazar la inscripción:', error);
+      toast.error('Error al rechazar la inscripción.');
+    }
+  };
 
   return (
     <AttendeesSection>
@@ -53,43 +101,71 @@ const ManageEventAttendees = () => {
                   <p>{attendees.length} asistentes</p>
                 </>
               )}
-              {/* <div className='AttendeesConfirmed'></div>
-              <div className='AttendeesPending'></div>
-              <div className='AttendeesInvited'></div> */}
             </div>
           </AttendeesMetrics>
         </AttendeesSummaryWrapper>
         <AttendeesListwrapper>
           <Heading>Lista de asistentes</Heading>
-          <AttendeesListHeader>
-            <div className='NameHeader'>Nombre</div>
-            <div className='EmailHeader'>Email</div>
-            <div className='VehicleHeader'>Vehiculo</div>
-            <div className='StatusHeader'>Estado</div>
-          </AttendeesListHeader>
-          <AttendeesList>
-            {attendees && attendees.length > 0 ? (
-              attendees.map((attendee, index) => (
-                <AttendeeItem key={attendee.userId._id || index}>
-                  <div className='Name'>
-                    <img src={attendee.userId.userAvatar} alt={`${attendee.userId.name} avatar`} /><p>{attendee.userId.name} {attendee.userId.lastName}</p>
-                  </div>
-                  <div className='Email'>
-                    <p>{attendee.userId.email}</p>
-                  </div>
-                  <div className='Vehicle'>
-                    <p>{attendee.vehicleId.brand} {attendee.vehicleId.model}</p>
-                  </div>
-                  <div className='Status'>
-                    <p>status</p>
-                  </div>
-                </AttendeeItem>
-              ))
-            ) : (
-              <p>No hay asistentes registrados.</p>
-            )}
-          </AttendeesList>
+          {attendees && attendees.length > 0 ? (
+            <AttendeesTable>
+              <AttendeesListHeader>
+                <div className='NameHeader'>Nombre</div>
+                <div className='VehicleHeader'>Vehículo</div>
+                <div className='TicketHeader'>Entrada</div>
+                <div className='StatusHeader'>Estado</div>
+                <div className='ActionsHeader'></div>
+              </AttendeesListHeader>
+              <AttendeesList>
+                {attendees.map((attendee, index) => (
+                  <AttendeeItem key={attendee._id || index}>
+                    <div className='Name'>
+                      <img src={attendee.userId.userAvatar} alt={`${attendee.userId.name} avatar`} />
+                      <div className='AttendeeInfo'>
+                        <Typography as="p" $variant="body-2-medium">
+                          {attendee.userId.name} {attendee.userId.lastName}
+                        </Typography>
+                        <Typography as="p" $variant="body-2-regular">
+                          {attendee.userId.email}
+                        </Typography>
+                      </div>
+                    </div>
+                    <div className='Vehicle'>
+                      <Typography as="p" $variant="body-2-regular">
+                        {attendee.vehicleId.brand} {attendee.vehicleId.model}
+                      </Typography>
+                    </div>
+                    <div className='Ticket'>
+                      <div>
+                        <Typography as="p" $variant="body-2-regular">
+                          {attendee.ticketId.type === 'free' ? 'Gratis' : `De pago - ${attendee.ticketId.price}€`}
+                        </Typography>
+                        <Typography as="p" $variant="body-3-regular">
+                          {attendee.ticketId.approvalRequired && 'Requiere aprobación'}
+                        </Typography>
+                      </div>
+                    </div>
+                    <div className='Status'>
+                      <Tag>{attendee.status}</Tag>
+                    </div>
+                    <div className='Actions'>
+                      {attendee.status === 'confirmation pending' && (
+                        <>
+                          <Button size="small" $variant="outline" onClick={() => handleApprove(attendee._id)}>Aprobar</Button>
+                          <Button size="small" $variant="defaultDanger" onClick={() => handleReject(attendee._id)}>Rechazar</Button>
+                        </>
+                      )}
+                    </div>
+                  </AttendeeItem>
+                ))}
+              </AttendeesList>
+            </AttendeesTable>
+          ) : (
+            <AttendeesTableEmpty>
+              <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>No hay inscritos.</Typography>
+            </AttendeesTableEmpty>
+          )}
         </AttendeesListwrapper>
+
       </Container>
     </AttendeesSection>
   );
@@ -225,46 +301,67 @@ const AttendeesListwrapper = styled.div`
   width: 100%;
 `;
 
+const AttendeesTable = styled.div``;
+
+const AttendeesTableEmpty = styled.div`
+  padding: 8px 0px;
+`;
+
+
 const AttendeesList = styled.ul`
 `;
 
 const AttendeesListHeader = styled.div`
 display: grid;
-grid-template-columns: repeat(4, 1fr);
+grid-template-columns: repeat(13, 1fr);
 grid-template-rows: 1fr;
-grid-column-gap: 8px;
+// grid-column-gap: 8px;
 border-left: 1px solid ${({ theme }) => theme.border.defaultWeak};
 border-top: 1px solid ${({ theme }) => theme.border.defaultWeak};
 border-right: 1px solid ${({ theme }) => theme.border.defaultWeak};
 border-radius: ${({ theme }) => theme.radius.xs} ${({ theme }) => theme.radius.xs} 0px 0px;
 
-
-
-  .EmailHeader,
   .VehicleHeader,
   .StatusHeader,
-  .NameHeader {
+  .NameHeader,
+  .ActionsHeader,
+  .TicketHeader {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-direction: row;
     padding: 8px 16px;
   }
+
+  .VehicleHeader,
+  .StatusHeader,
+  .TicketHeader {
+    grid-column: span 2;
+  }
+
+  .ActionstHeader {
+    grid-column: span 3;
+  }
+
+  .NameHeader {
+    grid-column: span 4;
+  }
 `;
 
 const AttendeeItem = styled.li`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: 1fr;
-  grid-column-gap: 8px;
+  grid-template-columns: repeat(13, 1fr);
+  width: 100%;
+  // grid-template-rows: 1fr;
+  // grid-column-gap: 8px;
   border: 1px solid ${({ theme }) => theme.border.defaultWeak};
   // border-top: 1px solid ${({ theme }) => theme.border.defaultWeak};
   // border-bottom: 1px solid ${({ theme }) => theme.border.defaultWeak};
 
-  .Email,
   .Vehicle,
   .Status,
-  .Name {
+  .Name,
+  .Ticket {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -273,7 +370,25 @@ const AttendeeItem = styled.li`
     // border-right: 1px solid ${({ theme }) => theme.border.defaultWeak};
   }
 
+  
+  .Vehicle,
+  .Status,
+  .Ticket {
+    grid-column: span 2;
+  }
+  
+  .Actions {
+    grid-column: span 3;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding-right: 16px;
+  }
+
   .Name {
+    grid-column: span 4;
+
     img {
       width: 40px;
       height: 40px;

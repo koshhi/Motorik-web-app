@@ -4,10 +4,17 @@ import styled from 'styled-components';
 import Button from '../Button/Button';
 import AccountDropdown from '../AccountDropdown';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const MainNavbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
 
   const isAuthenticated = !!user;
 
@@ -45,6 +52,9 @@ const MainNavbar = () => {
           <ActionsContainer>
             <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
             <AccountDropdown userAvatar={user.userAvatar} />
+            <Button onClick={() => changeLanguage('es')}>Español</Button>
+            <Button onClick={() => changeLanguage('en')}>English</Button>
+
           </ActionsContainer>
         </div>
       ) : (
@@ -55,6 +65,8 @@ const MainNavbar = () => {
           <ActionsContainer>
             <Button size="small" $variant="defaultInverse" onClick={handleCreateEvent}>Crear evento</Button>
             <Link to="/signin"><Button size="small" $variant="outlineInverse">Entra o únete</Button></Link>
+            <Button onClick={() => changeLanguage('es')}>Español</Button>
+            <Button onClick={() => changeLanguage('en')}>English</Button>
           </ActionsContainer>
         </div>
       )}

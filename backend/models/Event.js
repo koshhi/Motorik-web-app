@@ -1,6 +1,9 @@
+// models/Event.js
+
 const { Schema, model } = require('mongoose')
 const { format } = require('date-fns')
 const { es } = require('date-fns/locale')
+const slugify = require('slugify')
 
 const attendeeSchema = new Schema({
   userId: {
@@ -12,26 +15,27 @@ const attendeeSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Vehicle',
     required: true
-  }
-}, { timestamps: true })
-
-const ticketSchema = new Schema({
-  type: {
-    type: String,
-    enum: ['free', 'paid'],
+  },
+  ticketId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Ticket',
     required: true
   },
-  price: {
-    type: Number,
-    required: function () { return this.type === 'paid' },
-    default: 0
+  status: {
+    type: String,
+    enum: ['confirmation pending', 'attending', 'not attending'],
+    default: 'confirmation pending'
   }
-})
+}, { timestamps: true })
 
 const eventSchema = new Schema({
   title: {
     type: String,
     required: true
+  },
+  slug: {
+    type: String,
+    unique: true
   },
   startDate: {
     type: Date,
@@ -82,32 +86,28 @@ const eventSchema = new Schema({
     enum: ['none', 'beginner', 'intermediate', 'advanced'],
     required: true
   },
-  tickets: [ticketSchema],
+  tickets: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Ticket'
+  }],
   capacity: {
     type: Number,
-    required: true
-  },
-  availableSeats: {
-    type: Number,
     required: true,
-    default: function () {
-      return this.capacity
-    }
-  },
-  approvalRequired: {
-    type: Boolean,
-    default: false,
-    required: true
+    min: [1, 'La capacidad debe ser al menos 1']
   },
   attendeesCount: {
     type: Number,
-    default: 1
+    default: 0
   },
   attendees: [attendeeSchema],
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  published: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true,
@@ -115,15 +115,24 @@ const eventSchema = new Schema({
   toObject: { virtuals: true }
 })
 
-// Validación antes de guardar
-eventSchema.pre('validate', function (next) {
-  const isEventPaid = this.tickets.some((ticket) => ticket.type === 'paid')
+// Pre-save hook para generar el slug automáticamente
+eventSchema.pre('save', async function (next) {
+  if (this.isModified('title') || !this.slug) {
+    const generateSlug = (title) => {
+      return title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+    }
 
-  if (isEventPaid && this.approvalRequired) {
-    this.invalidate(
-      'approvalRequired',
-      'Los eventos de pago no pueden requerir aprobación.'
-    )
+    let newSlug = generateSlug(this.title)
+    // Verificar si el slug ya existe
+    let existingEvent = await model('Event').findOne({ slug: newSlug })
+    let slugSuffix = 1
+    while (existingEvent) {
+      newSlug = `${generateSlug(this.title)}-${slugSuffix}`
+      slugSuffix++
+      // Re-check if the newSlug exists
+      existingEvent = await model('Event').findOne({ slug: newSlug })
+    }
+    this.slug = newSlug
   }
   next()
 })
@@ -189,13 +198,6 @@ eventSchema.virtual('weekdayStart').get(function () {
 
 // Crear un índice geoespacial en las coordenadas
 eventSchema.index({ locationCoordinates: '2dsphere' })
-
-eventSchema.pre('save', function (next) {
-  if (this.isNew) {
-    this.availableSeats = this.capacity
-  }
-  next()
-})
 
 // Establecer opciones toJSON y toObject
 eventSchema.set('toJSON', {

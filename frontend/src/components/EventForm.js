@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { Autocomplete } from '@react-google-maps/api';
 import { useAuth } from '../context/AuthContext';
 import InputText from './Input/InputText';
-import Switch from './Switch';
 import InputTextArea from './Input/InputTextArea';
 import { getEventTypeIcon } from '../utilities';
 import EventTypeModal from './Modal/EventTypeModal';
@@ -47,8 +46,13 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     eventType: 'Meetup',
     terrain: 'offroad',
     experience: 'none',
-    tickets: isEditMode ? [] : [{ type: 'free', price: 0 }],
-    capacity: 10,
+    tickets: isEditMode ? [] : [{
+      name: 'Entrada Estandar',
+      type: 'free',
+      price: 0,
+      approvalRequired: false,
+      capacity: 10
+    }],
     approvalRequired: false,
     coordinates: { lat: null, lng: null },
     imageUrl: '',
@@ -75,7 +79,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       setFormData({
         ...formData,
         ...initialData,
-        tickets: initialData.tickets || [],
+        tickets: initialData.tickets
+          ? initialData.tickets.map((ticket) => ({
+            ...ticket,
+            approvalRequired: ticket.approvalRequired !== undefined ? ticket.approvalRequired : false,
+          }))
+          : [],
         imageUrl: initialData.image || '',
         coordinates: initialData.locationCoordinates
           ? {
@@ -162,13 +171,27 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       newErrors.tickets = 'Se requiere al menos un ticket.';
     } else {
       formData.tickets.forEach((ticket, index) => {
+        if (!ticket.name || !ticket.name.trim()) {
+          newErrors[`tickets.${index}.name`] = `El nombre del ticket ${index + 1} es obligatorio.`;
+        }
         if (!ticket.type) {
           newErrors[`tickets.${index}.type`] = `El tipo del ticket ${index + 1} es obligatorio.`;
         }
         if (ticket.type === 'paid') {
-          if (ticket.price === undefined || ticket.price === '' || isNaN(ticket.price)) {
-            newErrors[`tickets.${index}.price`] = `El precio del ticket ${index + 1} es obligatorio para tickets pagos.`;
+          const price = Number(ticket.price);
+          if (isNaN(price) || price <= 0) {
+            newErrors[`tickets.${index}.price`] = `El precio del ticket ${index + 1} debe ser un número positivo.`;
           }
+        }
+        // Validar 'approvalRequired'
+        const approvalValue = ticket.approvalRequired;
+        if (approvalValue !== true && approvalValue !== false) {
+          newErrors[`tickets.${index}.approvalRequired`] = `El campo 'Aprobación requerida' del ticket ${index + 1} debe ser verdadero o falso.`;
+        }
+        // Validar 'capacity'
+        const capacityValue = Number(ticket.capacity);
+        if (isNaN(capacityValue) || capacityValue < 1) {
+          newErrors[`tickets.${index}.capacity`] = `La capacidad del ticket ${index + 1} debe ser un número entero positivo.`;
         }
       });
     }
@@ -194,10 +217,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
         coordinates: [formData.coordinates.lng, formData.coordinates.lat], // [lng, lat]
       };
 
-      // Preparar tickets para enviar
-      const tickets = formData.tickets.map(ticket => ({
+      const tickets = formData.tickets.map((ticket) => ({
+        name: ticket.name,
         type: ticket.type,
-        price: ticket.type === 'paid' ? Number(ticket.price) : 0
+        price: ticket.type === 'paid' ? Number(ticket.price) : 0,
+        approvalRequired: ticket.approvalRequired,
+        capacity: Number(ticket.capacity)
       }));
 
       const newFormData = new FormData();
@@ -211,9 +236,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       newFormData.append('terrain', formData.terrain);
       newFormData.append('experience', formData.experience);
       newFormData.append('tickets', JSON.stringify(tickets));
-      newFormData.append('capacity', formData.capacity);
-      newFormData.append('approvalRequired', formData.approvalRequired);
-      newFormData.append('locationCoordinates', JSON.stringify(locationCoordinates)); // Asegurarse de enviar en [lng, lat]
+      newFormData.append('locationCoordinates', JSON.stringify(locationCoordinates));
       if (file) newFormData.append('image', file);
 
       return newFormData;
@@ -222,7 +245,13 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       setFormData({
         ...formData,
         ...data,
-        tickets: data.tickets || [{ type: 'free', price: 0 }],
+        tickets: data.tickets || [{
+          name: '',
+          type: 'free',
+          price: 0,
+          approvalRequired: false,
+          capacity: 10
+        }],
         imageUrl: data.image || '',
         coordinates: data.locationCoordinates
           ? {
@@ -311,40 +340,6 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
   // Manejar el cierre de modales
   const handleCloseModal = () => {
     setActiveModal(null);
-  };
-
-  // Manejar cambios en los tickets en modo edición
-  const handleTicketChange = (index, field, value) => {
-    const updatedTickets = [...formData.tickets];
-    updatedTickets[index][field] = field === 'price' ? Number(value) : value;
-    setFormData((prevData) => ({
-      ...prevData,
-      tickets: updatedTickets,
-    }));
-    if (errors[`tickets.${index}.${field}`]) {
-      setErrors({ ...errors, [`tickets.${index}.${field}`]: '' });
-    }
-  };
-
-  // Función para añadir un nuevo ticket en modo edición
-  const handleAddTicket = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      tickets: [...prevData.tickets, { type: 'free', price: 0 }],
-    }));
-  };
-
-  // Función para eliminar un ticket en modo edición
-  const handleRemoveTicket = (index) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      tickets: prevData.tickets.filter((_, i) => i !== index),
-    }));
-    // Eliminar errores asociados si existen
-    const newErrors = { ...errors };
-    delete newErrors[`tickets.${index}.type`];
-    delete newErrors[`tickets.${index}.price`];
-    setErrors(newErrors);
   };
 
   return (
@@ -651,7 +646,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   </button>
                 </Option>
 
-                <Option onClick={() => handleOpenModal('capacity')}>
+                {/* <Option onClick={() => handleOpenModal('capacity')}>
                   <div className="Title">
                     <img src="/icons/capacity.svg" alt="Capacidad" /> Capacidad
                   </div>
@@ -659,55 +654,39 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   <button className="OptionSelected">
                     {formData.capacity} <img src="/icons/edit.svg" alt="Editar" />
                   </button>
-                </Option>
+                </Option> */}
 
-                {/* Sección de Tickets */}
-                {!isEditMode ? (
-                  <Option onClick={() => handleOpenModal('ticket')}>
+
+                {!isEditMode && (
+                  <Option>
                     <div className="Title">
                       <img src="/icons/ticket.svg" alt="Ticket" /> Ticket
                     </div>
 
-                    <button className="OptionSelected">
-                      {formData.tickets[0].price === 0 ? 'Gratis' : `${formData.tickets[0].price}`} <img src="/icons/edit.svg" alt="Editar" />
+                    <button className="OptionSelected" onClick={() => handleOpenModal('ticket')}>
+                      {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" />
                     </button>
                   </Option>
-                ) : (
+                )}
+                {/* 
+                {!isEditMode && (
                   <Option>
                     <div className="Title">
-                      <img src="/icons/ticket.svg" alt="Tickets" /> Tickets
+                      <img src="/icons/approval-required.svg" alt="Aprobación requerida" /> Aprobación requerida
+                    </div>
+                    <div>
+                      <Switch
+                        value={formData.tickets[0].approvalRequired}
+                        onChange={(value) => {
+                          const updatedTickets = [...formData.tickets];
+                          updatedTickets[0].approvalRequired = value;
+                          setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                        }}
+                        disabled={ticketType === 'paid'}
+                      />
                     </div>
                   </Option>
-                )}
-
-                <Option style={{ borderBottom: 0 }}>
-                  {/* <div className="Title">
-                    <img src="/icons/approval-required.svg" alt="Aprobación requerida" /> Aprobación requerida
-                  </div>
-                  <Switch
-                    value={formData.approvalRequired}
-                    onChange={(value) =>
-                      setFormData((prevData) => ({ ...prevData, approvalRequired: value }))
-                    }
-                  /> */}
-                  <div className="Title">
-                    <img src="/icons/approval-required.svg" alt="Aprobación requerida" /> Aprobación requerida
-                  </div>
-                  <div>
-                    <Switch
-                      value={formData.approvalRequired}
-                      onChange={(value) =>
-                        setFormData((prevData) => ({ ...prevData, approvalRequired: value }))
-                      }
-                      disabled={isEventPaid()}
-                    />
-                    {isEventPaid() && (
-                      <DisabledMessage>
-                        Solo los eventos gratuitos pueden requerir aprobación.
-                      </DisabledMessage>
-                    )}
-                  </div>
-                </Option>
+                )} */}
 
                 {/* Renderizar modales según el estado */}
                 {activeModal === 'eventType' && (
@@ -740,7 +719,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   />
                 )}
 
-                {activeModal === 'capacity' && (
+                {/* {activeModal === 'capacity' && (
                   <EventCapacityModal
                     capacity={formData.capacity}
                     setCapacity={(value) =>
@@ -748,21 +727,39 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                     }
                     onClose={handleCloseModal}
                   />
-                )}
+                )} */}
 
                 {!isEditMode && activeModal === 'ticket' && (
                   <EventTicketModal
+                    ticketName={formData.tickets[0].name}
                     ticketType={formData.tickets[0].type}
+                    ticketPrice={formData.tickets[0].price}
+                    capacity={formData.tickets[0].capacity}
+                    approvalRequired={formData.tickets[0].approvalRequired}
+                    setTicketName={(value) => {
+                      const updatedTickets = [...formData.tickets];
+                      updatedTickets[0].name = value;
+                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                    }}
                     setTicketType={(value) => {
                       const updatedTickets = [...formData.tickets];
                       updatedTickets[0].type = value;
                       if (value === 'free') updatedTickets[0].price = 0;
                       setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
                     }}
-                    ticketPrice={formData.tickets[0].price}
                     setTicketPrice={(value) => {
                       const updatedTickets = [...formData.tickets];
                       updatedTickets[0].price = value;
+                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                    }}
+                    setCapacity={(value) => {
+                      const updatedTickets = [...formData.tickets];
+                      updatedTickets[0].capacity = value;
+                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                    }}
+                    setApprovalRequired={(value) => {
+                      const updatedTickets = [...formData.tickets];
+                      updatedTickets[0].approvalRequired = value;
                       setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
                     }}
                     onClose={handleCloseModal}
@@ -770,46 +767,6 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 )}
               </div>
             </Options>
-            {/* Sección de Tickets para Editar */}
-            {isEditMode && (
-              <OptionsContainer>
-                <label>Tickets</label>
-                {formData.tickets.map((ticket, index) => (
-                  <TicketItem key={index}>
-                    <InputText
-                      name={`tickets[${index}].type`}
-                      value={ticket.type}
-                      onChange={(e) => handleTicketChange(index, 'type', e.target.value)}
-                      placeholder="Tipo de ticket"
-                      $variant={errors[`tickets.${index}.type`] ? 'error' : ''}
-                      required
-                    />
-                    {errors[`tickets.${index}.type`] && (
-                      <ErrorMessage>{errors[`tickets.${index}.type`]}</ErrorMessage>
-                    )}
-                    {ticket.type === 'paid' && (
-                      <>
-                        <InputText
-                          name={`tickets.${index}.price`}
-                          value={ticket.price}
-                          onChange={(e) => handleTicketChange(index, 'price', e.target.value)}
-                          placeholder="Precio (€)"
-                          type="number"
-                          $variant={errors[`tickets.${index}.price`] ? 'error' : ''}
-                          required
-                        />
-                        {errors[`tickets.${index}.price`] && (
-                          <ErrorMessage>{errors[`tickets.${index}.price`]}</ErrorMessage>
-                        )}
-                      </>
-                    )}
-                    <RemoveTicketButton onClick={() => handleRemoveTicket(index)}>Eliminar</RemoveTicketButton>
-                  </TicketItem>
-                ))}
-                {errors.tickets && <ErrorMessage>{errors.tickets}</ErrorMessage>}
-                <AddTicketButton onClick={handleAddTicket}>Añadir Ticket</AddTicketButton>
-              </OptionsContainer>
-            )}
           </Settings>
         </Grid>
       </FormWrapper>

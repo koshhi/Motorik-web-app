@@ -12,8 +12,6 @@ import { getPlatform, getIcon } from '../utils/socialMediaUtils';
 import { CircleFlag } from 'react-circle-flags';
 import { Autocomplete } from '@react-google-maps/api';
 
-// const libraries = ['places'];
-
 const CompleteProfile = () => {
   const { userId } = useParams();
   const isEditMode = Boolean(userId);
@@ -40,13 +38,6 @@ const CompleteProfile = () => {
   const [newLink, setNewLink] = useState('');
   const [errors, setErrors] = useState({});
   const addressRef = useRef(null);
-
-  // // API de Google Maps
-  // const { isLoaded } = useLoadScript({
-  //   googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-  //   libraries,
-  //   loading: 'async'
-  // });
 
   const [autocomplete, setAutocomplete] = useState(null);
 
@@ -333,29 +324,6 @@ const CompleteProfile = () => {
 
           <p className='inputNote'>Tu dirección completa no se mostrará al público.</p>
         </label>
-
-        {/* <label>
-          Localidad:
-          <InputText
-            type="text"
-            name="locality"
-            value={formData.locality}
-            onChange={handleChange}
-            $size="large"
-            placeholder="Introduce tu localidad"
-          />
-        </label>
-        <label>
-          País:
-          <InputText
-            type="text"
-            name="country"
-            value={formData.country}
-            onChange={handleChange}
-            $size="large"
-            placeholder="Introduce tu país"
-          />
-        </label> */}
         <div className='Row'>
           <label>
             Prefijo:

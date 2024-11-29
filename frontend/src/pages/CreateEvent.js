@@ -13,38 +13,6 @@ const CreateEvent = () => {
     navigate('/');
   };
 
-  // const handleCreateEvent = async () => {
-  //   if (eventFormRef.current) {
-  //     const formData = await eventFormRef.current.getFormData();
-
-  //     if (!formData) {
-  //       console.error('Errores en el formulario, no se puede enviar');
-  //       return;
-  //     }
-
-  //     // Mostrar el contenido de FormData
-  //     for (let pair of formData.entries()) {
-  //       console.log(pair[0] + ': ' + pair[1]);
-  //     }
-
-  //     try {
-  //       const authToken = localStorage.getItem('authToken');
-  //       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/events`, formData, {
-  //         headers: {
-  //           Authorization: `Bearer ${authToken}`,
-  //           'Content-Type': 'multipart/form-data',
-  //         },
-  //       });
-
-  //       if (response.data.success) {
-  //         navigate('/');
-  //       } else {
-  //         console.error('Error en la creación del evento');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error creando el evento:', error);
-  //     }
-  //   }
   const handleCreateEvent = async () => {
     if (eventFormRef.current) {
       const formData = await eventFormRef.current.getFormData();
@@ -54,7 +22,7 @@ const CreateEvent = () => {
         return;
       }
 
-      // Mostrar el contenido de FormData
+      // Mostrar el contenido de FormData (opcional)
       for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
@@ -67,7 +35,7 @@ const CreateEvent = () => {
         });
 
         if (response.data.success) {
-          navigate('/');
+          navigate(`/events/manage/${response.data.event.id}`);
         } else {
           console.error('Error en la creación del evento');
         }

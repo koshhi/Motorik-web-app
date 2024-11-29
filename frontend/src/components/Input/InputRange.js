@@ -89,7 +89,7 @@ const Slider = styled.input`
       transition: all 0.3s;
       border-radius: 16px;
       background-color: ${({ theme }) => theme.fill.defaultMain};
-      background-image: url(${process.env.CLIENT_URL}/icons/knob-drag.svg);
+      background-image: url(${process.env.REACT_APP_CLIENT_URL}/icons/knob-drag.svg);
       background-size: 8px 8px;
       background-repeat: no-repeat;
       background-position: center;
@@ -120,7 +120,7 @@ const Slider = styled.input`
       transition: all 0.3s;
       border-radius: 16px;
       background-color: ${({ theme }) => theme.fill.defaultMain};
-      background-image: url(${process.env.CLIENT_URL}/icons/knob-drag.svg);
+      background-image: url(${process.env.REACT_APP_CLIENT_URL}/icons/knob-drag.svg);
       background-size: 8px 8px;
       background-repeat: no-repeat;
       background-position: center;
@@ -158,7 +158,7 @@ const Slider = styled.input`
 //     transition: all 0.3s;
 //     border-radius: var(--Spacing-sm, 16px);
 //     background-color: ${({ theme }) => theme.fill.defaultMain};
-//     background-image: url(${process.env.CLIENT_URL}/icons/knob-drag.svg);
+//     background-image: url(${process.env.REACT_APP_CLIENT_URL}/icons/knob-drag.svg);
 //     background-size: 8px 8px;
 //     background-repeat: no-repeat;
 //     background-position: center;

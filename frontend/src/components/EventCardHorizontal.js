@@ -1,15 +1,23 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
 import { getEventTypeIcon } from '../utilities'
 import Button from './Button/Button';
 
 const EventCardHorizontal = ({ event }) => {
+  const navigate = useNavigate();
+
 
   const generateSlug = (title) => {
     return title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
   }
+
+  const handleManageEventClick = () => {
+    console.log("clicked")
+    navigate(`/events/manage/${event.id}`);
+  };
 
   return (
     <>
@@ -62,7 +70,7 @@ const EventCardHorizontal = ({ event }) => {
                     <div><ReactSVG src="/icons/attendees.svg" />{event.attendeesCount} asistentes</div>
                   </div>
                   <div className='tertiaryInfo'>
-                    <Button size="small" $variant="outline">Gestionar Evento<img src="/icons/arrow-right.svg" /></Button>
+                    <Link className="ManageEvent" to={`/events/manage/${event.id}`}>Gestionar Evento<img src="/icons/arrow-right.svg" alt="arrow" /></Link>
                   </div>
                 </Right>
               </Event>
@@ -380,6 +388,25 @@ const Right = styled.div`
     align-items: flex-end;
     flex-grow: 1;
     justify-content: flex-end;
+
+    .ManageEvent {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-variant-numeric: lining-nums tabular-nums;
+      font-feature-settings: 'ss01' on;
+      font-family: "Mona Sans";
+      font-style: normal;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      line-height: 150%;
+      padding: 8px 8px;
+      font-size: 16px;
+      background-color: transparent;
+      border: 1px solid #dcdcdc;
+      color: #10110f;
+    }
   }
 `;
 

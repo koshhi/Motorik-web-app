@@ -1,0 +1,16 @@
+{
+  "signinHeader": "Únete o entra a Motorik",
+  "oauthTitle": "Únete o entra en un click",
+  "oauthSubtitle": "Entra con tu cuenta de Google o Facebook",
+  "emailSigninSubtitle": "Entra con tu correo electrónico",
+  "emailPlaceholder": "Introduce tu email",
+  "emailSigninButton": "Continuar con Email",
+  "googleSigninButton": "Continuar con Google",
+  "facebookSigninButton": "Continuar con Facebook",
+  "errorMessages": {
+    "emailRequired": "El correo electrónico es obligatorio.",
+    "invalidEmail": "Por favor, introduce un correo electrónico válido.",
+    "submissionError": "Error enviando el email, por favor intenta de nuevo.",
+    "processingError": "Error procesando la solicitud, por favor intenta de nuevo."
+  }
+}

@@ -75,6 +75,21 @@ const InputText = styled.input`
   line-height: 100%;
   transition: all 0.3s;
 
+  /* Chrome, Safari, Edge, Opera */
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  -moz-appearance: textfield;
+
+
+  /* Firefox */
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+
   
   ${sizeStyles} /* Aplicar los estilos basados en el tamaño */
   ${variantStyles} /* Aplicar los estilos basados en la variante */

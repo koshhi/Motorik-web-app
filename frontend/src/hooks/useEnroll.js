@@ -1,46 +1,52 @@
-// src/hooks/useEnroll.js
+// hooks/useEnroll.js
+
 import { useState } from 'react';
-import AxiosClient from '../api/axiosClient';
+import axiosClient from '../api/axiosClient';
 import { toast } from 'react-toastify';
 
-const useEnroll = (eventId, user, onEnrollSuccess) => {
+/**
+ * Hook para manejar la inscripción de un usuario en un evento.
+ * @param {string} eventId - ID del evento.
+ * @param {object} user - Objeto del usuario actual.
+ * @param {function} onSuccess - Callback que se ejecuta al inscribirse exitosamente.
+ * @returns {object} { enroll, loadingEnroll, errorEnroll }
+ */
+const useEnroll = (eventId, user, onSuccess) => {
   const [loadingEnroll, setLoadingEnroll] = useState(false);
   const [errorEnroll, setErrorEnroll] = useState(null);
 
-  const enroll = async (vehicleId) => {
-    if (!user) {
-      setErrorEnroll('Debes estar autenticado para inscribirte en un evento.');
-      toast.error('Debes estar autenticado para inscribirte en un evento.');
-      return;
-    }
-
-    if (!vehicleId) {
-      setErrorEnroll('Debe seleccionar un vehículo para inscribirse.');
-      toast.error('Debe seleccionar un vehículo para inscribirse.');
-      return;
-    }
-
+  /**
+   * Función para inscribir al usuario en el evento.
+   * @param {string} vehicleId - ID del vehículo seleccionado.
+   * @param {string} ticketId - ID del ticket seleccionado.
+   */
+  const enroll = async (vehicleId, ticketId) => {
     setLoadingEnroll(true);
     setErrorEnroll(null);
 
     try {
-      const response = await AxiosClient.post(`/api/events/enroll/${eventId}`, {
+      // Solicitud corregida
+      const response = await axiosClient.post(`/api/events/enroll/${eventId}`, {
         vehicleId,
+        ticketId,
       });
 
+      // Verifica si la inscripción fue exitosa
       if (response.data.success) {
-        // Llamar a la función de éxito con el evento actualizado
-        if (onEnrollSuccess) onEnrollSuccess(response.data.event);
-        toast.success(response.data.message);
+        toast.success(response.data.message || 'Inscripción exitosa.');
+        if (onSuccess) {
+          onSuccess(response.data.event); // Actualiza el estado del evento en el componente
+        }
       } else {
-        setErrorEnroll(response.data.message || 'Hubo un error al inscribirse en el evento.');
-        toast.error(response.data.message || 'Hubo un error al inscribirse en el evento.');
+        // Maneja errores devueltos por el servidor
+        setErrorEnroll(response.data.message || 'No se pudo inscribir al evento.');
+        toast.error(response.data.message || 'No se pudo inscribir al evento.');
       }
-    } catch (err) {
-      console.error('Error enrolling in event:', err);
-      const message = err.response?.data?.message || 'Hubo un error al inscribirse en el evento.';
-      setErrorEnroll(message);
-      toast.error(message);
+    } catch (error) {
+      // Maneja errores de red u otros errores inesperados
+      console.error('Error al inscribirse en el evento:', error);
+      setErrorEnroll('Error al inscribirse en el evento.');
+      toast.error('Error al inscribirse en el evento.');
     } finally {
       setLoadingEnroll(false);
     }

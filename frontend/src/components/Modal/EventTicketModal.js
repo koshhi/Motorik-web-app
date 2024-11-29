@@ -1,32 +1,133 @@
-import React from 'react';
+// components/EventTicketModal.js
+
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '../Button/Button';
 import InputText from '../Input/InputText';
-import Select from '../Select/Select'
+import Switch from '../Switch';
+import Typography from '../Typography';
+import ToogableTabs from '../Toogle/ToogableTabs';
+import { theme } from '../../theme';
 
-const EventTicketModal = ({ ticketPrice, ticketType, setTicketPrice, setTicketType, onClose }) => {
+const EventTicketModal = ({
+  ticketName,
+  ticketPrice,
+  ticketType,
+  capacity,
+  approvalRequired,
+  setTicketName,
+  setTicketPrice,
+  setTicketType,
+  setCapacity,
+  setApprovalRequired,
+  onClose,
+}) => {
+
+  // Opciones para ToogableTabs
+  const ticketOptions = [
+    { label: 'Gratis', value: 'free' },
+    { label: 'De Pago', value: 'paid' },
+  ];
+
+  // useEffect para establecer el precio por defecto cuando el tipo es 'paid'
+  useEffect(() => {
+    if (ticketType === 'paid' && (ticketPrice === '' || ticketPrice === 0)) {
+      setTicketPrice(10); // Precio por defecto para tickets de pago
+    } else if (ticketType === 'free') {
+      setTicketPrice(0); // Asegurar que el precio es 0 para tickets gratuitos
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticketType]);
+
   return (
     <ModalOverlay>
       <ModalContent>
-        <div className='Heading'>
-          <h4>Empieza a vender entradas</h4>
-          <p>Una vez vinculada una cuenta Stripe podrás recibir  el pago de las inscripciones en la cuenta bancaria asociada.</p>
-        </div>
-        <Select value={ticketType} onChange={(e) => setTicketType(e.target.value)}>
-          <option value="free">Gratis</option>
-          <option value="paid">De pago</option>
-        </Select>
-        {ticketType === 'paid' && (
-          <InputText
-            size="medium"
-            type="number"
-            value={ticketPrice}
-            onChange={(e) => setTicketPrice(e.target.value)}
-            placeholder="Precio del ticket"
-            required
+
+        <ModalHeading>
+          <Typography as="h4" $variant="title-5-semibold" color={theme.colors.defaultMain}>
+            Configura la entrada
+          </Typography>
+          <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
+            Define el nombre, tipo, precio y capacidad de tu ticket, y si requiere aprobación.
+          </Typography>
+        </ModalHeading>
+
+        <ModalContentRow>
+          <InputWrapper>
+            <Typography $variant="body-2-medium" as="label" color={theme.colors.defaultMain}>
+              Nombre de la entrada:
+            </Typography>
+            <InputText
+              size="medium"
+              type="text"
+              value={ticketName}
+              onChange={(e) => setTicketName(e.target.value)}
+              placeholder="Nombre del ticket"
+              required
+            />
+          </InputWrapper>
+        </ModalContentRow>
+
+        <ModalContentRow>
+          <ToogableTabs
+            options={ticketOptions}
+            activeOption={ticketType}
+            onTabChange={(value) => setTicketType(value)}
           />
+        </ModalContentRow>
+
+        <ModalContentRow>
+          <InputWrapperHorizontal>
+            <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Número de Entradas:</Typography>
+            <InputText
+              size="medium"
+              type="number"
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              placeholder="Capacidad del ticket"
+              required
+              style={{ width: "80px" }}
+            />
+          </InputWrapperHorizontal>
+        </ModalContentRow>
+
+        {ticketType === 'paid' && (
+          <ModalContentRow>
+            <InputWrapperHorizontal>
+              <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>
+                Precio:
+              </Typography>
+              <TicketPriceInput>
+                <InputText
+                  size="medium"
+                  type="number"
+                  value={ticketPrice}
+                  onChange={(e) => setTicketPrice(e.target.value)}
+                  placeholder="Precio del ticket"
+                  required
+                  style={{ width: "80px" }}
+                />
+                <Typography>€</Typography>
+              </TicketPriceInput>
+            </InputWrapperHorizontal>
+          </ModalContentRow>
         )}
-        <Button size="medium" onClick={onClose}>Guadar ticket</Button>
+
+        {ticketType === 'free' && (
+          <ModalContentRow>
+            <InputWrapperHorizontal style={{ minHeight: "38px" }}>
+              <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Aprobación requerida:</Typography>
+              <Switch
+                value={approvalRequired}
+                onChange={(value) => setApprovalRequired(value)}
+                disabled={ticketType === 'paid'}
+              />
+            </InputWrapperHorizontal>
+          </ModalContentRow>
+        )}
+        <Button size="medium" onClick={onClose}>
+          Guardar ticket
+        </Button>
       </ModalContent>
     </ModalOverlay>
   )
@@ -34,58 +135,62 @@ const EventTicketModal = ({ ticketPrice, ticketType, setTicketPrice, setTicketTy
 
 export default EventTicketModal;
 
+// Estilos para el componente
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  background-color: rgba(0,0,0,0.5);
   display: flex;
-  flex-direction: row;
   justify-content: center;
   align-items: center;
-  background: rgba(26, 26, 26, 0.90);
-  backdrop-filter: blur(12px);
 `;
 
 const ModalContent = styled.div`
-  background-color: ${({ theme }) => theme.fill.defaultMain};
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+`;
+
+const ModalHeading = styled.div`
+  margin-bottom: 24px;
+`;
+
+const ModalContentRow = styled.div`
   display: flex;
-  padding: var(--Spacing-md, 24px);
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--Spacing-lg, 32px);
-  border-radius: ${({ theme }) => theme.radius.sm};
-  max-width: 488px;
+  width: 100%;
+  padding-bottom: 24px;
+`;
 
-  .Heading {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+const InputWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+`;
 
-    h4 {
-      color: ${({ theme }) => theme.colors.defaultMain};
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
-      /* Titles/Mobile/Title 5/Semibold */
-      font-family: "Mona Sans";
-      font-size: 18px;
-      font-style: normal;
-      font-weight: 600;
-      line-height: 150%;
-    }
+const TicketPriceInput = styled.div`
+  display: flex;
+  position: relative;
 
-    p {
-      color: ${({ theme }) => theme.colors.defaultWeak};
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
-
-      /* Body/Body 1/Medium */
-      font-family: "Mona Sans";
-      font-size: 16px;
-      font-style: normal;
-      font-weight: 500;
-      line-height: 150%; /* 24px */
-    }
+  span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 8px;
   }
+`;
+
+const InputWrapperHorizontal = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
 `;
