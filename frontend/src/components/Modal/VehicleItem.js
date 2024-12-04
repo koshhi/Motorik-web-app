@@ -56,14 +56,14 @@ const VehicleContainer = styled.li`
   padding-left: ${({ theme }) => theme.sizing.sm};
   border: 1px solid ${({ theme, selected }) => (selected ? theme.border.brandMain : theme.border.defaultWeak)};
   border-radius: ${({ theme }) => theme.sizing.xs};
-  background-color: ${({ theme, selected }) => (selected ? theme.fill.defaultSubtle : theme.fill.defaultMain)};
+  background-color: ${({ theme, selected }) => (selected ? theme.fill.defaultMain : theme.fill.defaultMain)};
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   transition: background-color 0.2s, border-color 0.2s;
 
   &:hover {
-    // border-color: ${({ selected, theme }) => (selected ? theme.border.brandMain : theme.border.defaultWeak)};
-    // background-color: ${({ selected, theme }) => (selected ? theme.colors.primaryLight : theme.fill.brandAlphaMain16)};
+    border-color: ${({ selected, theme }) => (selected ? theme.border.brandMain : theme.border.defaultStrong)};
+    background-color: ${({ selected, theme }) => (selected ? theme.fill.defaulSubtle : theme.fill.defaultMain)};
   }
 `;
 

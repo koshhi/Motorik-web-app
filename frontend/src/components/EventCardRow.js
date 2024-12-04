@@ -1,13 +1,15 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
 import { getEventTypeIcon } from '../utilities'
 import Button from './Button/Button';
+import PriceDisplay from './PriceDisplay';
 
 const EventCardRow = ({ event }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const generateSlug = (title) => {
     return title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
@@ -15,6 +17,12 @@ const EventCardRow = ({ event }) => {
 
   // Verifica si el usuario es el owner del evento
   const isOwner = user && event.owner.id === user.id;
+
+  // Handler para navegar a la página de gestión
+  const handleManageEventClick = (e) => {
+    e.preventDefault();
+    navigate(`/events/manage/${event.id}`);
+  };
 
   return (
     <Link to={`/events/${event.id}/${generateSlug(event.title)}`}>
@@ -55,12 +63,11 @@ const EventCardRow = ({ event }) => {
             <div><ReactSVG src="/icons/attendees.svg" />{event.attendeesCount} asistentes</div>
           </div>
           <div className='tertiaryInfo'>
+            <PriceDisplay tickets={event.tickets} showOptions={true} />
             {isOwner ? (
-              <Link className="ManageEvent" to={`/events/manage/${event.id}`}>Gestionar Evento<img src="/icons/arrow-right.svg" alt="arrow" /></Link>
-              // <Button size="small" $variant="outline">Gestionar Evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
+              <Button size="small" $variant="outline" onClick={handleManageEventClick}>Gestionar Evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
             ) : (
               <Button size="small" $variant="outline">Ver evento<img src="/icons/arrow-right.svg" alt="arrow" /></Button>
-              // <Link className="ManageEvent" to={`/events/manage/${event.id}`}>Gestionar Evento</Link>
 
             )}
           </div>

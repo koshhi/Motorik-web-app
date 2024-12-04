@@ -103,11 +103,17 @@ const TicketItem = ({ ticket, selected, onSelect }) => {
             {ticket.type === 'free' ? 'Gratis' : `${ticket.price}€`}
           </Typography>
         </TicketData>
-        <TicketTags>
-          <Tag>{ticket.availableSeats} disponible{ticket.availableSeats !== 1 ? 's' : ''}</Tag>
-          {ticket.approvalRequired && <Tag>Requiere aprobación</Tag>}
-        </TicketTags>
-        {ticket.availableSeats <= 0 && <Typography color="red">Sin asientos disponibles</Typography>}
+        <TagsWrapper>
+          <Tag $variant='subtle' $textStyle='caption-medium' $textTransform='capitalize' $letterSpacing='none' $borderRadius='8px'>
+            {ticket.availableSeats} disponible{ticket.availableSeats !== 1 ? 's' : ''}
+          </Tag>
+          {ticket.approvalRequired && (
+            <Tag $variant='brandSubtle' $textStyle='caption-medium' $textTransform='capitalize' $letterSpacing='none' $borderRadius='8px'>
+              Requiere aprobación
+            </Tag>
+          )}
+        </TagsWrapper>
+        {ticket.availableSeats <= 0 && <Typography>Sin asientos disponibles</Typography>}
       </TicketContent>
     </TicketContainer>
   );
@@ -138,13 +144,13 @@ const TicketContainer = styled.li`
   padding: ${({ theme }) => theme.sizing.sm};
   border: 1px solid ${({ theme, selected }) => (selected ? theme.border.brandMain : theme.border.defaultWeak)};
   border-radius: ${({ theme }) => theme.sizing.xs};
-  background-color: ${({ theme, selected }) => (selected ? theme.fill.defaultSubtle : theme.fill.defaultMain)};
+  background-color: ${({ theme, selected }) => (selected ? theme.fill.defaultMain : theme.fill.defaultMain)};
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   
   &:hover {
-    // background-color: ${({ selected, theme }) => (selected ? theme.colors.brandMain : theme.fill.defaultMain)};
-    // border-color: ${({ selected, theme }) => (selected ? theme.border.brandMain : theme.border.defaultStrong)};
+    background-color: ${({ selected, theme }) => (selected ? theme.fill.defaulSubtle : theme.fill.defaultMain)};
+    border-color: ${({ selected, theme }) => (selected ? theme.border.brandMain : theme.border.defaultStrong)};
   }
 `;
 
@@ -162,10 +168,10 @@ const TicketData = styled.div`
   align-items: center;
 `;
 
-const TicketTags = styled.div`
+const TagsWrapper = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  gap: ${({ theme }) => theme.sizing.sm};
+  gap: ${({ theme }) => theme.sizing.xs};
 `;

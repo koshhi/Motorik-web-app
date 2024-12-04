@@ -7,6 +7,7 @@ const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const auth = require('../middleware/auth')
 const { validateTickets, parseBoolean } = require('../utils/validators')
+const { sendEnrollmentConfirmationEmail } = require('../services/emailService')
 
 const {
   format,
@@ -47,6 +48,7 @@ eventsRouter.get('/my-events', auth, async (req, res) => {
       startDate: { $gte: today }
     }).sort({ startDate: 1 })
       .populate('owner', 'name lastName userAvatar description')
+      .populate('tickets')
 
     // Obtener eventos a los que el usuario asistirá
     const attendeeEvents = await Event.find({
@@ -57,6 +59,8 @@ eventsRouter.get('/my-events', auth, async (req, res) => {
       .populate('attendees.userId', 'name lastName userAvatar')
       .populate('attendees.vehicleId', 'brand model nickname image')
       .populate('attendees.ticketId')
+    // .populate('tickets')
+    // .exec()
 
     res.status(200).json({ success: true, futureEvents, attendeeEvents })
   } catch (error) {
@@ -86,6 +90,8 @@ eventsRouter.get('/:userId/events', async (req, res) => {
       owner: objectId,
       startDate: { $gte: new Date() }
     }).populate('owner')
+      .populate('tickets')
+      .exec()
 
     // Obtener los eventos a los que asistirá el usuario
     const attendeeEvents = await Event.find({
@@ -312,6 +318,21 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       .populate('owner', 'name lastName userAvatar')
       .populate('tickets')
       .exec()
+
+    // Enviar correo de confirmación de inscripción
+    try {
+      await sendEnrollmentConfirmationEmail(
+        user.email, // to
+        event, // event
+        ticket, // ticket
+        vehicle, // vehicle
+        status // status
+      )
+    } catch (emailError) {
+      console.error('Error enviando el correo de confirmación de inscripción:', emailError)
+      // Puedes optar por no abortar la inscripción si el correo falla
+      // o manejarlo de otra manera según tus necesidades
+    }
 
     res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: populatedEvent })
   } catch (error) {
@@ -907,7 +928,9 @@ eventsRouter.get('/', async (req, res) => {
     // Obtener los eventos que coinciden con los filtros
     const events = await Event.find(query)
       .populate('owner', 'name lastName userAvatar description')
+      .populate('tickets')
       .sort({ startDate: 1 })
+      .exec()
 
     res.json({ events })
   } catch (error) {

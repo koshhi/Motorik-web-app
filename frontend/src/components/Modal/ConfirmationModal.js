@@ -1,6 +1,7 @@
 // components/Modal/ConfirmationModal.js
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Modal from '../Modal/Modal';
 import Typography from '../Typography';
@@ -15,7 +16,10 @@ const ConfirmationModal = ({
   eventLink,
   onClose,
   selectedVehicle,
+  eventId
 }) => {
+  const navigate = useNavigate();
+
   return (
     <Modal title="Inscripción realizada" onClose={onClose}>
       <ModalContent>
@@ -42,29 +46,16 @@ const ConfirmationModal = ({
             {timeLeft}
           </Typography>
         </Counter>
-        {/* <URLSection>
-          <Typography $variant="body-2-medium">
-            URL del evento: <a href={eventLink}>{eventLink}</a>
-          </Typography>
-          <Button
-            onClick={() => {
-              navigator.clipboard.writeText(eventLink);
-              toast.success('URL copiada al portapapeles.');
-            }}
-            size="medium"
-            style={{ justifyContent: "center", width: "100%" }}
-          >
-            Compartir evento
-          </Button>
-        </URLSection> */}
         {selectedVehicle && (
           <VehicleCard>
-            <img src={selectedVehicle.image} alt={`${selectedVehicle.brand} ${selectedVehicle.model}`} />
+            <VehicleImage src={selectedVehicle.image} alt={`${selectedVehicle.brand} ${selectedVehicle.model}`} />
             <VehicleInfo>
               <Typography $variant="body-2-medium">
-                {selectedVehicle.name} {selectedVehicle.nickname && `- ${selectedVehicle.nickname}`}
+                {selectedVehicle.brand} {selectedVehicle.model}
               </Typography>
-              <Typography $variant="body-2-regular">{selectedVehicle.model}</Typography>
+              {selectedVehicle.nickname && (
+                <Typography $variant="body-2-regular">"{selectedVehicle.nickname}"</Typography>
+              )}
             </VehicleInfo>
           </VehicleCard>
         )}
@@ -79,7 +70,15 @@ const ConfirmationModal = ({
           >
             Compartir evento
           </Button>
-          <Button $variant="outline" size="medium" style={{ justifyContent: "center", width: "100%" }}>
+          <Button
+            $variant="outline"
+            size="medium"
+            style={{ justifyContent: "center", width: "100%" }}
+            onClick={() => {
+              navigate(`/events/${eventId}/enrollment-details`);
+              onClose(); // Opcional: cerrar el modal
+            }}
+          >
             Ver mi inscripción
           </Button>
         </ModalActions>
@@ -108,18 +107,6 @@ const Counter = styled.div`
   padding: var(--Spacing-sm, 16px);
 `;
 
-const URLSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-
-  a {
-    color: ${({ theme }) => theme.colors.brandMain};
-    text-decoration: underline;
-  }
-`;
-
 const VehicleCard = styled.div`
   display: flex;
   align-items: center;
@@ -127,6 +114,11 @@ const VehicleCard = styled.div`
   border: 1px solid ${({ theme }) => theme.border.defaultWeak};
   padding: 16px;
   border-radius: 8px;
+`;
+
+const VehicleImage = styled.img`
+  width: 40px;
+  height: 40px;
 `;
 
 const VehicleInfo = styled.div`

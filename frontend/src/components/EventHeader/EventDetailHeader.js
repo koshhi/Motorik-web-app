@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import Button from '../Button/Button';
 import Typography from '../Typography';
 import OrganizerInfo from './OrganizerInfo';
+import Tag from '../Tag';
 
 const EventHeader = ({
   title,
@@ -34,38 +35,13 @@ const EventHeader = ({
           <HeaderLeft>
             <Typography $variant="title-1-bold" as="h1">{title}</Typography>
             <TagsWrapper>
-              {isEnrolled && <Tag>Inscrito</Tag>}
-              <Tag>{availableSeats} plazas</Tag>
-              <Tag>{eventType}</Tag>
-              <Tag>{terrain}</Tag>
+              {isEnrolled && <Tag $variant="brand">Inscrito</Tag>}
+              <Tag $variant="transparent">{availableSeats} plazas</Tag>
+              <Tag $variant="transparent">{eventType}</Tag>
+              <Tag $variant="transparent">{terrain}</Tag>
             </TagsWrapper>
           </HeaderLeft>
           <HeaderRight>
-            {/* <Button $variant="outline" aria-label="Compartir evento" style={{ padding: '10px' }}>
-              <img src="/icons/share.svg" alt="share-icon" />
-            </Button>
-            {isOwner ? (
-              <Link to={manageLink}>
-                <Button $variant="outline" aria-label="Gestionar evento">
-                  Gestionar evento
-                </Button>
-              </Link>
-            ) : isEnrolled ? (
-              <EnrollmentStatus
-                enrollmentStatus={enrollmentStatus}
-                handleCancelEnrollment={handleCancelEnrollment}
-                eventId={eventId}
-              />
-            ) : (
-              <Button
-                onClick={handleEnroll}
-                size="small"
-                aria-label="Inscríbete en el evento"
-                disabled={false} // Puedes manejar el estado de deshabilitado según sea necesario
-              >
-                Inscríbete
-              </Button>
-            )} */}
             <Button $variant="outline" aria-label="Compartir evento" style={{ padding: '10px' }}>
               <img src="/icons/share.svg" alt="share-icon" />
             </Button>
@@ -133,7 +109,9 @@ const HeaderMain = styled.div`
 const HeaderLeft = styled.div`
   display: flex;
   flex-direction: row;
-  gap: ${({ theme }) => theme.sizing.xs};
+  align-items: center;
+  justify-content: flex-start;
+  gap: ${({ theme }) => theme.sizing.sm};
 `;
 
 const TagsWrapper = styled.div`
@@ -142,7 +120,7 @@ const TagsWrapper = styled.div`
   align-items: center;
 `;
 
-const Tag = styled.span`
+const FakeTag = styled.span`
   padding: ${({ theme }) => theme.sizing.xxs} ${({ theme }) => theme.sizing.xs};
   background-color: ${({ theme }) => theme.fill.defaultSubtle};
   border: 1px solid ${({ theme }) => theme.border.defaultWeak};

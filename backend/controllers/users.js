@@ -76,29 +76,29 @@ usersRouter.get('/login-with-token', async (req, res) => {
 
   try {
     // Verify and decode the token
-    console.log('Token received:', token)
-    console.log('JWT_SECRET:', process.env.JWT_SECRET)
+    // console.log('Token received:', token)
+    // console.log('JWT_SECRET:', process.env.JWT_SECRET)
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    console.log('Decoded token:', decoded)
+    // console.log('Decoded token:', decoded)
 
     const user = await User.findById(decoded.id)
 
     if (!user) {
-      console.log('User not found with ID:', decoded.id)
+      // console.log('User not found with ID:', decoded.id)
       return res.status(404).json({ success: false, message: 'User not found.' })
     }
 
-    console.log('User found:', user)
+    // console.log('User found:', user)
 
     const profileFilled = user.profileFilled
 
     // Generate new tokens
     const authToken = tokenService.generateAccessToken(user)
-    console.log('Generated authToken:', authToken)
+    // console.log('Generated authToken:', authToken)
 
     const refreshToken = tokenService.generateRefreshToken(user)
-    console.log('Generated refreshToken:', refreshToken)
+    // console.log('Generated refreshToken:', refreshToken)
 
     // Store the refresh token in the database
     // user.refreshToken = refreshToken
@@ -106,7 +106,7 @@ usersRouter.get('/login-with-token', async (req, res) => {
     try {
       user.refreshToken = refreshToken
       await user.save()
-      console.log('User updated with new refreshToken.')
+      // console.log('User updated with new refreshToken.')
     } catch (saveError) {
       console.error('Error saving user with new refreshToken:', saveError)
       return res.status(500).json({ success: false, message: 'Internal Server Error.' })

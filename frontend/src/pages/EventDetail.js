@@ -42,15 +42,37 @@ const EventDetail = () => {
   const { enroll, loadingEnroll, errorEnroll } = useEnroll(id, user, (updatedEvent) => {
     setEvent(updatedEvent);
 
-    // Encontrar la inscripción del usuario en el evento actualizado
+    // // Encontrar la inscripción del usuario en el evento actualizado
+    // const enrolled = updatedEvent.attendees.find(att => att.userId._id === user.id);
+    // if (enrolled) {
+    //   setEnrollmentStatus(enrolled.status);
+    //   setUserEmail(user.email); // Asegúrate de que el objeto `user` tiene el campo `email`
+
+    //   // Encontrar el vehículo seleccionado
+    //   const vehicle = user.vehicles.find(v => v._id === enrolled.vehicleId);
+    //   setSelectedVehicle(vehicle);
+
+    //   // Mostrar el modal de confirmación
+    //   setShowConfirmationModal(true);
+    // }
+
+    // Después de inscribir al usuario
     const enrolled = updatedEvent.attendees.find(att => att.userId._id === user.id);
     if (enrolled) {
       setEnrollmentStatus(enrolled.status);
-      setUserEmail(user.email); // Asegúrate de que el objeto `user` tiene el campo `email`
+      setUserEmail(user.email);
 
-      // Encontrar el vehículo seleccionado
-      const vehicle = user.vehicles.find(v => v._id === enrolled.vehicleId);
-      setSelectedVehicle(vehicle);
+      // Obtener el vehículo del usuario o del evento
+      const vehicle = user.vehicles.find(v => v._id === enrolled.vehicleId || v.id === enrolled.vehicleId);
+      if (vehicle) {
+        setSelectedVehicle(vehicle);
+      } else {
+        console.warn('Vehículo seleccionado no encontrado en el usuario. Buscando en los datos del evento.');
+
+        // Si el vehículo no está en `user.vehicles`, puede que necesites obtenerlo de `enrolled.vehicleId`
+        // Asegúrate de que `enrolled.vehicleId` está populado con los datos del vehículo
+        setSelectedVehicle(enrolled.vehicleId);
+      }
 
       // Mostrar el modal de confirmación
       setShowConfirmationModal(true);
@@ -224,21 +246,6 @@ const EventDetail = () => {
   return (
     <>
       <MainNavbar />
-      {/* <EventHeader
-        title={event.title}
-        availableSeats={event.availableSeats}
-        eventType={event.eventType}
-        terrain={event.terrain}
-        manageLink={`/events/manage/${event.id}`}
-        isEnrolled={isEnrolled}
-        enrollmentStatus={userEnrollment?.status}
-        handleCancelEnrollment={handleCancelEnrollment}
-        handleEnroll={handleEnroll}
-        eventId={event.id}
-        organizer={event.owner}
-        isOwner={isOwner}
-      /> */}
-
       <EventHeader
         title={event.title}
         availableSeats={event.availableSeats}
@@ -321,6 +328,7 @@ const EventDetail = () => {
           eventLink={eventLink}
           onClose={() => setShowConfirmationModal(false)}
           selectedVehicle={selectedVehicle}
+          eventId={event.id} // Añadir esta línea
         />
       )}
 

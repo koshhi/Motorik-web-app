@@ -150,7 +150,7 @@ export const typographyStyles = {
     'overline',
     { default: '10px' },
     { default: '100%' },
-    { default: '12%' },
+    { default: '1.2px' },
     [
       { name: 'regular' },
       { name: 'medium' },
