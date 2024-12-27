@@ -7,7 +7,7 @@ import InputTextArea from './Input/InputTextArea';
 import { getEventTypeIcon } from '../utilities';
 import EventTypeModal from './Modal/EventTypeModal';
 import EventTerrainModal from './Modal/EventTerrainModal';
-import EventCapacityModal from './Modal/EventCapacityModal';
+// import EventCapacityModal from './Modal/EventCapacityModal';
 import EventExperienceModal from './Modal/EventExperienceModal';
 import EventTicketModal from './Modal/EventTicketModal';
 
@@ -56,6 +56,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     approvalRequired: false,
     coordinates: { lat: null, lng: null },
     imageUrl: '',
+    needsVehicle: true
   });
 
   const [file, setFile] = useState(null);
@@ -76,8 +77,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
 
   useEffect(() => {
     if (initialData && isEditMode) {
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         ...initialData,
         tickets: initialData.tickets
           ? initialData.tickets.map((ticket) => ({
@@ -92,9 +93,9 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
             lng: initialData.locationCoordinates.coordinates[0],
           }
           : { lat: null, lng: null },
-      });
+        needsVehicle: initialData.needsVehicle !== undefined ? initialData.needsVehicle : true // Cargar valor si existe
+      }));
 
-      // Actualizar fechas y horas
       const startDateObj = new Date(initialData.startDate);
       const endDateObj = new Date(initialData.endDate);
       setStartDay(startDateObj.toISOString().split('T')[0]);
@@ -237,13 +238,14 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       newFormData.append('experience', formData.experience);
       newFormData.append('tickets', JSON.stringify(tickets));
       newFormData.append('locationCoordinates', JSON.stringify(locationCoordinates));
+      newFormData.append('needsVehicle', formData.needsVehicle);
       if (file) newFormData.append('image', file);
 
       return newFormData;
     },
     setInitialData: (data) => {
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         ...data,
         tickets: data.tickets || [{
           name: '',
@@ -259,7 +261,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
             lng: data.locationCoordinates.coordinates[0],
           }
           : { lat: null, lng: null },
-      });
+        needsVehicle: data.needsVehicle !== undefined ? data.needsVehicle : true
+      }));
 
       const startDateObj = new Date(data.startDate);
       const endDateObj = new Date(data.endDate);
@@ -644,6 +647,19 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   <button className="OptionSelected">
                     {formData.experience} <img src="/icons/edit.svg" alt="Editar" />
                   </button>
+                </Option>
+
+                <Option>
+                  <div className="Title">
+                    <img src="/icons/vehicle.svg" alt="Vehículo" /> ¿Requiere vehículo?
+                  </div>
+                  <div>
+                    <input
+                      type="checkbox"
+                      checked={formData.needsVehicle}
+                      onChange={(e) => setFormData(prev => ({ ...prev, needsVehicle: e.target.checked }))}
+                    />
+                  </div>
                 </Option>
 
                 {/* <Option onClick={() => handleOpenModal('capacity')}>

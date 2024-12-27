@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const axiosClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true, // Incluir cookies en las solicitudes
+  withCredentials: true,
 });
 
 // Interceptor de solicitud para adjuntar el token de acceso a cada solicitud
@@ -42,7 +42,7 @@ axiosClient.interceptors.response.use(
       } catch (refreshError) {
         // Si falla la renovación, cerrar sesión del usuario
         localStorage.removeItem('authToken');
-        window.location.href = '/login'; // Redirigir al inicio de sesión
+        window.location.href = '/signin'; // Redirigir al inicio de sesión
         return Promise.reject(refreshError);
       }
     }

@@ -10,7 +10,7 @@ import { theme } from '../../theme';
 
 const ManageEventAttendees = () => {
   const { eventDetails, setEventDetails } = useEventContext();
-  const { capacity, attendees } = eventDetails || { capacity: 0, attendees: [] };
+  const { capacity, attendees, needsVehicle } = eventDetails || { capacity: 0, attendees: [], needsVehicle: false };
 
   const { handleApprove, handleReject } = useEventActions(eventDetails.id);
 
@@ -18,7 +18,8 @@ const ManageEventAttendees = () => {
     <AttendeesSection>
       <Container>
         <AttendeesSummary attendees={attendees} capacity={capacity} />
-        <AttendeesList attendees={attendees} onApprove={handleApprove} onReject={handleReject} />
+        <AttendeesList attendees={attendees} onApprove={handleApprove} onReject={handleReject} needsVehicle={needsVehicle}
+        />
       </Container>
     </AttendeesSection>
   );

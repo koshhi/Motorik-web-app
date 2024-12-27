@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Button from './Button/Button';
 import { useEventContext } from '../context/EventContext';
+import Typography from './Typography';
 
 
 const EventManagementHeader = () => {
@@ -22,18 +23,18 @@ const EventManagementHeader = () => {
     <>
       <HeaderWrapper>
         <Container>
-          <div className='Header'>
+          <Header>
             <Button $variant="ghost" onClick={() => navigate(-1)}>
               <img src="/icons/chevron-left.svg" alt="Back button" />Back
             </Button>
-            <div className='Data'>
-              <h1 className='EventTitle'>{title}</h1>
+            <Data>
+              <Typography as="h1" $variant="title-2-semibold">{title}</Typography>
               <Button $variant="outline" as={Link} to={`/events/${id}/${title}`}>
                 Ver página del evento
                 <img src="/icons/arrow-right-up.svg" alt="new window icon" />
               </Button>
-            </div>
-          </div>
+            </Data>
+          </Header>
           <SectionTabs>
             <Link
               to={`/events/manage/${id}`}
@@ -74,36 +75,25 @@ const EventManagementHeader = () => {
 
 export default EventManagementHeader;
 
+const Header = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap:8px;
+  align-items: flex-start;
+`;
+
+const Data = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+`;
 
 const HeaderWrapper = styled.section`
   background-color: ${({ theme }) => theme.fill.defaultSubtle};
   align-items: center;
   display: flex;
   flex-direction: column;
-
-  .Header {
-    display: flex;
-    flex-direction: column;
-    gap:8px;
-
-    .Data {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-    
-      .EventTitle {
-        color: ${({ theme }) => theme.colors.defaultStrong};
-        font-variant-numeric: lining-nums tabular-nums;
-        font-feature-settings: 'ss01' on;
-        /* Titles/Mobile/Title 1/Bold */
-        font-family: "Mona Sans";
-        font-size: 28px;
-        font-style: normal;
-        font-weight: 700;
-        line-height: 140%; /* 39.2px */
-      }
-    }
-  }
 `;
 
 const Container = styled.div`

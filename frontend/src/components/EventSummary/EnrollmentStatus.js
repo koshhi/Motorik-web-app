@@ -11,73 +11,82 @@ const EnrollmentStatus = ({ enrollmentStatus, handleCancelEnrollment }) => {
   // console.log('EnrollmentStatus en EnrollmentStatus:', enrollmentStatus);
 
   return (
-    <StatusContainer>
-      <Container>
-        <StatusBlock>
-          <StatusInfo>
-            {enrollmentStatus === 'confirmation pending' && (
-              <>
-                <StatusIcon src="/icons/ticket-check-solid-negative.svg" alt="ticket-check-solid icon" />
-                <Typography $variant="title-5-semibold" color={theme.colors.inverseMain}>Pendiente de aprobación</Typography>
-                <Typography $variant="body-1-regular" color={theme.colors.inverseStrong}>Tu inscripción está pendiente de aprobación.</Typography>
-              </>
-            )}
-            {enrollmentStatus === 'attending' && (
-              <>
-                <StatusIcon src="/icons/ticket-check-solid-negative.svg" alt="ticket-check-solid icon" />
-                <Typography $variant="title-5-semibold" color={theme.colors.inverseMain}>Estás inscrito</Typography>
-                <Typography $variant="body-1-regular" color={theme.colors.inverseStrong}>¡Tu inscripción ha sido aprobada!</Typography>
-              </>
-            )}
-            {enrollmentStatus === 'not attending' && (
-              <>
-                <StatusIcon src="/icons/ticket-check-solid-negative.svg" alt="ticket-check-solid icon" />
-                <Typography $variant="title-5-semibold" color={theme.colors.inverseMain}>Inscripción cancelada.</Typography>
-              </>
-            )}
-          </StatusInfo>
-          <AttendeeCancel>
-            <Typography $variant="body-1-regular" color={theme.colors.inverseStrong}>¿No puedes asistir?</Typography>
-            <Button $variant="ghostDangerInverse" onClick={handleCancelEnrollment}>
-              Cancelar inscripción <img src="/icons/arrow-right-solid-error.svg" alt="arrow icon" />
-            </Button>
-          </AttendeeCancel>
-        </StatusBlock>
-      </Container>
-    </StatusContainer>
+    <StatusBlock>
+      <StatusInfo>
+        {enrollmentStatus === 'confirmation pending' && (
+          <>
+            <StatusVisual>
+              <StatusIcon src="/icons/ticket-approval-required-solid.svg" alt="ticket-approval-required icon" />
+            </StatusVisual>
+            <StatusContent>
+              <Typography $variant="title-5-semibold" color={theme.colors.inverseMain}>
+                Pendiente de aprobación
+              </Typography>
+              <Typography $variant="body-1-regular" color={theme.colors.inverseStrong}>
+                El organizador responderá en breve.
+              </Typography>
+            </StatusContent>
+          </>
+        )}
+        {enrollmentStatus === 'attending' && (
+          <>
+            <StatusVisual>
+              <StatusIcon src="/icons/ticket-check-solid-negative.svg" alt="ticket-check icon" />
+            </StatusVisual>
+            <StatusContent>
+              <Typography $variant="title-5-semibold" color={theme.colors.inverseMain}>
+                Estás inscrito
+              </Typography>
+              <Typography $variant="body-1-regular" color={theme.colors.inverseStrong}>
+                ¡Tu inscripción ha sido aprobada!
+              </Typography>
+            </StatusContent>
+          </>
+        )}
+        {enrollmentStatus === 'not attending' && (
+          <>
+            <StatusVisual>
+              <StatusIcon src="/icons/ticket-cancel-solid.svg" alt="ticket-cancel icon" />
+            </StatusVisual>
+            <StatusContent>
+              <Typography $variant="title-5-semibold" color={theme.colors.inverseMain}>
+                Inscripción cancelada.
+              </Typography>
+            </StatusContent>
+          </>
+        )}
+      </StatusInfo>
+      <AttendeeCancel>
+        <Typography $variant="body-1-regular" color={theme.colors.inverseStrong}>¿No puedes asistir?</Typography>
+        <Button $variant="ghostDangerInverse" onClick={handleCancelEnrollment}>
+          Cancelar inscripción
+        </Button>
+      </AttendeeCancel>
+    </StatusBlock>
   );
 };
 
 export default EnrollmentStatus;
 
-const StatusContainer = styled.section`
+const StatusBlock = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  background-color: ${({ theme }) => theme.fill.defaultMain};
-`;
-
-const Container = styled.div`
-  width: 100%;
-  max-width: 1400px;
-  padding: ${({ theme }) => theme.sizing.lg} ${({ theme }) => theme.sizing.md} 0px ${({ theme }) => theme.sizing.md};
-  display: flex;
-  flex-direction: row;
-  gap: ${({ theme }) => theme.sizing.xs};
-`;
-
-const StatusBlock = styled.div`
-  width: 100%;
-  padding: ${({ theme }) => theme.sizing.sm};
-  display: flex;
-  flex-direction: row;
-  gap: ${({ theme }) => theme.sizing.xs};
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: ${({ theme }) => theme.sizing.xs};
-  border-radius: ${({ theme }) => theme.radius.xs};
+  border-radius: ${({ theme }) => theme.radius.sm};
   background-color: ${({ theme }) => theme.fill.inverseMain};
+  overflow: hidden;
+`;
+
+const StatusVisual = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: ${({ theme }) => theme.fill.inverseWeak};
+  border-radius: ${({ theme }) => theme.radius.sm};
 `;
 
 const StatusIcon = styled.img`
@@ -89,12 +98,22 @@ const StatusInfo = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
+  padding: ${({ theme }) => theme.sizing.sm};
+`;
+
+const StatusContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 `;
 
 const AttendeeCancel = styled.div`
   display: flex;
-  justify-content: flex-end;
+  width: 100%;
+  justify-content: space-between;
   align-items: center;
   gap: 16px;
+  padding: ${({ theme }) => theme.sizing.sm};
+  background-color: ${({ theme }) => theme.fill.inverseWeak};
 `;

@@ -1,6 +1,9 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+// context/AuthContext.js
+
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
+import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
 
@@ -10,30 +13,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const refreshUserData = useCallback(async () => {
+    if (token) {
+      try {
+        const response = await axiosClient.get('/api/users/profile');
+        if (response.data.success) {
+          setUser(response.data.user);
+        } else {
+          console.error('Error fetching user profile:', response.data.message);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        setUser(null);
+      }
+    }
+  }, [token]);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (token) {
-        try {
-          const response = await axiosClient.get('/api/users/profile');
-          if (response.data.success) {
-            setUser(response.data.user);
-          } else {
-            console.error('Error fetching user profile:', response.data.message);
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          setUser(null);
-        } finally {
-          setLoading(false);
-        }
+        await refreshUserData();
+        setLoading(false);
       } else {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [token]);
+  }, [token, refreshUserData]);
 
   const login = async (email) => {
     try {
@@ -42,6 +50,7 @@ export const AuthProvider = ({ children }) => {
       alert('Se ha enviado un enlace de inicio de sesión a tu correo electrónico.');
     } catch (error) {
       console.error('Error logging in', error);
+      toast.error('Error al iniciar sesión.');
     }
   };
 
@@ -54,18 +63,7 @@ export const AuthProvider = ({ children }) => {
       navigate('/');
     } catch (error) {
       console.error('Error logging out:', error);
-    }
-  };
-
-  const refreshUserData = async () => {
-    if (token) {
-      try {
-        const response = await axiosClient.get('/api/users/profile');
-        setUser(response.data.user);
-      } catch (error) {
-        console.error('Error refreshing user data:', error);
-        setUser(null);
-      }
+      toast.error('Error al cerrar sesión.');
     }
   };
 

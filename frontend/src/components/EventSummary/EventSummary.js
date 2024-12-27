@@ -15,7 +15,7 @@ const EventSummary = ({
   organizer,
 }) => {
   return (
-    <SummaryContainer>
+    <>
       <DateAndLocation
         date={date}
         location={location}
@@ -27,16 +27,8 @@ const EventSummary = ({
         attendeesCount={attendeesCount}
         organizer={organizer}
       />
-    </SummaryContainer>
+    </>
   );
 };
 
 export default EventSummary;
-
-// Styled Components
-const SummaryContainer = styled.div`
-  grid-area: 1 / 8 / 2 / 13;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-`;

@@ -2,7 +2,9 @@ import styled, { css } from 'styled-components';
 
 // Estilos comunes para todos los botones
 const baseStyles = css`
-  display: inline-flex;
+  display: ${({ $fullWidth }) => ($fullWidth ? 'flex' : 'inline-flex')};
+  width: ${({ $fullWidth }) => ($fullWidth ? '100%' : 'auto')};
+
   gap: 8px;
   align-items: center;
   font-variant-numeric: lining-nums tabular-nums;
@@ -13,6 +15,18 @@ const baseStyles = css`
   border-radius: 8px;
   cursor: pointer;
   line-height: 150%;
+
+  justify-content: ${({ $contentAlign }) => {
+    switch ($contentAlign) {
+      case 'left':
+        return 'flex-start';
+      case 'right':
+        return 'flex-end';
+      case 'center':
+      default:
+        return 'center';
+    }
+  }};
 
 
   padding: ${({ size }) => {

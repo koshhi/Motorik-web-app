@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -8,26 +8,25 @@ import Button from '../components/Button/Button';
 const CreateEvent = () => {
   const navigate = useNavigate();
   const eventFormRef = useRef();
+  const [loadingCreate, setLoadingCreate] = useState(false);
 
   const handleDiscard = () => {
     navigate('/');
   };
 
   const handleCreateEvent = async () => {
+    if (loadingCreate) return;
     if (eventFormRef.current) {
-      const formData = await eventFormRef.current.getFormData();
-
-      if (!formData) {
-        console.error('Errores en el formulario, no se puede enviar');
-        return;
-      }
-
-      // Mostrar el contenido de FormData (opcional)
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-      }
-
+      setLoadingCreate(true);
       try {
+        const formData = await eventFormRef.current.getFormData();
+
+        if (!formData) {
+          console.error('Errores en el formulario, no se puede enviar');
+          setLoadingCreate(false);
+          return;
+        }
+
         const response = await axiosClient.post('/api/events', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -41,6 +40,8 @@ const CreateEvent = () => {
         }
       } catch (error) {
         console.error('Error creando el evento:', error);
+      } finally {
+        setLoadingCreate(false);
       }
     }
   };
@@ -54,8 +55,13 @@ const CreateEvent = () => {
             <Button size="default" $variant="outline" onClick={handleDiscard}>
               Descartar
             </Button>
-            <Button size="default" $variant="default" onClick={handleCreateEvent}>
-              Crear Evento
+            <Button
+              size="default"
+              $variant="default"
+              onClick={handleCreateEvent}
+              disabled={loadingCreate}
+            >
+              {loadingCreate ? 'Creando...' : 'Crear Evento'}
             </Button>
           </Links>
         </Container>

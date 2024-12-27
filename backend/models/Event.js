@@ -14,7 +14,8 @@ const attendeeSchema = new Schema({
   vehicleId: {
     type: Schema.Types.ObjectId,
     ref: 'Vehicle',
-    required: true
+    required: false
+    // required: true
   },
   ticketId: {
     type: Schema.Types.ObjectId,
@@ -108,6 +109,14 @@ const eventSchema = new Schema({
   published: {
     type: Boolean,
     default: false
+  },
+  needsVehicle: {
+    type: Boolean,
+    default: true
+  },
+  policy: {
+    type: Schema.Types.ObjectId,
+    ref: 'Policy'
   }
 }, {
   timestamps: true,

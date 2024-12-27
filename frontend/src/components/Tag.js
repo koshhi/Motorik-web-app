@@ -34,6 +34,7 @@ Tag.propTypes = {
     'brandSubtle',
     'transparent',
     'success',
+    'warning',
     'danger',
     'outline',
     'inverse',
@@ -67,6 +68,11 @@ const variantStyles = {
     border: 'transparent',
     background: theme.fill.successAlphaMain16,
     color: theme.colors.successMain,
+  },
+  warning: {
+    border: 'transparent',
+    background: theme.fill.warningAlphaMain16,
+    color: theme.colors.warningMain,
   },
   danger: {
     border: 'transparent',

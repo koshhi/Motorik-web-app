@@ -54,7 +54,11 @@ const userSchema = new Schema({
   googleId: { type: String, sparse: true },
   facebookId: { type: String, sparse: true },
   emailVerified: { type: Boolean, default: false },
-  verificationToken: String
+  verificationToken: String,
+  enrolledEvents: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Event'
+  }]
 }, { timestamps: true })
 
 // userSchema.virtual('id').get(function () {

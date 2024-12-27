@@ -16,10 +16,7 @@ const EventHeader = ({
   isOwner,
   manageLink,
   isEnrolled,
-  enrollmentStatus,
-  handleCancelEnrollment,
   handleEnroll,
-  userEnrollment,
   eventId,
   organizer
 }) => {
@@ -55,8 +52,9 @@ const EventHeader = ({
             ) : isEnrolled ? (
               // Si el usuario está inscrito, mostrar "Ver mi inscripción"
               <Link to={`/events/${eventId}/enrollment-details`}>
-                <Button size="small" aria-label="Ver detalles de inscripción">
+                <Button size="small" $variant="outline" aria-label="Ver detalles de inscripción">
                   Ver mi inscripción
+                  <img src="/icons/arrow-right.svg" alt="arrow-icon" />
                 </Button>
               </Link>
             ) : (
@@ -120,58 +118,8 @@ const TagsWrapper = styled.div`
   align-items: center;
 `;
 
-const FakeTag = styled.span`
-  padding: ${({ theme }) => theme.sizing.xxs} ${({ theme }) => theme.sizing.xs};
-  background-color: ${({ theme }) => theme.fill.defaultSubtle};
-  border: 1px solid ${({ theme }) => theme.border.defaultWeak};
-  border-radius: 24px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-`;
-
 const HeaderRight = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.sizing.xs};
-`;
-
-// Component for Enrollment Status
-const EnrollmentStatus = ({ enrollmentStatus, handleCancelEnrollment, eventId }) => {
-  return (
-    <StatusContainer>
-      <StatusInfo>
-        <p>Estado de tu inscripción: {enrollmentStatus}</p>
-        {enrollmentStatus === 'confirmation pending' && (
-          <p>Tu inscripción está pendiente de aprobación.</p>
-        )}
-        {enrollmentStatus === 'attending' && <p>¡Tu inscripción ha sido aprobada!</p>}
-        {enrollmentStatus === 'not attending' && (
-          <p>Tu inscripción ha sido rechazada o cancelada.</p>
-        )}
-      </StatusInfo>
-      {enrollmentStatus !== 'not attending' && (
-        <Button onClick={handleCancelEnrollment}>Cancelar Inscripción</Button>
-      )}
-      <Link to={`/events/${eventId}/enrollment-details`}>
-        <Button size="small" $variant="primary" aria-label="Ver detalles de inscripción">
-          Ver mi inscripción
-        </Button>
-      </Link>
-    </StatusContainer>
-  );
-};
-
-const StatusContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.sizing.xs};
-`;
-
-const StatusInfo = styled.div`
-  p {
-    margin: 0;
-    font-size: 14px;
-    color: ${({ theme }) => theme.colors.defaultStrong};
-  }
 `;

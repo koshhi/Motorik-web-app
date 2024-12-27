@@ -31,6 +31,8 @@ const useEnroll = (eventId, user, onSuccess) => {
         ticketId,
       });
 
+      console.log('Respuesta de inscripción:', response.data);
+
       // Verifica si la inscripción fue exitosa
       if (response.data.success) {
         toast.success(response.data.message || 'Inscripción exitosa.');

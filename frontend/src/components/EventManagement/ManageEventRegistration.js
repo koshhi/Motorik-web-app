@@ -178,7 +178,9 @@ const ManageEventRegistration = () => {
               </TicketMainInfo>
               <TicketSecondaryInfo>
                 {ticket.approvalRequired && (
-                  <Tag>Aprobación Requerida</Tag>
+                  <Tag $variant='brandSubtle' $textStyle='caption-medium' $textTransform='capitalize' $letterSpacing='none' $borderRadius='8px'>
+                    Aprobación Requerida
+                  </Tag>
                 )}
                 <Typography $variant="body-2-regular">{ticket.availableSeats} de {ticket.capacity} disponibles</Typography>
                 <TicketActions onClick={(e) => e.stopPropagation()}>

@@ -3,10 +3,29 @@ import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { theme } from '../theme';
+import { statusColors } from '../utils/statusColors';
 import Typography from '../components/Typography';
 
 const AttendeesSummary = ({ capacity, attendees }) => {
-  const percentage = capacity ? (attendees.length / capacity) * 100 : 100;
+
+  // Calculamos los asistentes por estado
+  const attendeesByStatus = attendees.reduce((acc, attendee) => {
+    const status = attendee.status;
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Total de asistentes
+  const totalAttendees = attendees.length;
+
+  // Capacidad efectiva para evitar división por cero
+  const effectiveCapacity = capacity || totalAttendees || 1;
+
+  // Calculamos el porcentaje para cada estado
+  const statusPercentages = Object.keys(attendeesByStatus).reduce((acc, status) => {
+    acc[status] = (attendeesByStatus[status] / effectiveCapacity) * 100;
+    return acc;
+  }, {});
 
   return (
     <SummaryWrapper>
@@ -19,7 +38,7 @@ const AttendeesSummary = ({ capacity, attendees }) => {
               {attendees.length}
             </Typography>
             <Typography $variant='body-1-semibold' color={theme.colors.defaultStrong}>
-              asistente
+              asistentes
             </Typography>
           </AttendanceDataBlock>
           <AttendanceDataBlock>
@@ -27,41 +46,58 @@ const AttendeesSummary = ({ capacity, attendees }) => {
               max
             </Typography>
             <Typography $variant='title-3-semibold' as='p' color={theme.colors.defaultStrong}>
-              {capacity}
+              {/* {capacity} */}
+              {capacity || '∞'}
             </Typography>
-
           </AttendanceDataBlock>
         </AttendanceData>
 
         <AttendanceChart>
-          {capacity ? (
-            <BarChartContainer>
-              <BarChart>
-                <BarFill style={{ width: `${percentage}%` }} />
-              </BarChart>
-              <Typography $variant='body-3-medium' as='p' color={theme.colors.defaultStrong}>
-                {Math.round(percentage)}% ocupado
-              </Typography>
-            </BarChartContainer>
-          ) : (
-            <BarChartContainer>
-              <BarChart>
-                {attendees.map((attendee, index) => (
-                  <BarSegment
-                    key={attendee._id || index}
-                    style={{ width: `${100 / attendees.length}%` }}
-                  />
-                ))}
-              </BarChart>
-              <Typography $variant='body-3-medium' as='p' color={theme.colors.defaultStrong}>
-                {attendees.length} asistentes
-              </Typography>
-            </BarChartContainer>
-          )}
+          <BarChartContainer>
+            <BarChart>
+              {Object.keys(statusPercentages).map((status) => (
+                <BarSegment
+                  key={status}
+                  style={{
+                    width: `${statusPercentages[status]}%`,
+                    backgroundColor: statusColors[status],
+                  }}
+                  title={`${attendeesByStatus[status]} ${status}`}
+                />
+              ))}
+            </BarChart>
+            <Typography $variant='body-3-medium' as='p' color={theme.colors.defaultStrong}>
+              {Math.round((totalAttendees / effectiveCapacity) * 100)}% ocupado
+            </Typography>
+          </BarChartContainer>
+          <AttendanceStatusList>
+            {Object.keys(attendeesByStatus).map((status) => (
+              <StatusItem key={status}>
+                <StatusIndicator style={{ backgroundColor: statusColors[status] }} />
+                <Typography $variant='body-2-regular' color={statusColors[status]}>
+                  {attendeesByStatus[status]} {getStatusLabel(status)}
+                </Typography>
+              </StatusItem>
+            ))}
+          </AttendanceStatusList>
         </AttendanceChart>
       </AttendanceMetrics>
     </SummaryWrapper>
   );
+};
+
+// Función para obtener etiquetas legibles para cada estado
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'attending':
+      return 'Asistirán';
+    case 'confirmation pending':
+      return 'Pendientes';
+    case 'not attending':
+      return 'No asistirán';
+    default:
+      return status;
+  }
 };
 
 AttendeesSummary.propTypes = {
@@ -121,20 +157,42 @@ const BarChartContainer = styled.div`
 
 const BarChart = styled.div`
   width: 100%;
+  display: flex;
   background-color: ${({ theme }) => theme.fill.defaultWeak};
   height: ${({ theme }) => theme.sizing.xs};
   border-radius: ${({ theme }) => theme.sizing.xs};
   overflow: hidden;
 `;
 
-const BarFill = styled.div`
-  height: 100%;
-  background-color: ${({ theme }) => theme.fill.brandMain};
-  transition: width 0.3s ease-in-out;
-`;
 
 const BarSegment = styled.div`
   height: 100%;
-  background-color: ${({ theme }) => theme.fill.brandMain};
-  display: inline-block;
+  border-right: 1px solid ${({ theme }) => theme.border.defaultWeak};
+
+  &:last-child {
+    border-right: none;
+  }
+  // background-color: ${({ theme }) => theme.fill.brandMain};
+  // display: inline-block;
+`;
+
+const AttendanceStatusList = styled.div`
+  width: 100%;
+  margin-top: ${({ theme }) => theme.sizing.sm};
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: ${({ theme }) => theme.sizing.sm};
+`;
+
+const StatusItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.sizing.xs};
+`;
+
+const StatusIndicator = styled.div`
+  width: ${({ theme }) => theme.sizing.xs};
+  height: ${({ theme }) => theme.sizing.xs};
+  border-radius: 8px;
 `;

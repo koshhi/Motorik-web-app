@@ -57,7 +57,7 @@ const MyEvents = () => {
     if (isAuthenticated) {
       navigate('/create-event'); // Redirigir a la página de creación de eventos si está autenticado
     } else {
-      navigate('/login', { state: { message: 'You need to log in to create an event.' } }); // Redirigir al login si no está autenticado
+      navigate('/signin', { state: { message: 'You need to log in to create an event.' } }); // Redirigir al login si no está autenticado
     }
   };
 

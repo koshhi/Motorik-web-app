@@ -42,7 +42,7 @@ const Typography = styled.span.attrs(({ as, $variant }) => ({
   letter-spacing: ${({ $letterSpacing, $variant }) =>
     $letterSpacing || typographyStyles[$variant]?.letterSpacing || 'normal'};
   color: ${({ color }) => color || theme.colors.defaultMain};
-  text-align: ${({ align }) => align || 'left'};
+  text-align: ${({ $align }) => $align || 'left'};
   text-transform: ${({ $textTransform }) => $textTransform};
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: 'ss01' on, 'ss05' on, 'ss06' on, 'ss07' on;
@@ -54,7 +54,7 @@ Typography.propTypes = {
   color: PropTypes.string,
   $textTransform: PropTypes.oneOf(['none', 'uppercase', 'lowercase', 'capitalize']),
   $letterSpacing: PropTypes.string,
-  align: PropTypes.oneOf(['left', 'right', 'center', 'justify']),
+  $align: PropTypes.oneOf(['left', 'right', 'center', 'justify']),
   as: PropTypes.elementType,
   fontWeight: PropTypes.oneOf(['regular', 'medium', 'semibold', 'bold']),
 };

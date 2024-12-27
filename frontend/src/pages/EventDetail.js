@@ -1,7 +1,7 @@
 // components/EventDetail/EventDetail.js
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
@@ -13,25 +13,23 @@ import EventDetailContent from '../components/EventContent/EventDetailContent';
 import EventSummary from '../components/EventSummary/EventSummary';
 import EventFixedAction from '../components/EventFixedAction';
 import TicketModal from '../components/Modal/TicketModal';
-import VehicleModal from '../components/Modal/VehicleModal';
 import ConfirmationModal from '../components/Modal/ConfirmationModal';
+import EnrollWithVehicleModal from '../components/Modal/EnrollWithVehicleModal.js';
 import EnrollmentStatus from '../components/EventSummary/EnrollmentStatus';
 import { toast } from 'react-toastify';
 
 const EventDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
   const { event, isOwner, loadingEvent, error, setEvent } = useEvent(id, user);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [userEnrollment, setUserEnrollment] = useState(null);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
-  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   // Estados para modales
   const [showTicketModal, setShowTicketModal] = useState(false);
-  const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showEnrollWithVehicleModal, setShowEnrollWithVehicleModal] = useState(false);
 
   // Estados para confirmación
   const [enrollmentStatus, setEnrollmentStatus] = useState(null);
@@ -40,21 +38,8 @@ const EventDetail = () => {
   const [timeLeft, setTimeLeft] = useState('');
 
   const { enroll, loadingEnroll, errorEnroll } = useEnroll(id, user, (updatedEvent) => {
+    console.log('Evento actualizado después de inscripción:', updatedEvent);
     setEvent(updatedEvent);
-
-    // // Encontrar la inscripción del usuario en el evento actualizado
-    // const enrolled = updatedEvent.attendees.find(att => att.userId._id === user.id);
-    // if (enrolled) {
-    //   setEnrollmentStatus(enrolled.status);
-    //   setUserEmail(user.email); // Asegúrate de que el objeto `user` tiene el campo `email`
-
-    //   // Encontrar el vehículo seleccionado
-    //   const vehicle = user.vehicles.find(v => v._id === enrolled.vehicleId);
-    //   setSelectedVehicle(vehicle);
-
-    //   // Mostrar el modal de confirmación
-    //   setShowConfirmationModal(true);
-    // }
 
     // Después de inscribir al usuario
     const enrolled = updatedEvent.attendees.find(att => att.userId._id === user.id);
@@ -62,18 +47,14 @@ const EventDetail = () => {
       setEnrollmentStatus(enrolled.status);
       setUserEmail(user.email);
 
-      // Obtener el vehículo del usuario o del evento
-      const vehicle = user.vehicles.find(v => v._id === enrolled.vehicleId || v.id === enrolled.vehicleId);
-      if (vehicle) {
+      const vehicle = enrolled.vehicleId; // Asumiendo que 'vehicleId' está poblado
+      if (vehicle && vehicle._id) {
         setSelectedVehicle(vehicle);
       } else {
-        console.warn('Vehículo seleccionado no encontrado en el usuario. Buscando en los datos del evento.');
-
-        // Si el vehículo no está en `user.vehicles`, puede que necesites obtenerlo de `enrolled.vehicleId`
-        // Asegúrate de que `enrolled.vehicleId` está populado con los datos del vehículo
-        setSelectedVehicle(enrolled.vehicleId);
+        console.warn('Vehículo seleccionado no encontrado en los datos del evento.');
+        setSelectedVehicle(null); // O manejar el caso según corresponda
       }
-
+  
       // Mostrar el modal de confirmación
       setShowConfirmationModal(true);
     }
@@ -81,20 +62,26 @@ const EventDetail = () => {
 
   // Dentro del useEffect donde se actualiza userEnrollment
   useEffect(() => {
+    console.log('Evento en estado actual:', event); 
     if (event && user) {
       const enrolled = event.attendees.find(attendee => attendee.userId._id === user.id);
       if (enrolled) {
         setIsEnrolled(true);
         setUserEnrollment(enrolled);
-        setEnrollmentStatus(enrolled.status); // Añadido para establecer enrollmentStatus al montar
-        // console.log('Usuario inscrito:', enrolled);
+        setEnrollmentStatus(enrolled.status); 
+        
       } else {
         setIsEnrolled(false);
         setUserEnrollment(null);
         setEnrollmentStatus(null); // Opcional, para limpiar
       }
     }
+
+    console.log('Evento actualizado:', event);
+
   }, [event, user, isOwner]);
+
+  const intervalIdRef = useRef(null);
 
   // Implementar el contador de tiempo
   useEffect(() => {
@@ -115,7 +102,10 @@ const EventDetail = () => {
 
         if (diff <= 0) {
           setTimeLeft('El evento ha comenzado');
-          clearInterval(intervalId);
+          if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
+            intervalIdRef.current = null;
+          }
           return;
         }
 
@@ -126,51 +116,49 @@ const EventDetail = () => {
         setTimeLeft(formatTimeLeft(days, hours, minutes, seconds));
       };
 
+      // Llamar inmediatamente para no esperar 1 segundo
       updateTimeLeft();
-      const intervalId = setInterval(updateTimeLeft, 1000); // Actualizar cada segundo
 
-      return () => clearInterval(intervalId);
+      // Establecer el intervalo y guardarlo en el ref
+      intervalIdRef.current = setInterval(updateTimeLeft, 1000);
+
+      // Limpiar el intervalo al desmontar o actualizar el evento
+      return () => {
+        if (intervalIdRef.current) {
+          clearInterval(intervalIdRef.current);
+          intervalIdRef.current = null;
+        }
+      };
     }
   }, [event]);
 
-
-
   // Manejar inscripción
   const handleEnroll = () => {
-    if (!user || !user.vehicles || user.vehicles.length === 0) {
-      toast.error('No tienes vehículos registrados.');
+    if (!user) {
+      toast.error('Debes iniciar sesión para inscribirte.');
       return;
     }
 
-    if (event.tickets.length === 1) {
-      const ticket = event.tickets[0];
-      if (ticket.availableSeats <= 0) {
-        toast.error('No hay asientos disponibles para este ticket.');
-        return;
-      }
+    const tickets = event.tickets;
 
-      if (ticket.type === 'free') {
-        // Seleccionar automáticamente el ticket gratuito
-        setSelectedTicketId(ticket._id);
+    // Si hay un único ticket gratis sin aprobación => inscripción directa
+    if (tickets.length === 1 && tickets[0].type === 'free' && !tickets[0].approvalRequired) {
+      const singleTicket = tickets[0];
 
-        if (user.vehicles.length === 1) {
-          // Si solo hay un vehículo, inscribirse directamente
-          setSelectedVehicleId(user.vehicles[0]._id);
-          handleConfirmEnrollment();
-        } else {
-          // Si hay múltiples vehículos, mostrar el modal de selección de vehículos
-          setShowVehicleModal(true);
-        }
+      if (event.needsVehicle) {
+        // Abrimos el modal de inscripción con vehículos
+        setShowEnrollWithVehicleModal(true);
       } else {
-        // Si el único ticket es de pago, mostrar el modal de selección de tickets
-        setShowTicketModal(true);
+        // No necesita vehículo
+        enroll(null, singleTicket._id);
       }
+
     } else {
-      // Si hay múltiples tickets, mostrar el modal de selección de tickets
+      // Caso donde hay más de un ticket, o ticket pago/aprobación:
       setShowTicketModal(true);
     }
   };
-
+  
   // Manejar selección de ticket
   const handleTicketSelect = (ticketId) => {
     console.log("Seleccionando Ticket ID:", ticketId);
@@ -179,30 +167,12 @@ const EventDetail = () => {
       toast.error('Ticket seleccionado no encontrado.');
       return;
     }
-    if (selectedTicket.availableSeats <= 0) {
+    if (selectedTicket.availableSeats <= 0) { // Asegúrate de que availableSeats existe en los tickets
       toast.error('No hay asientos disponibles para este ticket.');
       return;
     }
     setSelectedTicketId(ticketId);
     console.log("Estado selectedTicketId actualizado a:", ticketId);
-  };
-
-  // Manejar selección de vehículo
-  const handleVehicleSelect = (vehicleId) => {
-    setSelectedVehicleId(vehicleId);
-  };
-
-  // Confirmar inscripción
-  const handleConfirmEnrollment = () => {
-    if (selectedVehicleId && selectedTicketId) {
-      enroll(selectedVehicleId, selectedTicketId);
-      setShowVehicleModal(false);
-      // Resetear las selecciones
-      setSelectedTicketId(null);
-      setSelectedVehicleId(null);
-    } else {
-      toast.error('Por favor, selecciona una entrada y un vehículo antes de continuar.');
-    }
   };
 
   // Cancelar inscripción
@@ -215,13 +185,25 @@ const EventDetail = () => {
         // Actualizar el estado localmente
         setIsEnrolled(false);
         setUserEnrollment(null);
-        setEnrollmentStatus(null); // Limpiar enrollmentStatus
+        setEnrollmentStatus(null);
         // Actualizar el evento
         setEvent(response.data.event);
       }
     } catch (error) {
       console.error('Error al cancelar la inscripción:', error);
       toast.error('Error al cancelar la inscripción.');
+    }
+  };
+
+  // Manejar inscripción completa desde EnrollWithVehicleModal
+  const handleEnrollmentComplete = (vehicle) => {
+    const selectedTicket = event.tickets.find(t => t._id === selectedTicketId);
+    if (selectedTicket && vehicle && vehicle._id) {
+      enroll(vehicle._id, selectedTicket._id);
+      setShowEnrollWithVehicleModal(false);
+      setSelectedTicketId(null);
+    } else {
+      toast.error('Datos de inscripción incompletos.');
     }
   };
 
@@ -258,12 +240,6 @@ const EventDetail = () => {
         organizer={event.owner}
         isOwner={isOwner}
       />
-      {enrollmentStatus && (
-        <EnrollmentStatus 
-          handleCancelEnrollment={handleCancelEnrollment}
-          enrollmentStatus={userEnrollment?.status} 
-        />
-      )}
       <EventBody>
         <GridContainer>
           <EventDetailContent
@@ -272,54 +248,65 @@ const EventDetail = () => {
             organizer={event.owner}
             tickets={event.tickets}
           />
-          <EventSummary
-            date={{
-              monthDate: event.monthDate,
-              dayDate: event.dayDate,
-              partialDateStart: event.partialDateStart,
-              partialDateEnd: event.partialDateEnd,
-            }}
-            location={event.location}
-            shortLocation={event.shortLocation}
-            mapCoordinates={{ lat, lng }}
-            attendees={event.attendees}
-            attendeesCount={event.attendeesCount}
-            organizer={event.owner}
-          />
+          <EventSummaryContainer>
+            {enrollmentStatus && (
+              <EnrollmentStatus 
+                handleCancelEnrollment={handleCancelEnrollment}
+                enrollmentStatus={userEnrollment?.status} 
+              />
+            )}
+            <EventSummary
+              date={{
+                monthDate: event.monthDate,
+                dayDate: event.dayDate,
+                partialDateStart: event.partialDateStart,
+                partialDateEnd: event.partialDateEnd,
+              }}
+              location={event.location}
+              shortLocation={event.shortLocation}
+              mapCoordinates={{ lat, lng }}
+              attendees={event.attendees}
+              attendeesCount={event.attendeesCount}
+              organizer={event.owner}
+            />
+          </EventSummaryContainer>
         </GridContainer>
       </EventBody>
 
-      {/* Modales */}
       {showTicketModal && (
         <TicketModal
-        tickets={event.tickets}
-        selectedTicketId={selectedTicketId}
-        handleTicketSelect={handleTicketSelect}
-        onClose={() => setShowTicketModal(false)}
-        onContinue={() => {
-          console.log("Tickets en TicketModal:", event.tickets);
-          console.log("selectedTicketId en TicketModal:", selectedTicketId);
-          setShowTicketModal(false);
-          if (user.vehicles.length === 1) {
-            setSelectedVehicleId(user.vehicles[0]._id);
-            handleConfirmEnrollment();
-          } else {
-            setShowVehicleModal(true);
-          }
-        }}
-        eventImage={event.image}
-        organizerImage={event.owner.userAvatar}
-      />
-      )}
-      {showVehicleModal && (
-        <VehicleModal
-          vehicles={user.vehicles}
-          selectedVehicleId={selectedVehicleId}
-          handleVehicleSelect={handleVehicleSelect}
-          onClose={() => setShowVehicleModal(false)}
-          onContinue={handleConfirmEnrollment}
+          tickets={event.tickets}
+          selectedTicketId={selectedTicketId}
+          handleTicketSelect={handleTicketSelect}
+          onClose={() => setShowTicketModal(false)}
+          onContinue={() => {
+            console.log("Tickets en TicketModal:", event.tickets);
+            console.log("selectedTicketId en TicketModal:", selectedTicketId);
+            setShowTicketModal(false);
+
+            // Verificar si necesita vehículo
+            if (event.needsVehicle) {
+              setShowEnrollWithVehicleModal(true);
+            } else {
+              // No necesita vehículo
+              enroll(null, selectedTicketId);
+              setSelectedTicketId(null);
+              setShowTicketModal(false);
+            }
+          }}
+          eventImage={event.image}
+          organizerImage={event.owner.userAvatar}
         />
       )}
+
+      {showEnrollWithVehicleModal && (
+        <EnrollWithVehicleModal
+          isOpen={showEnrollWithVehicleModal}
+          onClose={() => setShowEnrollWithVehicleModal(false)}
+          onEnrollmentComplete={handleEnrollmentComplete}
+        />
+      )}
+
       {showConfirmationModal && (
         <ConfirmationModal
           enrollmentStatus={enrollmentStatus}
@@ -328,9 +315,10 @@ const EventDetail = () => {
           eventLink={eventLink}
           onClose={() => setShowConfirmationModal(false)}
           selectedVehicle={selectedVehicle}
-          eventId={event.id} // Añadir esta línea
+          eventId={event.id}
         />
       )}
+
 
       <EventFixedAction
         eventName={event.title}
@@ -362,6 +350,14 @@ const GridContainer = styled.div`
   grid-gap: ${({ theme }) => theme.sizing.lg};
   padding: 0 ${({ theme }) => theme.sizing.md};
 `;
+
+const EventSummaryContainer = styled.div`
+  grid-area: 1 / 8 / 2 / 13;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`;
+
 
 
 

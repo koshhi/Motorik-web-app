@@ -6,10 +6,9 @@ import Typography from '../Typography';
 import RadioButton from '../RadioButton/RadioButton';
 import PropTypes from 'prop-types';
 
-
 const VehicleItem = ({ vehicle, selected, onSelect }) => {
   return (
-    <VehicleContainer selected={selected} onClick={onSelect} disabled={vehicle.availableSeats <= 0}>
+    <VehicleContainer selected={selected} onClick={onSelect}>
       <div style={{ marginTop: "2px" }} >
         <RadioButton selected={selected} onClick={onSelect} />
       </div>
@@ -22,6 +21,7 @@ const VehicleItem = ({ vehicle, selected, onSelect }) => {
           <Typography $variant="body-1-semibold">
             {vehicle.model}
             {vehicle.nickname && ` - ${vehicle.nickname}`}
+            {vehicle.year}
           </Typography>
         </VehicleData>
         <VehicleImage src={vehicle.image} alt={`${vehicle.brand} ${vehicle.model}`} />
@@ -38,7 +38,7 @@ VehicleItem.propTypes = {
     model: PropTypes.string.isRequired,
     nickname: PropTypes.string,
     image: PropTypes.string.isRequired,
-    availableSeats: PropTypes.number.isRequired,
+    year: PropTypes.number.isRequired,
   }).isRequired,
   selected: PropTypes.bool.isRequired,
   onSelect: PropTypes.func.isRequired,

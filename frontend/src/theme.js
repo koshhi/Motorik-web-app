@@ -137,10 +137,14 @@ export const theme = {
     defaultSubtle: "#fafafa", // Alabaster.50
     defaultWeak: "#efefef", // Alabaster.100
     defaultStrong: "#dcdcdc", // Alabaster.200
+    defaultAlphaMain16: hexToRgba("#ffffff", 0.16), // Alabaster Alpha
+    defaultAlphaMain24: hexToRgba("#ffffff", 0.24), // Alabaster Alpha
     inverseMain: "#10110f", // Alabaster.1100
     inverseStrong: "#1a1a1a", // Alabaster.1000
     inverseWeak: "#292929", // Alabaster.950
     inverseSubtle: "#3d3d3d", // Alabaster.900
+    inverseAlphaMain16: hexToRgba("#10110f", 0.16), // Alabaster Alpha
+    inverseAlphaMain24: hexToRgba("#10110f", 0.24), // Alabaster Alpha
     brandMain: "#f65703", // International Orange.600
     brandAlphaMain16: hexToRgba("#f65703", 0.16), // International Orange Alpha
     errorMain: "#f04438", // Red Orange.500
@@ -163,17 +167,18 @@ export const theme = {
     sm: '1rem', //16px
     md: '1.5rem', //24px
     lg: '2rem', //32px
-    xl: '2.5rem',
-    xxl: '3rem'
+    xl: '2.5rem', //40px
+    xxl: '3rem' //48px
   },
 
   radius: {
     xxs: '0.25rem', //4px 
     xs: '0.5rem', //8px
-    sm: '1rem',
-    md: '1.5rem',
-    lg: '2rem',
-    xl: '2.5rem'
+    sm: '1rem', //16px
+    md: '1.5rem', //24px
+    lg: '2rem', //32px
+    xl: '2.5rem', //40px
+    xxl: '3rem' //48px
   }
 };
 

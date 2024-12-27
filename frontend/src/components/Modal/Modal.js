@@ -22,7 +22,7 @@ Modal.propTypes = {
   children: PropTypes.node.isRequired,
   onClose: PropTypes.func.isRequired,
   title: PropTypes.string.isRequired,
-  maxWidth: PropTypes.string, // Nueva prop
+  maxWidth: PropTypes.string
 };
 
 export default Modal;

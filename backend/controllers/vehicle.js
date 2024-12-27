@@ -43,7 +43,14 @@ vehiclesRouter.get('/models', (req, res) => {
 
 // Crear un vehículo con subida de imagen
 vehiclesRouter.post('/', auth, upload.single('image'), async (req, res) => {
+  console.log('POST /api/vehicles called by user:', req.user.id)
   const { brand, model, nickname, year } = req.body
+  console.log('Received data:', { brand, model, nickname, year })
+
+  // Validar que los campos necesarios están presentes
+  if (!brand || !model || !year) {
+    return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' })
+  }
 
   try {
     // Subir imagen a Cloudinary
@@ -75,6 +82,9 @@ vehiclesRouter.post('/', auth, upload.single('image'), async (req, res) => {
 
     res.status(201).json({ success: true, vehicle: savedVehicle })
   } catch (error) {
+    // if (error.code === 11000) { // Error de duplicación en MongoDB
+    //   return res.status(400).json({ success: false, message: 'Vehículo duplicado.' })
+    // }
     console.error(error)
     res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
@@ -82,6 +92,7 @@ vehiclesRouter.post('/', auth, upload.single('image'), async (req, res) => {
 
 // Actualizar un vehículo con subida de imagen
 vehiclesRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
+  console.log('PUT /api/vehicles/:id called by user:', req.user.id, 'Vehicle ID:', req.params.id)
   const { id } = req.params
   const { brand, model, nickname, year } = req.body
 
