@@ -52,7 +52,7 @@ const EventDetail = () => {
         setSelectedVehicle(vehicle);
       } else {
         console.warn('Vehículo seleccionado no encontrado en los datos del evento.');
-        setSelectedVehicle(null); // O manejar el caso según corresponda
+        setSelectedVehicle(null); 
       }
   
       // Mostrar el modal de confirmación
@@ -73,7 +73,7 @@ const EventDetail = () => {
       } else {
         setIsEnrolled(false);
         setUserEnrollment(null);
-        setEnrollmentStatus(null); // Opcional, para limpiar
+        setEnrollmentStatus(null); 
       }
     }
 
@@ -196,13 +196,17 @@ const EventDetail = () => {
   };
 
   // Manejar inscripción completa desde EnrollWithVehicleModal
-  const handleEnrollmentComplete = (vehicle) => {
-    const selectedTicket = event.tickets.find(t => t._id === selectedTicketId);
+  const handleEnrollmentComplete = (vehicle, ticketId) => { // Modificado para recibir ticketId
+    console.log('handleEnrollmentComplete called with vehicle:', vehicle);
+    console.log('handleEnrollmentComplete called with ticketId:', ticketId);
+    const selectedTicket = event.tickets.find(t => t._id === ticketId);
+    console.log('Selected ticket:', selectedTicket);
     if (selectedTicket && vehicle && vehicle._id) {
       enroll(vehicle._id, selectedTicket._id);
       setShowEnrollWithVehicleModal(false);
       setSelectedTicketId(null);
     } else {
+      console.log('Inscription data incomplete');
       toast.error('Datos de inscripción incompletos.');
     }
   };
@@ -300,13 +304,21 @@ const EventDetail = () => {
       )}
 
       {showEnrollWithVehicleModal && (
+        // <EnrollWithVehicleModal
+        //   isOpen={showEnrollWithVehicleModal}
+        //   onClose={() => setShowEnrollWithVehicleModal(false)}
+        //   onEnrollmentComplete={handleEnrollmentComplete}
+        // />
+
         <EnrollWithVehicleModal
           isOpen={showEnrollWithVehicleModal}
           onClose={() => setShowEnrollWithVehicleModal(false)}
-          onEnrollmentComplete={handleEnrollmentComplete}
+          onEnroll={handleEnrollmentComplete}
+          eventId={event.id}
+          selectedTicketId={selectedTicketId} 
         />
       )}
-
+      
       {showConfirmationModal && (
         <ConfirmationModal
           enrollmentStatus={enrollmentStatus}

@@ -7,9 +7,9 @@ import Button from '../../components/Button/Button';
 import EventCardRow from '../../components/EventCardRow'
 import useUserEvents from '../../hooks/useUserEvents';
 import useUserProfile from '../../hooks/useUserProfile';
-
-
-
+import Typography from '../../components/Typography';
+import { theme } from '../../theme';
+import { getPlatform, getIcon } from '../../utils/socialMediaUtils';
 
 const UserProfile = () => {
   const { userId } = useParams()
@@ -39,98 +39,127 @@ const UserProfile = () => {
     <>
       <Profile>
         <Container>
-          <div className='Grid'>
-            <div className='UserInfo'>
+          <Grid>
+            <UserInfo>
               <Bio>
-                <h3>Bio</h3>
-                <p className='Biography'>{profileUser.description}</p>
-                {profileUser.socialMediaLinks && profileUser.socialMediaLinks.length > 0 ? (
-                  <SocialMediaList>
-                    {profileUser.socialMediaLinks.map((socialMediaLink, index) => (
-                      <SocialMediaItem key={index}>
-                        <a href={socialMediaLink.url} target='_blank' rel='noreferrer'>
-                          {socialMediaLink.platform}
-                        </a>
-                      </SocialMediaItem>
-                    ))}
-                  </SocialMediaList>
-                ) : (
-                  <p>No tienes enlaces de redes sociales.</p>
-                )}
+                <Typography $variant="title-4-semibold" as="h3">Bio</Typography>
+                <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>{profileUser.description}</Typography>
+                {
+                  profileUser.socialMediaLinks && profileUser.socialMediaLinks.length > 0 && (
+                    <SocialMediaList>
+                      {profileUser.socialMediaLinks.map((socialMediaLink, index) => {
+                        const platform = getPlatform(socialMediaLink.url);
+                        const icon = getIcon(platform);
+
+                        return (
+                          <SocialMediaItem key={index}>
+                            <IconLink href={socialMediaLink.url} target='_blank' rel='noreferrer'>
+                              <img src={icon} alt={platform} />
+                            </IconLink>
+                          </SocialMediaItem>
+                        );
+                      })}
+                    </SocialMediaList>
+                  )
+                }
               </Bio>
-              <Vehicles className="Vehicles">
-                <h3 className='BlockTitle'>Garaje</h3>
+              <Vehicles>
+                <Typography $variant="title-4-semibold" as="h3">Garaje</Typography>
                 {profileUser.vehicles && profileUser.vehicles.length > 0 ? (
-                  <ul className='VehicleList'>
+                  <VehicleList>
                     {profileUser.vehicles.map(vehicle => (
-                      <li key={vehicle.id} className='Vehicle'>
-                        <div className='VehicleContent'>
-                          <img src={vehicle.image} className='VehicleImage' alt={vehicle.brand + vehicle.model} />
-                          <div className='VehicleData'>
-                            <p className='Brand'>{vehicle.brand}<span className='Model'> {vehicle.model}</span></p>
-                            <p className='Subtitle'>{vehicle.nickname || vehicle.model}</p>
-                            <p className='Year'>{vehicle.year}</p>
-                          </div>
-                        </div>
-                      </li>
+                      <Vehicle key={vehicle.id} >
+                        <VehicleContent>
+                          <VehicleImage src={vehicle.image} alt={vehicle.brand + vehicle.model} />
+                          <VehicleData>
+                            {vehicle.nickname ? (
+                              <>
+                                <Typography $variant="body-1-medium" color={theme.colors.defaultMain}>
+                                  {vehicle?.brand}
+                                  <Typography as="span" color={theme.colors.defaultStrong} style={{ marginLeft: '4px' }}>
+                                    {vehicle?.model}
+                                  </Typography>
+                                </Typography>
+                                <Typography $variant="title-5-semibold" color={theme.colors.defaultMain}>{vehicle.nickname}</Typography>
+                                <Typography $variant="body-3-medium" color={theme.colors.defaultStrong}>{vehicle.year}</Typography>
+                              </>
+                            ) : (
+                              <>
+                                <Typography $variant="body-1-medium" color={theme.colors.defaultMain}>
+                                  {vehicle?.brand}
+                                </Typography>
+                                <Typography $variant="title-5-semibold" color={theme.colors.defaultMain}>{vehicle.model}</Typography>
+                                <Typography $variant="body-3-medium" color={theme.colors.defaultStrong}>{vehicle.year}</Typography>
+                              </>
+                            )}
+                          </VehicleData>
+
+                        </VehicleContent>
+                      </Vehicle>
                     ))}
-                  </ul>
+                  </VehicleList>
                 ) : (
-                  <p>No tienes vehículos.</p>
+                  <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
+                    {isOwnProfile ? 'No tienes vehículos' : `Sin Vehículos`}
+                  </Typography>
                 )}
               </Vehicles>
-              <Achievements className="Achievements">
-                <h3>Logros</h3>
-                <p>Comming soon...</p>
+              <Achievements>
+                <Typography $variant="title-4-semibold" as="h3">Logros</Typography>
+                <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>Proximamente...</Typography>
               </Achievements>
-            </div>
+            </UserInfo>
             <EventsContainer>
-              <div className='Header'>
-                <h3 className='BlockTitle'>Eventos</h3>
-                <div className="EventsTabs">
-                  <button
-                    className={activeSubTab === 'organized' ? 'Toogle Active' : 'Toogle'}
+              <HeaderBlock>
+                <Typography $variant="title-3-semibold" as="h3">Eventos</Typography>
+                <EventsTabs>
+                  <Toogle
+                    className={activeSubTab === 'organized' ? 'Active' : ''}
                     onClick={() => handleTabChange('organized')}
                   >
                     Organizados
-                  </button>
-                  <button
-                    className={activeSubTab === 'attendee' ? 'Toogle Active' : 'Toogle'}
+                  </Toogle>
+                  <Toogle
+                    className={activeSubTab === 'attendee' ? 'Active' : ''}
                     onClick={() => handleTabChange('attendee')}
                   >
                     {isOwnProfile ? 'Asistiré' : `Asistirá`}
-                  </button>
-                </div>
-              </div>
+                  </Toogle>
+                </EventsTabs>
+              </HeaderBlock>
 
               {/* Contenido de la pestaña seleccionada */}
-              <div className="TabContentWrapper">
+              <TabContentWrapper>
                 {activeSubTab === 'organized' && (
-                  <div className='TabContent'>
+                  <TabContent>
                     {futureEvents.length > 0 ? (
                       futureEvents.map(event => (
                         <EventCardRow key={event.id || event.id} event={event} />
                       ))
                     ) : (
-                      <p>No tienes eventos futuros</p>
+                      <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
+                        {isOwnProfile ? 'Aún no has creado ningún evento' : `Aún no ha creado ningún evento`}
+                      </Typography>
                     )}
-                  </div>
+                  </TabContent>
                 )}
 
                 {activeSubTab === 'attendee' && (
-                  <div className='TabContent'>
+                  <TabContent>
                     {attendeeEvents.length > 0 ? (
                       attendeeEvents.map(event => (
                         <EventCardRow key={event.id || event.id} event={event} />
                       ))
                     ) : (
-                      <p>No tienes eventos como asistente</p>
+                      <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
+                        {isOwnProfile ? 'Aún no estás inscrito en ningún evento' : `Aún no se ha inscrito en ningún evento`}
+                      </Typography>
                     )}
-                  </div>
+                  </TabContent>
                 )}
-              </div>
+              </TabContentWrapper>
             </EventsContainer>
-          </div>
+          </Grid>
         </Container>
       </Profile>
     </>
@@ -138,68 +167,6 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
-
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
-  padding-bottom: 0px;
-  width: 100%;
-  max-width: 1400px;
-  gap: ${({ theme }) => theme.sizing.md};
-
-  .Grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: 1fr;
-  grid-column-gap: 32px;
-  grid-row-gap: 0px;
-
-    .UserInfo {
-      grid-area: 1 / 1 / 2 / 5;
-      border-radius: ${({ theme }) => theme.radius.xs};
-      border: 1px solid ${({ theme }) => theme.border.defaultSubtle};
-      background-color: ${({ theme }) => theme.fill.defaultMain};
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-    }
-  }
-`;
-
-const SectionTabs = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-
-  .SectionTab {
-    color: var(--text-icon-default-subtle, #989898);
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-
-    /* Body/Body 1/Semibold */
-    font-family: "Mona Sans";
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 150%; /* 24px */
-
-    display: flex;
-    padding: 16px 0px var(--Spacing-sm, 16px) 0px;
-    justify-content: center;
-    align-items: flex-end;
-    border: none;
-    border-bottom: 4px solid transparent;
-    background-color: transparent;
-  }
-
-  .SectionTab.Active {
-    color: var(--text-icon-brand-main, #F65703);
-    border-bottom: 4px solid var(--border-brand-main, #F65703);
-  }
-`;
 
 const Profile = styled.section`
   display: flex;
@@ -209,209 +176,176 @@ const Profile = styled.section`
   background-color: ${({ theme }) => theme.fill.defaultMain};
 `;
 
-const Bio = styled.div`
+const Container = styled.div`
   display: flex;
-  padding: ${({ theme }) => theme.sizing.md};
   flex-direction: column;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.sizing.xs};
-  align-self: stretch;
-
-  .Biography {
-    color: ${({ theme }) => theme.colors.defaultWeak};
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-    font-family: "Mona Sans";
-    font-size: 14px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 140%; /* 19.6px */
-  }
-`;
-
-const Vehicles = styled.div`
-  display: flex;
-  padding: ${({ theme }) => theme.sizing.md};
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.sizing.xs};
-  align-self: stretch;
-  border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
-
-  .BlockTitle {
-    color: var(--text-icon-default-main, #292929);
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-
-    /* Titles/Desktop/Title 4/Semibold */
-    font-family: "Mona Sans";
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 140%; /* 28px */
-  }
-
-  .VehicleList {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    align-self: stretch;
-
-    .Vehicle {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      padding-right: 16px;
-
-      .VehicleContent {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        align-self: stretch;
-
-        .VehicleData {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-
-          .Brand {
-            color: var(--text-icon-default-main, #292929);
-            font-variant-numeric: lining-nums tabular-nums;
-            font-feature-settings: 'ss01' on;
-
-            /* Body/Body 2/Semibold */
-            font-family: "Mona Sans";
-            font-size: 14px;
-            font-style: normal;
-            font-weight: 600;
-            line-height: 140%; /* 19.6px */
-          }
-
-          .Model {
-            color: var(--text-icon-default-weak, #656565);
-            font-variant-numeric: lining-nums tabular-nums;
-            font-feature-settings: 'ss01' on;
-
-            /* Body/Body 3/Medium */
-            font-family: "Mona Sans";
-            font-size: 13px;
-            font-style: normal;
-            font-weight: 500;
-            line-height: 150%; /* 19.5px */
-          }
-
-          .Subtitle {
-            color: var(--text-icon-default-main, #292929);
-            font-variant-numeric: lining-nums tabular-nums;
-            font-feature-settings: 'ss01' on;
-
-            /* Body/Body 1/Semibold */
-            font-family: "Mona Sans";
-            font-size: 16px;
-            font-style: normal;
-            font-weight: 600;
-            line-height: 150%; /* 24px */
-          }
-          .Year {
-            color: var(--text-icon-default-weak, #656565);
-            font-variant-numeric: lining-nums tabular-nums;
-            font-feature-settings: 'ss01' on;
-
-            /* Body/Body 3/Medium */
-            font-family: "Mona Sans";
-            font-size: 13px;
-            font-style: normal;
-            font-weight: 500;
-            line-height: 150%; /* 19.5px */
-          }
-        }
-
-        .VehicleImage {
-          width: 56px;
-          height: 56px;
-          border-radius: ${({ theme }) => theme.radius.xs}; 
-        }
-      }
-    }
-  }
-`;
-
-const Achievements = styled.div`
-  display: flex;
-  padding: ${({ theme }) => theme.sizing.md};
-  flex-direction: column;
-  align-items: flex-start;
+  padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
+  padding-bottom: 0px;
+  width: 100%;
+  max-width: 1400px;
   gap: ${({ theme }) => theme.sizing.md};
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: ${({ theme }) => theme.sizing.lg};
+  grid-row-gap: 0px;
+`;
+
+const UserInfo = styled.div`
+  grid-area: 1 / 1 / 2 / 5;
+  border-radius: ${({ theme }) => theme.radius.xs};
+  border: 1px solid ${({ theme }) => theme.border.defaultSubtle};
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: fit-content;
+`;
+
+const UserInfoBlock = styled.div`
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.sm};
+  padding-top: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
   align-self: stretch;
+`;
+
+const Bio = styled(UserInfoBlock)`
+`;
+
+const SocialMediaList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin-top:  ${({ theme }) => theme.sizing.xs};
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
+`;
+
+const SocialMediaItem = styled.li`
+`;
+
+const IconLink = styled.a`
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    opacity: 0.6;
+  }
+`;
+
+const Vehicles = styled(UserInfoBlock)`
+  border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
+`;
+
+const VehicleList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  align-self: stretch;
+  padding-top: ${({ theme }) => theme.sizing.xxs};
+`;
+
+const Vehicle = styled.li`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: ${({ theme }) => theme.sizing.sm};
+`;
+
+const VehicleContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  align-self: stretch;
+`;
+
+const VehicleImage = styled.img`
+  width: 80px;
+  height: 80px;
+  border-radius: ${({ theme }) => theme.radius.xxs};
+  object-fit: cover;
+`;
+
+const VehicleData = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+`;
+
+const Achievements = styled(UserInfoBlock)`
   border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
 `;
 
 const EventsContainer = styled.div`
   grid-area: 1 / 5 / 2 / 13;
+`;
 
-  .Header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+const HeaderBlock = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
 
-    .BlockTitle {
-      color: var(--text-icon-default-main, #292929);
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
-      font-family: "Mona Sans";
-      font-size: 24px;
-      font-style: normal;
-      font-weight: 600;
-      line-height: 140%; /* 33.6px */
-    }
+const EventsTabs = styled.div`
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.xxs};
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
+  border-radius: ${({ theme }) => theme.radius.md};
+  background: ${({ theme }) => theme.fill.defaultWeak};
+`;
 
-    .EventsTabs {
-      display: flex;
-      padding: var(--Spacing-xxs, 4px);
-      align-items: flex-start;
-      gap: var(--Spacing-xs, 8px);
-      border-radius: var(--Spacing-md, 24px);
-      background: var(--bg-default-weak, #EFEFEF);
+const Toogle = styled.button`
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.xs} ${({ theme }) => theme.sizing.sm};
+  justify-content: center;
+  align-items: center;
+  border-radius: ${({ theme }) => theme.radius.lg};
+  border: none;
+  color: ${({ theme }) => theme.colors.defaultWeak};
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'ss01' on;
+  font-family: "Mona Sans";
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 150%;
+  transition: all 0.3s ease-in-out;
 
-      .Toogle {
-        display: flex;
-        padding: var(--Spacing-xs, 8px) var(--Spacing-sm, 16px);
-        justify-content: center;
-        align-items: center;
-        border-radius: var(--Spacing-lg, 32px);
-        border: 0px;
-        color: var(--text-icon-default-weak, #656565);
-        font-variant-numeric: lining-nums tabular-nums;
-        font-feature-settings: 'ss01' on;
-        font-family: "Mona Sans";
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 150%; /* 24px */
-      }
-
-      .Active {
-        border-radius: var(--Spacing-lg, 32px);
-        background: var(--bg-default-main, #FFF);
-        box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 12px 0px rgba(0, 0, 0, 0.04);
-        color: var(--text-icon-default-main, #292929);
-      }
-    }
+  &:hover {
+    background: ${({ theme }) => theme.fill.defaultSubtle};
   }
 
-  .TabContentWrapper {
-    padding-top: 32px;
-
-    .TabContent {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+  &.Active {
+    border-radius: var(--Spacing-lg, 32px);
+    background: ${({ theme }) => theme.fill.defaultMain};
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 12px 0px rgba(0, 0, 0, 0.04);
+    color: ${({ theme }) => theme.colors.defaultStrong};
   }
+`;
+
+const TabContentWrapper = styled.div`
+  padding-top: ${({ theme }) => theme.sizing.md};
+`;
+
+const TabContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.sizing.md};
 `;
 
 const LoadingContainer = styled.div`
@@ -425,23 +359,4 @@ const ErrorContainer = styled.div`
   color: red;
   text-align: center;
   margin-top: 20px;
-`;
-
-const SocialMediaList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin-top: 10px;
-`;
-
-const SocialMediaItem = styled.li`
-  margin-bottom: 5px;
-
-  a {
-    color: ${({ theme }) => theme.colors.primary};
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 `;

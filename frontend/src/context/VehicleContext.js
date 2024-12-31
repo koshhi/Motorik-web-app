@@ -12,9 +12,13 @@ export const VehicleProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const fetchVehicles = useCallback(async (userId) => {
+
     setLoading(true);
     try {
+      console.log('Fetching vehicles for user:', userId);
       const response = await axiosClient.get(`/api/vehicles/user/${userId}`);
+      console.log('Response from fetchVehicles:', response.data);
+
       if (response.data.success) {
         setVehicles(response.data.vehicles);
       } else {
@@ -37,9 +41,8 @@ export const VehicleProvider = ({ children }) => {
         },
       });
       if (response.data.success) {
+        console.log('Vehículo creado:', response.data.vehicle);
         setVehicles((prevVehicles) => [...prevVehicles, response.data.vehicle]);
-        // Eliminar el toast de éxito para evitar duplicados
-        // toast.success('Vehículo creado exitosamente.');
         return response.data.vehicle;
       } else {
         toast.error(response.data.message || 'Error al crear el vehículo.');
@@ -70,8 +73,6 @@ export const VehicleProvider = ({ children }) => {
         setVehicles((prevVehicles) =>
           prevVehicles.map((v) => (v._id === vehicleId ? response.data.vehicle : v))
         );
-        // Eliminar el toast de éxito para evitar duplicados
-        // toast.success('Vehículo actualizado exitosamente.');
         return response.data.vehicle;
       } else {
         toast.error(response.data.message || 'Error al actualizar el vehículo.');
@@ -96,8 +97,6 @@ export const VehicleProvider = ({ children }) => {
       const response = await axiosClient.delete(`/api/vehicles/${vehicleId}`);
       if (response.data.success) {
         setVehicles((prevVehicles) => prevVehicles.filter((v) => v._id !== vehicleId));
-        // Eliminar el toast de éxito para evitar duplicados
-        // toast.success('Vehículo eliminado exitosamente.');
         return true;
       } else {
         toast.error(response.data.message || 'Error al eliminar el vehículo.');

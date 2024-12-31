@@ -9,7 +9,7 @@ import Button from '../Button/Button';
 import TicketItem from '../EventContent/TicketItem';
 import ModalCheckout from './ModalCheckout'; // Importar el ModalCheckout
 
-const TARIF_PERCENTAGE = 10; // 5%
+const TARIF_PERCENTAGE = 10; // 10%
 
 const TicketModal = ({
   tickets,

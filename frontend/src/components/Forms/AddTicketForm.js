@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import InputText from '../components/Input/InputText';
-import Button from '../components/Button/Button';
-import Switch from '../components/Switch';
-import Typography from '../components/Typography';
-import ToogableTabs from '../components/Toogle/ToogableTabs'; // Importa ToogableTabs
-import { theme } from '../theme';
+import InputText from '../Input/InputText';
+import Button from '../Button/Button';
+import Switch from '../Switch';
+import Typography from '../Typography';
+import ToogableTabs from '../Toogle/ToogableTabs'; // Importa ToogableTabs
+import { theme } from '../../theme';
 import { toast } from 'react-toastify'; // Importa toast para notificaciones
 
 // Opciones para ToogableTabs

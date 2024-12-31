@@ -6,6 +6,7 @@ import { ReactSVG } from 'react-svg';
 import { getEventTypeIcon } from '../utilities'
 import Button from './Button/Button';
 import PriceDisplay from './PriceDisplay';
+import Tag from './Tag';
 
 const EventCardRow = ({ event }) => {
   const { user } = useAuth();
@@ -27,24 +28,20 @@ const EventCardRow = ({ event }) => {
   return (
     <Link to={`/events/${event.id}/${generateSlug(event.title)}`}>
       <Event>
-        <Left>
-          <div className='eventTags'>
-            <div className='eventCategory'>
-              <p>{event.eventType}</p>
-            </div>
-            <div className='eventCategory'>
-              <p>{event.terrain}</p>
-            </div>
-          </div>
+        <EventMedia>
+          <EventTags>
+            <Tag>{event.eventType}</Tag>
+            <Tag>{event.terrain}</Tag>
+          </EventTags>
 
           {event.image ? (
-            <img src={event.image} alt={event.title} className='event_card-image' />
+            <EventCardImage src={event.image} alt={event.title} />
           ) : (
             <div className='placeholderImage'>
               <img src={getEventTypeIcon(event.eventType)} alt="empty state icon" className='placeholderImage-icon' />
             </div>
           )}
-        </Left>
+        </EventMedia>
         <Right>
           <div className='mainInfo'>
             <h3>{event.title}</h3>
@@ -99,12 +96,9 @@ const Event = styled.div`
     border: 1px solid ${({ theme }) => theme.border.defaultStrong};
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 12px 0px rgba(0, 0, 0, 0.12);
   }
-
-  
-  }
 `;
 
-const Left = styled.div`
+const EventMedia = styled.div`
   position: relative;
   aspect-ratio: 4/3;
   max-width: 330px;
@@ -162,15 +156,15 @@ const Left = styled.div`
       height: 50px;
     }
 
-    .eventTags {
-      left: ${({ theme }) => theme.sizing.sm};
-      top: ${({ theme }) => theme.sizing.sm};
-      position: absolute;
-      display:flex;
-      flex-direction: center;
-      align-items: center;
-      gap: ${({ theme }) => theme.sizing.xs};
-    }
+    // .eventTags {
+    //   left: ${({ theme }) => theme.sizing.sm};
+    //   top: ${({ theme }) => theme.sizing.sm};
+    //   position: absolute;
+    //   display:flex;
+    //   flex-direction: center;
+    //   align-items: center;
+    //   gap: ${({ theme }) => theme.sizing.xs};
+    // }
 
     .eventCategory {
       padding: 8px;
@@ -190,6 +184,23 @@ const Left = styled.div`
       }
     }
   }
+`;
+
+const EventCardImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+`;
+
+const EventTags = styled.div`
+  left: ${({ theme }) => theme.sizing.sm};
+  top: ${({ theme }) => theme.sizing.sm};
+  position: absolute;
+  display:flex;
+  flex-direction: center;
+  align-items: center;
+  gap: ${({ theme }) => theme.sizing.xs};
 `;
 
 const Right = styled.div`

@@ -2,80 +2,69 @@
 
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import axiosClient from '../../api/axiosClient';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
+import { useVehicles } from '../../context/VehicleContext';
 import InfoModal from './InfoModal';
 import SelectVehicleModal from './SelectVehicleModal';
 import AddVehicleModal from './AddVehicleModal';
 import ConfirmSelectedVehicleModal from './ConfirmSelectedVehicleModal';
-import axiosClient from '../../api/axiosClient';
-import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
 
-
-const EnrollWithVehicleModal = ({ isOpen, onClose, onEnroll, eventId }) => {
-  const [step, setStep] = useState(1);
-  const [vehicles, setVehicles] = useState([]);
-  const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+const EnrollWithVehicleModal = ({ isOpen, onClose, onEnroll, eventId, selectedTicketId }) => {
   const { user } = useAuth();
+  const [step, setStep] = useState(1);
+  const { vehicles, fetchVehicles, loading } = useVehicles();
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   useEffect(() => {
-    if (isOpen) {
-      // Cargar vehículos del usuario al abrir el modal
-      const fetchVehicles = async () => {
-        setIsLoading(true);
-        try {
-          const response = await axiosClient.get(`/api/vehicles/user/${user.id}`);
-          if (response.data.success) {
-            setVehicles(response.data.vehicles);
-          } else {
-            toast.error(response.data.message || 'Error al cargar los vehículos.');
-          }
-        } catch (error) {
-          console.error('Error fetching vehicles:', error);
-          toast.error('Error al cargar los vehículos.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchVehicles();
+    if (isOpen && user) {
+      console.log('Fetching vehicles from context for user:', user.id);
+      fetchVehicles(user.id);
     } else {
       // Resetear el estado al cerrar el modal
       setStep(1);
-      setSelectedVehicle(null);
+      setSelectedVehicleId(null);
     }
-  }, [isOpen, user.id]);
+  }, [isOpen, fetchVehicles, user]);
 
-  const handleNext = () => {
-    setStep((prev) => prev + 1);
+  const handleVehicleSelect = (vehicleId) => {
+    setSelectedVehicleId(vehicleId);
   };
 
-  const handleBack = () => {
-    setStep((prev) => prev - 1);
-  };
-
-  const handleVehicleSelect = (vehicle) => {
-    setSelectedVehicle(vehicle);
-    handleNext();
-  };
-
-  const handleAddVehicle = async (newVehicle) => {
-    setVehicles((prev) => [...prev, newVehicle]);
-    setSelectedVehicle(newVehicle);
-    handleNext();
+  const handleAddVehicle = async () => {
+    setStep(3);
   };
 
   const handleConfirm = () => {
-    onEnroll(selectedVehicle);
-    onClose();
+    if (selectedVehicleId && selectedTicketId) {
+      const vehicle = vehicles.find(v => v._id === selectedVehicleId);
+      if (vehicle) {
+        onEnroll(vehicle, selectedTicketId);
+        onClose();
+      } else {
+        toast.error('Vehículo seleccionado no encontrado.');
+      }
+    } else {
+      toast.error('Datos de inscripción incompletos.');
+    }
+  };
+
+  const selectedVehicle = vehicles.find(v => v._id === selectedVehicleId) || null;
+
+  const handleContinue = () => {
+    if (selectedVehicleId) {
+      setStep(4);
+    } else {
+      toast.error('Por favor, selecciona un vehículo o añade uno nuevo.');
+    }
   };
 
   return (
     <>
       {isOpen && step === 1 && (
         <InfoModal
-          title="Inscripción con Vehículo"
-          description="Este evento requiere que inscribas un vehículo. Puedes seleccionar uno existente o añadir uno nuevo."
-          onNext={handleNext}
+          onContinue={() => setStep(2)}
           onClose={onClose}
         />
       )}
@@ -84,10 +73,10 @@ const EnrollWithVehicleModal = ({ isOpen, onClose, onEnroll, eventId }) => {
         <SelectVehicleModal
           isOpen={isOpen}
           onClose={onClose}
-          vehicles={vehicles}
-          selectedVehicle={selectedVehicle}
+          selectedVehicleId={selectedVehicleId}
           onSelectVehicle={handleVehicleSelect}
-          onAddVehicle={() => setStep(3)}
+          onAddVehicle={handleAddVehicle}
+          onContinue={handleContinue}
         />
       )}
 
@@ -95,7 +84,10 @@ const EnrollWithVehicleModal = ({ isOpen, onClose, onEnroll, eventId }) => {
         <AddVehicleModal
           isOpen={isOpen}
           onClose={() => setStep(2)}
-          onVehicleAdded={handleAddVehicle}
+          onVehicleSaved={(newVehicle) => {
+            setSelectedVehicleId(newVehicle._id);
+            setStep(4);
+          }}
         />
       )}
 
@@ -115,8 +107,9 @@ const EnrollWithVehicleModal = ({ isOpen, onClose, onEnroll, eventId }) => {
 EnrollWithVehicleModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onEnroll: PropTypes.func.isRequired, // Función para manejar la inscripción con el vehículo seleccionado
+  onEnroll: PropTypes.func.isRequired,
   eventId: PropTypes.string.isRequired,
+  selectedTicketId: PropTypes.string,
 };
 
 export default EnrollWithVehicleModal;

@@ -10,7 +10,7 @@ import { theme } from '../../theme';
 import Button from '../Button/Button';
 import Typography from '../Typography';
 import Modal from '../Modal/Modal';
-import AddTicketForm from '../AddTicketForm';
+import AddTicketForm from '../Forms/AddTicketForm';
 import EditTicketForm from '../EditTicketForm';
 import Tag from '../Tag';
 import DropdownButton from '../DropdownButton';

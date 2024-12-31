@@ -5,10 +5,32 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import AddVehicleForm from '../Forms/AddVehicleForm';
 import Modal from './Modal';
-
+import { useVehicles } from '../../context/VehicleContext';
+import { toast } from 'react-toastify';
 
 const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle }) => {
+  const { addVehicle, updateVehicle } = useVehicles();
+
   if (!isOpen) return null;
+
+  const handleSubmit = async (vehicleData) => {
+    let savedVehicle = null;
+    if (vehicle) {
+      // Editar vehículo existente
+      savedVehicle = await updateVehicle(vehicle._id, vehicleData);
+    } else {
+      // Añadir nuevo vehículo
+      savedVehicle = await addVehicle(vehicleData);
+    }
+
+    if (savedVehicle) {
+      console.log('Vehículo guardado:', savedVehicle);
+      onVehicleSaved(savedVehicle);
+      onClose();
+    } else {
+      toast.error('No se pudo guardar el vehículo.');
+    }
+  };
 
   return (
     <Modal
@@ -18,10 +40,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle }) => {
       maxWidth="600px"
     >
       <AddVehicleForm
-        onSubmit={(savedVehicle) => {
-          onVehicleSaved(savedVehicle);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         vehicle={vehicle}
       />
     </Modal>
@@ -32,7 +51,7 @@ AddVehicleModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onVehicleSaved: PropTypes.func.isRequired,
-  vehicle: PropTypes.object, // Puede ser null o undefined si se está creando un nuevo vehículo
+  vehicle: PropTypes.object,
 };
 
 export default AddVehicleModal;
