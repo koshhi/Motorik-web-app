@@ -64,6 +64,7 @@ const EnrollWithVehicleModal = ({ isOpen, onClose, onEnroll, eventId, selectedTi
     <>
       {isOpen && step === 1 && (
         <InfoModal
+          isOpen={true}
           onContinue={() => setStep(2)}
           onClose={onClose}
         />

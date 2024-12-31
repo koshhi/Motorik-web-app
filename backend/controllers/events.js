@@ -408,47 +408,6 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
     }
 
-    // Parseo de needsVehicle a boolean
-    // const needsVehicle = !!event.needsVehicle
-
-    // if (!ticketId) {
-    //   await session.abortTransaction()
-    //   session.endSession()
-    //   return res.status(400).json({ success: false, message: 'ticketId es requerido.' })
-    // }
-
-    // if (needsVehicle && !vehicleId) {
-    //   await session.abortTransaction()
-    //   session.endSession()
-    //   return res.status(400).json({ success: false, message: 'vehicleId es requerido porque el evento requiere vehículo.' })
-    // }
-
-    // if (event.owner.toString() === req.user.id) {
-    //   await session.abortTransaction()
-    //   session.endSession()
-    //   return res.status(403).json({ success: false, message: 'No puedes inscribirte en tu propio evento.' })
-    // }
-
-    // const isAlreadyEnrolled = event.attendees.some(attendee => attendee.userId.toString() === req.user.id)
-    // if (isAlreadyEnrolled) {
-    //   await session.abortTransaction()
-    //   session.endSession()
-    //   return res.status(400).json({ success: false, message: 'Ya estás inscrito en este evento.' })
-    // }
-
-    // const ticket = event.tickets.find(t => t._id.toString() === ticketId)
-    // if (!ticket) {
-    //   await session.abortTransaction()
-    //   session.endSession()
-    //   return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
-    // }
-
-    // if (ticket.availableSeats <= 0) {
-    //   await session.abortTransaction()
-    //   session.endSession()
-    //   return res.status(400).json({ success: false, message: 'No hay asientos disponibles.' })
-    // }
-
     const needsVehicle = !!event.needsVehicle
 
     if (needsVehicle && !vehicleId) {
@@ -502,15 +461,19 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
     ticket.availableSeats -= 1
     await ticket.save({ session })
     await event.save({ session })
+    console.log('Evento después de save:', event)
 
-    // Calcular availableSeats como la suma de availableSeats de todos los tickets
+    // Poblar el evento actualizado con la sesión
     const updatedEvent = await Event.findById(eventId)
       .populate('attendees.userId', 'name lastName userAvatar email')
       .populate('attendees.vehicleId', 'brand model image nickname year')
       .populate('attendees.ticketId')
       .populate('owner', 'name lastName userAvatar')
       .populate('tickets')
+      .session(session) // Asegurar que la sesión se utiliza aquí
       .exec()
+
+    console.log('Evento actualizado con populate:', updatedEvent)
 
     const availableSeats = updatedEvent.tickets.reduce((sum, ticket) => sum + ticket.availableSeats, 0)
 
@@ -541,6 +504,124 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error interno' })
   }
 })
+
+// eventsRouter.post('/enroll/:id', auth, async (req, res) => {
+//   const eventId = req.params.id
+//   const { vehicleId, ticketId } = req.body
+//   const session = await mongoose.startSession()
+//   session.startTransaction()
+
+//   try {
+//     const user = await User.findById(req.user.id).session(session)
+//     if (!user) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
+//     }
+
+//     const event = await Event.findById(eventId).populate('tickets').session(session)
+//     if (!event) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
+//     }
+
+//     const needsVehicle = !!event.needsVehicle
+
+//     if (needsVehicle && !vehicleId) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(400).json({ success: false, message: 'vehicleId es requerido porque el evento requiere vehículo.' })
+//     }
+
+//     if (event.owner.toString() === req.user.id) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(403).json({ success: false, message: 'No puedes inscribirte en tu propio evento.' })
+//     }
+
+//     const isAlreadyEnrolled = event.attendees.some(attendee => attendee.userId.toString() === req.user.id)
+//     if (isAlreadyEnrolled) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(400).json({ success: false, message: 'Ya estás inscrito en este evento.' })
+//     }
+
+//     const ticket = event.tickets.find(t => t._id.toString() === ticketId)
+//     if (!ticket) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
+//     }
+
+//     if (ticket.availableSeats <= 0) {
+//       await session.abortTransaction()
+//       session.endSession()
+//       return res.status(400).json({ success: false, message: 'No hay asientos disponibles.' })
+//     }
+
+//     // Verificar que el vehículo pertenece al usuario
+//     if (needsVehicle) {
+//       const vehicle = await Vehicle.findOne({ _id: vehicleId, owner: user._id }).session(session)
+//       if (!vehicle) {
+//         await session.abortTransaction()
+//         session.endSession()
+//         return res.status(400).json({ success: false, message: 'Vehículo no encontrado o no te pertenece.' })
+//       }
+//     }
+
+//     let status = 'attending'
+//     if (ticket.approvalRequired) {
+//       status = 'confirmation pending'
+//     }
+
+//     event.attendees.push({ userId: req.user.id, vehicleId: vehicleId || undefined, ticketId, status })
+//     ticket.availableSeats -= 1
+//     await ticket.save({ session })
+//     await event.save({ session })
+//     console.log('Evento después de save:', event)
+
+//     // Calcular availableSeats como la suma de availableSeats de todos los tickets
+//     const updatedEvent = await Event.findById(eventId)
+//       .populate('attendees.userId', 'name lastName userAvatar email')
+//       .populate('attendees.vehicleId', 'brand model image nickname year')
+//       .populate('attendees.ticketId')
+//       .populate('owner', 'name lastName userAvatar')
+//       .populate('tickets')
+//       .session(session)
+//       .exec()
+
+//     console.log('Evento actualizado con populate:', updatedEvent)
+
+//     const availableSeats = updatedEvent.tickets.reduce((sum, ticket) => sum + ticket.availableSeats, 0)
+
+//     const eventObject = updatedEvent.toObject()
+//     eventObject.availableSeats = availableSeats
+
+//     await session.commitTransaction()
+//     session.endSession()
+
+//     // Enviar correo de confirmación
+//     try {
+//       await sendEnrollmentConfirmationEmail(
+//         user.email,
+//         event,
+//         ticket,
+//         vehicleId ? await Vehicle.findById(vehicleId) : null,
+//         status
+//       )
+//     } catch (emailError) {
+//       console.error('Error enviando correo:', emailError)
+//     }
+
+//     res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: eventObject })
+//   } catch (error) {
+//     console.error('Error en la inscripción:', error)
+//     await session.abortTransaction()
+//     session.endSession()
+//     res.status(500).json({ success: false, message: 'Error interno' })
+//   }
+// })
 
 // eventsRouter.post('/enroll/:id', auth, async (req, res) => {
 //   const eventId = req.params.id
