@@ -40,46 +40,76 @@ const EventDetail = () => {
   const { enroll, loadingEnroll, errorEnroll } = useEnroll(id, user, (updatedEvent) => {
     console.log('Evento actualizado después de inscripción:', updatedEvent);
     setEvent(updatedEvent);
-
-    // Después de inscribir al usuario
-    const enrolled = updatedEvent.attendees.find(att => att.userId._id === user.id);
+    console.log('Asistentes del evento actualizado:', updatedEvent.attendees);
+  
+    // Cambiar la comparación para asegurar que ambos IDs sean cadenas
+    const enrolled = updatedEvent.attendees.find(att => {
+      const attendeeId = att.userId._id || att.userId.id;
+      const currentUserId = user._id || user.id;
+      console.log('Comparando:', attendeeId, currentUserId);
+      return attendeeId.toString() === currentUserId.toString();
+    });
+  
+    console.log('Inscripción encontrada:', enrolled);
+  
     if (enrolled) {
+      console.log('Usuario inscrito correctamente:', enrolled);
       setEnrollmentStatus(enrolled.status);
       setUserEmail(user.email);
-
-      const vehicle = enrolled.vehicleId; // Asumiendo que 'vehicleId' está poblado
+  
+      const vehicle = enrolled.vehicleId;
       if (vehicle && vehicle._id) {
         setSelectedVehicle(vehicle);
       } else {
         console.warn('Vehículo seleccionado no encontrado en los datos del evento.');
-        setSelectedVehicle(null); 
+        setSelectedVehicle(null);
       }
   
-      // Mostrar el modal de confirmación
+      // Mostrar el modal de confirmación **solo aquí**
       setShowConfirmationModal(true);
+    } else {
+      console.warn('No se encontró la inscripción del usuario en el evento actualizado.');
     }
   });
+  
 
   // Dentro del useEffect donde se actualiza userEnrollment
   useEffect(() => {
     console.log('Evento en estado actual:', event); 
+    console.log('Usuario:', user); 
     if (event && user) {
-      const enrolled = event.attendees.find(attendee => attendee.userId._id === user.id);
+      const enrolled = event.attendees.find(attendee => {
+        const attendeeId = attendee.userId._id || attendee.userId.id;
+        const currentUserId = user._id || user.id;
+        console.log('Comparando en useEffect:', attendeeId, currentUserId);
+        return attendeeId.toString() === currentUserId.toString();
+      });
+
       if (enrolled) {
         setIsEnrolled(true);
         setUserEnrollment(enrolled);
         setEnrollmentStatus(enrolled.status); 
         
+        const vehicle = enrolled.vehicleId;
+        if (vehicle && vehicle._id) {
+          setSelectedVehicle(vehicle);
+        } else {
+          console.warn('Vehículo seleccionado no encontrado en los datos del evento.');
+          setSelectedVehicle(null); 
+        }
+
       } else {
         setIsEnrolled(false);
         setUserEnrollment(null);
         setEnrollmentStatus(null); 
+        console.warn('No se encontró la inscripción del usuario en el evento actualizado.');
       }
     }
 
     console.log('Evento actualizado:', event);
 
   }, [event, user, isOwner]);
+  
 
   const intervalIdRef = useRef(null);
 
@@ -144,12 +174,15 @@ const EventDetail = () => {
     // Si hay un único ticket gratis sin aprobación => inscripción directa
     if (tickets.length === 1 && tickets[0].type === 'free' && !tickets[0].approvalRequired) {
       const singleTicket = tickets[0];
+      console.log('Single ticket:', singleTicket);
 
       if (event.needsVehicle) {
         // Abrimos el modal de inscripción con vehículos
+        setSelectedTicketId(singleTicket._id);
         setShowEnrollWithVehicleModal(true);
       } else {
         // No necesita vehículo
+        setSelectedTicketId(singleTicket._id);
         enroll(null, singleTicket._id);
       }
 
@@ -304,12 +337,6 @@ const EventDetail = () => {
       )}
 
       {showEnrollWithVehicleModal && (
-        // <EnrollWithVehicleModal
-        //   isOpen={showEnrollWithVehicleModal}
-        //   onClose={() => setShowEnrollWithVehicleModal(false)}
-        //   onEnrollmentComplete={handleEnrollmentComplete}
-        // />
-
         <EnrollWithVehicleModal
           isOpen={showEnrollWithVehicleModal}
           onClose={() => setShowEnrollWithVehicleModal(false)}
