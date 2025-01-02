@@ -10,14 +10,11 @@ const EventManagementHeader = () => {
   const location = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { title } = eventDetails;
 
   if (!eventDetails) {
     return <p>Detalles del evento no disponibles.</p>;
   }
-
-  const { title } = eventDetails;
-
-  // console.log(eventDetails)
 
   return (
     <>

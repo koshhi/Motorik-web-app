@@ -30,7 +30,7 @@ const EventHeader = ({
         </div>
         <HeaderMain>
           <HeaderLeft>
-            <Typography $variant="title-1-bold" as="h1">{title}</Typography>
+            <Typography $variant="title-1-semibold" as="h1">{title}</Typography>
             <TagsWrapper>
               {isEnrolled && <Tag $variant="brand">Inscrito</Tag>}
               <Tag $variant="transparent">{availableSeats} plazas</Tag>

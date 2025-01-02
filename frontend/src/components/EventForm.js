@@ -1002,7 +1002,7 @@ const Header = styled.div`
     font-family: "Mona Sans";
     font-size: 28px;
     font-style: normal;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 140%; /* 39.2px */
 
     &::placeholder {

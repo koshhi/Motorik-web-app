@@ -244,7 +244,7 @@ const EventSummaryContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: 1fr;
-  grid-column-gap: ${({ theme }) => theme.sizing.lg};
+  grid-column-gap: ${({ theme }) => theme.sizing.sm};
   grid-row-gap: 0px;
 `;
 
