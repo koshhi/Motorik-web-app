@@ -1,6 +1,6 @@
 // components/EventTicketModal.js
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Button from '../Button/Button';
 import InputText from '../Input/InputText';
@@ -8,6 +8,10 @@ import Switch from '../Switch';
 import Typography from '../Typography';
 import ToogableTabs from '../Toogle/ToogableTabs';
 import { theme } from '../../theme';
+import axiosClient from '../../api/axiosClient';
+import StripeOnboardingModal from './StripeOnboardingModal';
+import { useAuth } from '../../context/AuthContext';
+
 
 const EventTicketModal = ({
   ticketName,
@@ -23,18 +27,70 @@ const EventTicketModal = ({
   onClose,
 }) => {
 
+  const { user } = useAuth();
+  const userId = user?._id || user?.id
+
+  // Estados para Stripe
+  const [hasStripeAccount, setHasStripeAccount] = useState(false);
+  const [chargesEnabled, setChargesEnabled] = useState(false);
+  const [loadingStripeCheck, setLoadingStripeCheck] = useState(false);
+
+  // Control del modal de onboarding
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+
+
   // Opciones para ToogableTabs
   const ticketOptions = [
     { label: 'Gratis', value: 'free' },
     { label: 'De Pago', value: 'paid' },
   ];
 
-  // useEffect para establecer el precio por defecto cuando el tipo es 'paid'
+  // Al montar, o cada vez que cambie el ticketType, revisamos la cuenta Stripe (opcional)
+  useEffect(() => {
+    if (ticketType === 'paid') {
+      refreshStripeStatus();
+    }
+  }, [ticketType]);
+
+  const refreshStripeStatus = async () => {
+    if (!userId) return;
+    setLoadingStripeCheck(true);
+    try {
+      const resp = await axiosClient.get(`/stripe/refresh-account-status?userId=${userId}`);
+      setHasStripeAccount(resp.data.hasStripeAccount);
+      setChargesEnabled(resp.data.chargesEnabled);
+    } catch (error) {
+      console.error('Error verificando estado de Stripe:', error);
+    } finally {
+      setLoadingStripeCheck(false);
+    }
+  };
+
+  // Lógica para crear/conectar cuenta Stripe
+  const handleConnectStripe = async () => {
+    try {
+      // Llamada a tu endpoint que crea/recupera la cuenta
+      await axiosClient.post('/stripe/create-or-connect-account', { userId });
+      // Abre el modal de Onboarding
+      setShowOnboardingModal(true);
+    } catch (error) {
+      console.error('Error al crear/conectar cuenta de Stripe:', error);
+    }
+  };
+
+  // Manejar el cierre del modal de onboarding
+  const handleCloseOnboarding = () => {
+    setShowOnboardingModal(false);
+    // Re-check status (por si terminó el onboarding con éxito)
+    refreshStripeStatus();
+  };
+
+  // useEffect para setear precio por defecto cuando es pago (tu lógica anterior)
   useEffect(() => {
     if (ticketType === 'paid' && (ticketPrice === '' || ticketPrice === 0)) {
-      setTicketPrice(10); // Precio por defecto para tickets de pago
+      setTicketPrice(10); // Por defecto
     } else if (ticketType === 'free') {
-      setTicketPrice(0); // Asegurar que el precio es 0 para tickets gratuitos
+      setTicketPrice(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketType]);
@@ -42,7 +98,6 @@ const EventTicketModal = ({
   return (
     <ModalOverlay>
       <ModalContent>
-
         <ModalHeading>
           <Typography as="h4" $variant="title-5-semibold" color={theme.colors.defaultMain}>
             Configura la entrada
@@ -76,59 +131,132 @@ const EventTicketModal = ({
           />
         </ModalContentRow>
 
-        <ModalContentRow>
-          <InputWrapperHorizontal>
-            <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Número de Entradas:</Typography>
-            <InputText
-              size="medium"
-              type="number"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              placeholder="Capacidad del ticket"
-              required
-              style={{ width: "80px" }}
-            />
-          </InputWrapperHorizontal>
-        </ModalContentRow>
-
+        {/* Si el ticket es "paid", chequeamos estado de Stripe */}
         {ticketType === 'paid' && (
-          <ModalContentRow>
-            <InputWrapperHorizontal>
-              <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>
-                Precio:
-              </Typography>
-              <TicketPriceInput>
+          // <ModalContentRow>
+          //   <InputWrapperHorizontal>
+          //     <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>
+          //       Precio:
+          //     </Typography>
+          //     <TicketPriceInput>
+          //       <InputText
+          //         size="medium"
+          //         type="number"
+          //         value={ticketPrice}
+          //         onChange={(e) => setTicketPrice(e.target.value)}
+          //         placeholder="Precio del ticket"
+          //         required
+          //         style={{ width: "80px" }}
+          //       />
+          //       <Typography>€</Typography>
+          //     </TicketPriceInput>
+          //   </InputWrapperHorizontal>
+          // </ModalContentRow>
+          <>
+            <ModalContentRow>
+              <InputWrapperHorizontal>
+                <Typography
+                  $variant="body-1-medium"
+                  as="label"
+                  color={theme.colors.defaultMain}
+                  style={{ width: '100%' }}
+                >
+                  Número de Entradas:
+                </Typography>
                 <InputText
                   size="medium"
                   type="number"
-                  value={ticketPrice}
-                  onChange={(e) => setTicketPrice(e.target.value)}
-                  placeholder="Precio del ticket"
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value)}
+                  placeholder="Capacidad del ticket"
+                  required
+                  style={{ width: '80px' }}
+                />
+              </InputWrapperHorizontal>
+            </ModalContentRow>
+
+            {loadingStripeCheck ? (
+              <p>Cargando estado de Stripe...</p>
+            ) : !hasStripeAccount || !chargesEnabled ? (
+              // Mostrar Banner de "Necesitas conectar Stripe" si no tiene cuenta o no está habilitada
+              <div>
+                <Typography>
+                  Para ofrecer tickets de pago, necesitas conectar o crear tu cuenta de Stripe.
+                </Typography>
+                <Button size="small" onClick={handleConnectStripe}>
+                  Conectar Cuenta Stripe
+                </Button>
+              </div>
+            ) : (
+              // Si tiene cuenta y puede cobrar, mostramos input de precio
+              <ModalContentRow>
+                <InputWrapperHorizontal>
+                  <Typography
+                    $variant="body-1-medium"
+                    as="label"
+                    color={theme.colors.defaultMain}
+                    style={{ width: '100%' }}
+                  >
+                    Precio:
+                  </Typography>
+                  <TicketPriceInput>
+                    <InputText
+                      size="medium"
+                      type="number"
+                      value={ticketPrice}
+                      onChange={(e) => setTicketPrice(e.target.value)}
+                      placeholder="Precio del ticket"
+                      required
+                      style={{ width: '80px' }}
+                    />
+                    <Typography>€</Typography>
+                  </TicketPriceInput>
+                </InputWrapperHorizontal>
+              </ModalContentRow>
+            )}
+          </>
+        )}
+
+        {/* Si el ticket es "free", mostramos su config normal */}
+        {ticketType === 'free' && (
+          <>
+            <ModalContentRow>
+              <InputWrapperHorizontal>
+                <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Número de Entradas:</Typography>
+                <InputText
+                  size="medium"
+                  type="number"
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value)}
+                  placeholder="Capacidad del ticket"
                   required
                   style={{ width: "80px" }}
                 />
-                <Typography>€</Typography>
-              </TicketPriceInput>
-            </InputWrapperHorizontal>
-          </ModalContentRow>
-        )}
+              </InputWrapperHorizontal>
+            </ModalContentRow>
+            <ModalContentRow>
+              <InputWrapperHorizontal style={{ minHeight: "38px" }}>
+                <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Aprobación requerida:</Typography>
+                <Switch
+                  value={approvalRequired}
+                  onChange={(value) => setApprovalRequired(value)}
+                  disabled={ticketType === 'paid'}
+                />
+              </InputWrapperHorizontal>
+            </ModalContentRow>
+          </>
 
-        {ticketType === 'free' && (
-          <ModalContentRow>
-            <InputWrapperHorizontal style={{ minHeight: "38px" }}>
-              <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Aprobación requerida:</Typography>
-              <Switch
-                value={approvalRequired}
-                onChange={(value) => setApprovalRequired(value)}
-                disabled={ticketType === 'paid'}
-              />
-            </InputWrapperHorizontal>
-          </ModalContentRow>
         )}
         <Button size="medium" onClick={onClose}>
           Guardar ticket
         </Button>
       </ModalContent>
+
+      {/* Modal para Onboarding de Stripe */}
+      {showOnboardingModal && (
+        <StripeOnboardingModal onClose={handleCloseOnboarding} />
+      )}
+
     </ModalOverlay>
   )
 }
