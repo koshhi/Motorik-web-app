@@ -28,7 +28,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle }) => {
       onVehicleSaved(savedVehicle);
       onClose();
     } else {
-      toast.error('No se pudo guardar el vehículo.');
+      toast.error('Error al guardar el vehículo');
     }
   };
 
