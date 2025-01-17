@@ -58,7 +58,12 @@ const userSchema = new Schema({
   enrolledEvents: [{
     type: Schema.Types.ObjectId,
     ref: 'Event'
-  }]
+  }],
+  stripeConnectedAccountId: { type: String, default: null },
+  chargesEnabled: { type: Boolean, default: false },
+  // Podrías guardar más cosas, como:
+  stripeAccountPayoutsEnabled: Boolean,
+  stripeAccountCapabilities: Object
 }, { timestamps: true })
 
 // userSchema.virtual('id').get(function () {

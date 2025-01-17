@@ -11,6 +11,7 @@ import { theme } from '../../theme';
 import axiosClient from '../../api/axiosClient';
 import StripeOnboardingModal from './StripeOnboardingModal';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 
 const EventTicketModal = ({
@@ -45,6 +46,8 @@ const EventTicketModal = ({
     { label: 'De Pago', value: 'paid' },
   ];
 
+  const navigate = useNavigate();
+
   // Al montar, o cada vez que cambie el ticketType, revisamos la cuenta Stripe (opcional)
   useEffect(() => {
     if (ticketType === 'paid') {
@@ -70,9 +73,10 @@ const EventTicketModal = ({
   const handleConnectStripe = async () => {
     try {
       // Llamada a tu endpoint que crea/recupera la cuenta
-      await axiosClient.post('/stripe/create-or-connect-account', { userId });
+      // await axiosClient.post('/stripe/create-or-connect-account', { userId });
       // Abre el modal de Onboarding
-      setShowOnboardingModal(true);
+      // setShowOnboardingModal(true);
+      navigate('/create-stripe-account');
     } catch (error) {
       console.error('Error al crear/conectar cuenta de Stripe:', error);
     }
@@ -132,90 +136,160 @@ const EventTicketModal = ({
         </ModalContentRow>
 
         {/* Si el ticket es "paid", chequeamos estado de Stripe */}
-        {ticketType === 'paid' && (
-          // <ModalContentRow>
-          //   <InputWrapperHorizontal>
-          //     <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>
-          //       Precio:
-          //     </Typography>
-          //     <TicketPriceInput>
-          //       <InputText
-          //         size="medium"
-          //         type="number"
-          //         value={ticketPrice}
-          //         onChange={(e) => setTicketPrice(e.target.value)}
-          //         placeholder="Precio del ticket"
-          //         required
-          //         style={{ width: "80px" }}
-          //       />
-          //       <Typography>€</Typography>
-          //     </TicketPriceInput>
-          //   </InputWrapperHorizontal>
-          // </ModalContentRow>
+        {/* {ticketType === 'paid' && (
           <>
-            <ModalContentRow>
-              <InputWrapperHorizontal>
-                <Typography
-                  $variant="body-1-medium"
-                  as="label"
-                  color={theme.colors.defaultMain}
-                  style={{ width: '100%' }}
-                >
-                  Número de Entradas:
-                </Typography>
-                <InputText
-                  size="medium"
-                  type="number"
-                  value={capacity}
-                  onChange={(e) => setCapacity(e.target.value)}
-                  placeholder="Capacidad del ticket"
-                  required
-                  style={{ width: '80px' }}
-                />
-              </InputWrapperHorizontal>
-            </ModalContentRow>
-
             {loadingStripeCheck ? (
               <p>Cargando estado de Stripe...</p>
             ) : !hasStripeAccount || !chargesEnabled ? (
               // Mostrar Banner de "Necesitas conectar Stripe" si no tiene cuenta o no está habilitada
               <div>
+                <Typography>Activa los pagos</Typography>
                 <Typography>
-                  Para ofrecer tickets de pago, necesitas conectar o crear tu cuenta de Stripe.
+                  Para ofrecer tickets de pago, necesitas activar los pagos en tu cuenta.
                 </Typography>
                 <Button size="small" onClick={handleConnectStripe}>
-                  Conectar Cuenta Stripe
+                  Activar pagos
                 </Button>
               </div>
             ) : (
               // Si tiene cuenta y puede cobrar, mostramos input de precio
-              <ModalContentRow>
-                <InputWrapperHorizontal>
-                  <Typography
-                    $variant="body-1-medium"
-                    as="label"
-                    color={theme.colors.defaultMain}
-                    style={{ width: '100%' }}
-                  >
-                    Precio:
-                  </Typography>
-                  <TicketPriceInput>
+              <>
+                <ModalContentRow>
+                  <InputWrapperHorizontal>
+                    <Typography
+                      $variant="body-1-medium"
+                      as="label"
+                      color={theme.colors.defaultMain}
+                      style={{ width: '100%' }}
+                    >
+                      Número de Entradas:
+                    </Typography>
                     <InputText
                       size="medium"
                       type="number"
-                      value={ticketPrice}
-                      onChange={(e) => setTicketPrice(e.target.value)}
-                      placeholder="Precio del ticket"
+                      value={capacity}
+                      onChange={(e) => setCapacity(e.target.value)}
+                      placeholder="Capacidad del ticket"
                       required
                       style={{ width: '80px' }}
                     />
-                    <Typography>€</Typography>
-                  </TicketPriceInput>
-                </InputWrapperHorizontal>
-              </ModalContentRow>
+                  </InputWrapperHorizontal>
+                </ModalContentRow>
+                <ModalContentRow>
+                  <InputWrapperHorizontal>
+                    <Typography
+                      $variant="body-1-medium"
+                      as="label"
+                      color={theme.colors.defaultMain}
+                      style={{ width: '100%' }}
+                    >
+                      Precio:
+                    </Typography>
+                    <TicketPriceInput>
+                      <InputText
+                        size="medium"
+                        type="number"
+                        value={ticketPrice}
+                        onChange={(e) => setTicketPrice(e.target.value)}
+                        placeholder="Precio del ticket"
+                        required
+                        style={{ width: '80px' }}
+                      />
+                      <Typography>€</Typography>
+                    </TicketPriceInput>
+                  </InputWrapperHorizontal>
+                </ModalContentRow>
+              </>
+            )}
+          </>
+        )} */}
+
+        {ticketType === 'paid' && (
+          <>
+            {loadingStripeCheck ? (
+              <p>Cargando estado de Stripe...</p>
+            ) : (
+              <>
+                {/* Caso 1: No tiene cuenta conectada en absoluto */}
+                {!hasStripeAccount && (
+                  <ConnectedAccountBanner>
+                    <IntegrationIcon src="/icons/motorik-stripe-connect.svg" alt="Stripe Integration" />
+
+                    <Typography as="h3" $variant="title-5-semibold">Activa los pagos</Typography>
+                    <Typography as="p" $variant="body-2-regular">Para ofrecer tickets de pago, necesitas activar los pagos en tu cuenta.</Typography>
+                    <Button size="small" onClick={handleConnectStripe}>
+                      Activar pagos
+                    </Button>
+                  </ConnectedAccountBanner>
+                )}
+
+                {/* Caso 2: Cuenta conectada PERO chargesEnabled = false */}
+                {hasStripeAccount && !chargesEnabled && (
+                  <ConnectedAccountBanner>
+                    <IntegrationIcon src="/icons/motorik-stripe-connect.svg" alt="Stripe Integration" />
+                    <Typography as="h3" $variant="title-5-semibold">Completa la verificación de Stripe</Typography>
+                    <Typography as="p" $variant="body-2-regular">
+                      Tu cuenta de Stripe está conectada, pero aún no se han habilitado los cobros. Completa el proceso de verificación de Stripe o revisa si te falta algún documento. Una vez que Stripe active los cobros, podrás establecer el precio de la entrada.
+                    </Typography>
+                  </ConnectedAccountBanner>
+                )}
+
+                {/* Caso 3: Cuenta conectada y chargesEnabled = true */}
+                {hasStripeAccount && chargesEnabled && (
+                  <>
+                    <ModalContentRow>
+                      <InputWrapperHorizontal>
+                        <Typography
+                          $variant="body-1-medium"
+                          as="label"
+                          color={theme.colors.defaultMain}
+                          style={{ width: '100%' }}
+                        >
+                          Número de Entradas:
+                        </Typography>
+                        <InputText
+                          size="medium"
+                          type="number"
+                          value={capacity}
+                          onChange={(e) => setCapacity(e.target.value)}
+                          placeholder="Capacidad del ticket"
+                          required
+                          style={{ width: '80px' }}
+                        />
+                      </InputWrapperHorizontal>
+                    </ModalContentRow>
+
+                    <ModalContentRow>
+                      <InputWrapperHorizontal>
+                        <Typography
+                          $variant="body-1-medium"
+                          as="label"
+                          color={theme.colors.defaultMain}
+                          style={{ width: '100%' }}
+                        >
+                          Precio:
+                        </Typography>
+                        <TicketPriceInput>
+                          <InputText
+                            size="medium"
+                            type="number"
+                            value={ticketPrice}
+                            onChange={(e) => setTicketPrice(e.target.value)}
+                            placeholder="Precio del ticket"
+                            required
+                            style={{ width: '80px' }}
+                          />
+                          <Typography>€</Typography>
+                        </TicketPriceInput>
+                      </InputWrapperHorizontal>
+                    </ModalContentRow>
+                  </>
+                )}
+              </>
             )}
           </>
         )}
+
 
         {/* Si el ticket es "free", mostramos su config normal */}
         {ticketType === 'free' && (
@@ -244,12 +318,11 @@ const EventTicketModal = ({
                 />
               </InputWrapperHorizontal>
             </ModalContentRow>
+            <Button size="medium" onClick={onClose}>
+              Guardar ticket
+            </Button>
           </>
-
         )}
-        <Button size="medium" onClick={onClose}>
-          Guardar ticket
-        </Button>
       </ModalContent>
 
       {/* Modal para Onboarding de Stripe */}
@@ -321,4 +394,20 @@ const InputWrapperHorizontal = styled.div`
   align-items: center;
   gap: 6px;
   width: 100%;
+`;
+
+const ConnectedAccountBanner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: ${({ theme }) => theme.fill.defaultWeak};
+  padding: ${({ theme }) => theme.sizing.sm};
+  border-radius: ${({ theme }) => theme.sizing.xs};
+  gap: ${({ theme }) => theme.sizing.xs};
+`;
+
+const IntegrationIcon = styled.img`
+  width: auto;
+  max-height: 40px;
+  padding-bottom: ${({ theme }) => theme.sizing.xs};
 `;

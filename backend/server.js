@@ -7,17 +7,16 @@ const eventsRouter = require('./controllers/events')
 const vehiclesRouter = require('./controllers/vehicle')
 const ticketsRouter = require('./controllers/tickets')
 const authRouter = require('./controllers/auth')
+const stripeRouter = require('./controllers/stripe')
 const passport = require('passport')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
+
 require('./config/passport')
 
 dotenv.config()
 
-// console.log('JWT_SECRET:', process.env.JWT_SECRET)
-
 const app = express()
-// app.use(cors())
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -47,6 +46,7 @@ app.use('/api/events', eventsRouter)
 app.use('/api/vehicles', vehiclesRouter)
 app.use('/api/tickets', ticketsRouter)
 app.use('/auth', authRouter)
+app.use('/stripe', stripeRouter)
 
 // Conexión a MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
