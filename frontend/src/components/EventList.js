@@ -23,7 +23,7 @@ const EventList = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchEvents = async (currentFilters) => {
-    console.log('Fetching events with filters:', currentFilters);
+    // console.log('Fetching events with filters:', currentFilters);
     setIsLoading(true);
     try {
       const response = await axiosClient.get('/api/events', {
@@ -38,7 +38,7 @@ const EventList = () => {
           ticketType: currentFilters.ticketType,
         },
       });
-      console.log('Events fetched:', response.data.events);
+      // console.log('Events fetched:', response.data.events);
       setEvents(response.data.events);
     } catch (error) {
       console.error(
@@ -52,13 +52,13 @@ const EventList = () => {
 
   // Llamar a fetchEvents al montar el componente
   useEffect(() => {
-    console.log('Component mounted, fetching initial events.');
+    // console.log('Component mounted, fetching initial events.');
     fetchEvents(filters);
   }, []);
 
   // Actualizar eventos al cambiar los filtros
   useEffect(() => {
-    console.log('Filters updated:', filters);
+    // console.log('Filters updated:', filters);
     fetchEvents(filters);
   }, [filters]);
 

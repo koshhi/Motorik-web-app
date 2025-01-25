@@ -51,6 +51,10 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Vehicle' // Referencia al modelo Vehicle
   }],
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
   googleId: { type: String, sparse: true },
   facebookId: { type: String, sparse: true },
   emailVerified: { type: Boolean, default: false },

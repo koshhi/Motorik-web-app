@@ -2,14 +2,26 @@ import styled from 'styled-components';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 
 const AccountDropdown = ({ userAvatar }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
+
+  const handleGotoSettings = () => {
+    const userId = user?._id;
+    if (!userId) {
+      toast.error('No tienes acceso. Por favor, inicia sesión.');
+      navigate('/signin');
+      return;
+    }
+    // Navegar a la ruta de configuración
+    navigate(`/user/${userId}/settings`);
+  };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -49,7 +61,7 @@ const AccountDropdown = ({ userAvatar }) => {
         <DropdownMenu>
           <MenuItem>Perfil</MenuItem>
           <MenuItem>Mis Eventos</MenuItem>
-          <MenuItem>Configuración</MenuItem>
+          <MenuItem onClick={handleGotoSettings}>Configuración</MenuItem>
           <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
         </DropdownMenu>
       )}

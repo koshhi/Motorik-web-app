@@ -202,13 +202,20 @@ usersRouter.post('/logout', async (req, res) => {
 // Profile del usurio logueado
 usersRouter.get('/profile', auth, async (req, res) => {
   try {
-    // console.log('User ID from token:', req.user.id)
+    console.log('User ID from token:', req.user.id)
 
     const user = await User.findById(req.user.id).populate('vehicles')
 
     if (!user) {
+      console.log('Usuario no encontrado:', req.user.id)
       return res.status(404).json({ success: false, message: 'User not found' })
     }
+
+    console.log('Datos del usuario devueltos en /profile:', {
+      profileFilled: user.profileFilled,
+      id: user._id,
+      email: user.email
+    })
 
     res.status(200).json({ success: true, user })
   } catch (error) {
@@ -220,14 +227,15 @@ usersRouter.get('/profile', auth, async (req, res) => {
 // Endpoint para actualizar el perfil del usuario
 usersRouter.put('/profile', auth, upload.single('userAvatar'), async (req, res) => {
   try {
-    console.log(req.body)
+    console.log('Datos recibidos para actualizar:', req.body)
 
     const { name, lastName, description, address, locality, country, phonePrefix, phoneNumber, socialMediaLinks, profileFilled } = req.body
 
     const user = await User.findById(req.user.id)
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' })
+      console.log('Usuario no encontrado para ID:', req.user.id)
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' })
     }
 
     // Asegúrate de que el campo 'address' esté en el request body
@@ -245,6 +253,7 @@ usersRouter.put('/profile', auth, upload.single('userAvatar'), async (req, res) 
     user.phonePrefix = phonePrefix || user.phonePrefix
     user.phoneNumber = phoneNumber || user.phoneNumber
     user.profileFilled = profileFilled || user.profileFilled
+    // user.profileFilled = profileFilled === 'true'
 
     // Manejar el campo de redes sociales
     if (socialMediaLinks) {
@@ -262,6 +271,7 @@ usersRouter.put('/profile', auth, upload.single('userAvatar'), async (req, res) 
 
     // Guardar los cambios en la base de datos
     await user.save()
+    console.log('Usuario actualizado y devuelto:', user)
 
     res.status(200).json({ success: true, user })
   } catch (error) {
@@ -295,6 +305,59 @@ usersRouter.get('/:id', async (req, res) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+usersRouter.get('/:id/settings', auth, async (req, res) => {
+  try {
+    // Verificar si el ID del usuario autenticado coincide con el :id de la URL
+    if (req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tienes permisos para ver esta configuración.'
+      })
+    }
+
+    // Podrías retornar más datos de configuración si lo deseas
+    // const userSettings = { ... } o si prefieres
+    // const user = await User.findById(req.params.id).select('email ...')
+    // return res.json({ success: true, user })
+    return res.json({
+      success: true,
+      message: 'Puedes ver y editar tu configuración aquí.'
+    })
+  } catch (error) {
+    console.error('Error en /:id/settings:', error)
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor.'
+    })
+  }
+})
+
+usersRouter.delete('/delete', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    // Marcamos como eliminado:
+    user.isDeleted = true
+    user.refreshToken = '' // Limpia refresh token
+    await user.save()
+
+    // Opcional: desloguear (borrar cookie)
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict'
+    })
+
+    return res.json({ success: true, message: 'Cuenta eliminada.' })
+  } catch (error) {
+    console.error('Error deleting account:', error)
+    return res.status(500).json({ success: false, message: 'Error deleting account' })
   }
 })
 

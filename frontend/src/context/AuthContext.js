@@ -11,14 +11,47 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('authToken'));
   const [loading, setLoading] = useState(true);
+  const [stripeStatus, setStripeStatus] = useState({
+    hasStripeAccount: false,
+    chargesEnabled: false,
+    loading: true,
+  });
   const navigate = useNavigate();
+
+  // const refreshUserData = useCallback(async () => {
+  //   if (token) {
+  //     try {
+  //       console.log('Obteniendo datos del usuario con token:', token);
+  //       const response = await axiosClient.get('/api/users/profile');
+  //       if (response.data.success) {
+  //         console.log('Datos del usuario actualizados en el contexto:', response.data.user);
+  //         setUser(response.data.user);
+  //         console.log('Estado del usuario actualizado:', user);
+
+  //       } else {
+  //         console.error('Error fetching user profile:', response.data.message);
+  //         setUser(null);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching user profile:', error);
+  //       setUser(null);
+  //     }
+  //   }
+  // }, [token, setUser]);
 
   const refreshUserData = useCallback(async () => {
     if (token) {
       try {
+        console.log('Obteniendo datos del usuario con token:', token);
         const response = await axiosClient.get('/api/users/profile');
         if (response.data.success) {
-          setUser(response.data.user);
+          const updatedUser = response.data.user;
+          console.log('Actualizando datos del usuario en el contexto:', updatedUser);
+          setUser(updatedUser); // Actualiza el estado
+          console.log('Estado del usuario actualizado:', updatedUser);
+          console.log('profileFilled actualizado:', response.data.user.profileFilled);
+          return updatedUser;
+
         } else {
           console.error('Error fetching user profile:', response.data.message);
           setUser(null);
@@ -29,6 +62,20 @@ export const AuthProvider = ({ children }) => {
       }
     }
   }, [token]);
+
+  const refreshStripeStatus = useCallback(async (userId) => {
+    try {
+      const response = await axiosClient.get(`/stripe/refresh-account-status?userId=${userId}`);
+      setStripeStatus({
+        hasStripeAccount: response.data.hasStripeAccount,
+        chargesEnabled: response.data.chargesEnabled,
+        loading: false,
+      });
+    } catch (error) {
+      console.error('Error fetching Stripe status:', error);
+      setStripeStatus((prev) => ({ ...prev, loading: false }));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -42,6 +89,14 @@ export const AuthProvider = ({ children }) => {
 
     fetchUserProfile();
   }, [token, refreshUserData]);
+
+  useEffect(() => {
+    if (user) {
+      console.log('Estado actualizado del usuario:', user);
+    } else {
+      console.log('No hay usuario en el contexto.');
+    }
+  }, [user]);
 
   const login = async (email) => {
     try {
@@ -68,7 +123,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser, refreshUserData }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, setUser, refreshUserData, stripeStatus, refreshStripeStatus }}>
       {children}
     </AuthContext.Provider>
   );

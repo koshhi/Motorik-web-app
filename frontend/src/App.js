@@ -26,7 +26,7 @@ import ManageEventAttendees from './components/EventManagement/ManageEventAttend
 import ManageEventRegistration from './components/EventManagement/ManageEventRegistration';
 import EditEvent from './components/EditEvent';
 import CreateStripeAccount from './pages/CreateStripeAccount';
-
+import UserSettings from './pages/UserSettings';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -55,6 +55,8 @@ function App() {
                 <Route path="/events/manage/:id/edit" element={<EditEvent />} />
                 <Route path="/create-event" element={<CreateEvent />} />
                 <Route path="/user/:userId" element={<UserProfile />} />
+                <Route path="/user/:userId/edit-profile" element={<CompleteProfile />} />
+                <Route path="/user/:userId/settings" element={<UserSettings />} />
                 <Route path="/my-events" element={<MyEventsLayout />}>
                   <Route index element={<MyEvents />} />
                   <Route path="people" element={<MyEventsAttendees />} />
@@ -69,7 +71,6 @@ function App() {
                 <Route path="/email-verification" element={<VerifyEmail />} />
                 <Route path="/login-with-token" element={<LoginWithToken />} />  {/* Ruta para la verificación del email */}
                 <Route path="/complete-profile" element={<CompleteProfile />} />
-                <Route path="/user/:userId/edit-profile" element={<CompleteProfile />} />
                 <Route path="/create-stripe-account" element={<CreateStripeAccount />} />
               </Routes>
               <ToastContainer

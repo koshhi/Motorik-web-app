@@ -17,9 +17,7 @@ const CompleteProfile = () => {
   const isEditMode = Boolean(userId);
   const pageTitle = isEditMode ? 'Editar perfil' : 'Completa tu perfil';
   const navigate = useNavigate();
-
-  const { refreshUserData } = useAuth();
-
+  const { user, refreshUserData } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,6 +33,7 @@ const CompleteProfile = () => {
   });
 
   const [file, setFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [newLink, setNewLink] = useState('');
   const [errors, setErrors] = useState({});
   const addressRef = useRef(null);
@@ -91,8 +90,8 @@ const CompleteProfile = () => {
             userAvatar: user.userAvatar || '',
             description: user.description || '',
             address: user.address || '',
-            locality: user.locality || '', // Añadido
-            country: user.country || '',   // Añadido
+            locality: user.locality || '',
+            country: user.country || '',
             phonePrefix: user.phonePrefix || '+34',
             phoneNumber: user.phoneNumber || '',
             socialMediaLinks: user.socialMediaLinks || []
@@ -166,6 +165,8 @@ const CompleteProfile = () => {
       return;
     }
     setErrors({});
+    setIsLoading(true);
+
 
     try {
       // Crear el objeto FormData
@@ -179,12 +180,10 @@ const CompleteProfile = () => {
       data.append('phonePrefix', formData.phonePrefix);
       data.append('phoneNumber', formData.phoneNumber);
       data.append('socialMediaLinks', JSON.stringify(formData.socialMediaLinks));
-
-      if (file) {
-        data.append('userAvatar', file);
-      }
-
+      if (file) data.append('userAvatar', file);
       data.append('profileFilled', true);
+
+      console.log('Enviando datos al backend:', formData);
 
       // Enviar la solicitud multipart
       const response = await axiosClient.put(
@@ -198,19 +197,22 @@ const CompleteProfile = () => {
       );
 
       if (response.data.success) {
-        alert('Perfil actualizado con éxito');
+        // alert('Perfil actualizado con éxito');
+        console.log('Perfil actualizado en el backend:', response.data.user);
         await refreshUserData();
-        navigate(isEditMode ? `/user/${userId}` : '/');
+        console.log('Estado actualizado del usuario tras refresh:', user);
+        navigate('/');
+
+        // if (user.profileFilled) {
+        //   navigate('/'); // Redirigir si el perfil está completo
+        // }
       } else {
         alert(`Error al actualizar el perfil: ${response.data.message}`);
       }
     } catch (error) {
-      console.error('Error completando el perfil:', error);
-      if (error.response && error.response.data && error.response.data.message) {
-        alert(`Error al actualizar el perfil: ${error.response.data.message}`);
-      } else {
-        alert('Error al actualizar el perfil. Por favor, intenta de nuevo.');
-      }
+      console.error('Error al completar el perfil:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -281,7 +283,6 @@ const CompleteProfile = () => {
               placeholder="Introduce tu nombre"
               $variant={errors.name ? 'error' : ''}
               required
-
             />
             {errors.name && <ErrorMsg>{errors.name}</ErrorMsg>}
 
@@ -318,6 +319,7 @@ const CompleteProfile = () => {
               placeholder="Introduce tu dirección"
               $variant={errors.address ? 'error' : ''}
               required
+              autoComplete="off"
             />
           </Autocomplete>
           {errors.address && <ErrorMsg>{errors.address}</ErrorMsg>}
@@ -338,6 +340,7 @@ const CompleteProfile = () => {
                 $size="large"
                 $variant={errors.phonePrefix ? 'error' : ''}
                 required
+                autoComplete="off"
               >
                 {countryCodes.map((code) => (
                   <option key={`${code.dial_code}-${code.code}`} value={code.dial_code}>
@@ -360,6 +363,7 @@ const CompleteProfile = () => {
               placeholder="Introduce tu número"
               $variant={errors.phoneNumber ? 'error' : ''}
               required
+              autoComplete="off"
             />
             {errors.phoneNumber && <ErrorMsg>{errors.phoneNumber}</ErrorMsg>}
 
@@ -373,6 +377,7 @@ const CompleteProfile = () => {
             value={formData.description}
             onChange={handleChange}
             $size="large"
+            autoComplete="off"
           />
         </label>
         <div className='LinksListWrapper'>
@@ -401,7 +406,7 @@ const CompleteProfile = () => {
           </ul>
         </div>
         <FormActions>
-          <Button type="submit">Guardar cambios</Button>
+          <Button type="submit" disabled={isLoading}>{isLoading ? 'Guardando...' : 'Guardar cambios'}</Button>
         </FormActions>
       </FormContainer>
     </EditForm>

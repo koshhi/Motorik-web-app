@@ -4,6 +4,7 @@ const router = express.Router()
 const Stripe = require('stripe')
 const User = require('../models/User')
 const dotenv = require('dotenv')
+const auth = require('../middleware/auth')
 
 dotenv.config()
 
@@ -77,43 +78,38 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // ---------
 
-router.post('/create-or-connect-account', async (req, res) => {
+router.post('/create-or-connect-account', auth, async (req, res) => {
   try {
     const { userId } = req.body
     const user = await User.findById(userId)
-    console.log(user)
 
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' })
     }
 
-    // Si el usuario YA tiene cuenta conectada, devuélvela
+    // Si el usuario YA tiene cuenta conectada, la devolvemos
     if (user.stripeConnectedAccountId) {
       const account = await stripe.accounts.retrieve(user.stripeConnectedAccountId)
       return res.json({
         connectedAccountId: account.id,
         chargesEnabled: account.charges_enabled
-        // ...
       })
     }
 
-    // CREAR CUENTA STANDARD EN ESPAÑA
+    // Crear cuenta de Stripe para el usuario si no tiene cuenta conectada
     const account = await stripe.accounts.create({
       type: 'standard',
-      country: 'ES', // España
+      country: 'ES',
       email: user.email
-      // business_type: 'individual', // (Opcional)
     })
 
-    // Guardar el ID en tu usuario
     user.stripeConnectedAccountId = account.id
     await user.save()
 
-    // Crear link para Onboarding
     const onboardingSession = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: 'http://localhost:5001/stripe/onboarding/refresh',
-      return_url: 'http://localhost:5001/stripe/onboarding/return',
+      refresh_url: `${process.env.FRONTEND_URL}/create-stripe-account`,
+      return_url: `${process.env.FRONTEND_URL}/user/${userId}/settings?onboarding=success`,
       type: 'account_onboarding'
     })
 
@@ -132,7 +128,7 @@ router.post('/create-or-connect-account', async (req, res) => {
  * GET /stripe/refresh-account-status?userId=xxx
  * Revisa si la cuenta conectada está habilitada (charges_enabled).
  */
-router.get('/refresh-account-status', async (req, res) => {
+router.get('/refresh-account-status', auth, async (req, res) => {
   try {
     const { userId } = req.query
     const user = await User.findById(userId)
