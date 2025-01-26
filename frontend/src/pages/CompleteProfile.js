@@ -8,6 +8,7 @@ import InputText from '../components/Input/InputText';
 import InputTextArea from '../components/Input/InputTextArea';
 import Select from '../components/Select/Select';
 import countryCodes from '../utils/CountryCodes';
+import { toast } from 'react-toastify';
 import { getPlatform, getIcon } from '../utils/socialMediaUtils';
 import { CircleFlag } from 'react-circle-flags';
 import { Autocomplete } from '@react-google-maps/api';
@@ -31,6 +32,24 @@ const CompleteProfile = () => {
     phoneNumber: '',
     socialMediaLinks: []
   });
+
+  // Replace the existing useEffect with this one
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        lastName: user.lastName || '',
+        userAvatar: user.userAvatar || '',
+        description: user.description || '',
+        address: user.address || '',
+        locality: user.locality || '',
+        country: user.country || '',
+        phonePrefix: user.phonePrefix || '+34',
+        phoneNumber: user.phoneNumber || '',
+        socialMediaLinks: user.socialMediaLinks || []
+      });
+    }
+  }, [user]);
 
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,34 +96,6 @@ const CompleteProfile = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await axiosClient.get('/api/users/profile');
-
-        if (response.data.user) {
-          const user = response.data.user;
-          setFormData({
-            name: user.name || '',
-            lastName: user.lastName || '',
-            userAvatar: user.userAvatar || '',
-            description: user.description || '',
-            address: user.address || '',
-            locality: user.locality || '',
-            country: user.country || '',
-            phonePrefix: user.phonePrefix || '+34',
-            phoneNumber: user.phoneNumber || '',
-            socialMediaLinks: user.socialMediaLinks || []
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -147,7 +138,7 @@ const CompleteProfile = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
     if (!formData.lastName.trim()) newErrors.lastName = 'Los apellidos son obligatorios';
-    // if (!formData.userAvatar && !file) newErrors.userAvatar = 'La imagen de perfil es obligatoria';
+    if (!formData.userAvatar && !file) newErrors.userAvatar = 'La imagen de perfil es obligatoria';
     if (!formData.address.trim()) newErrors.address = 'La dirección es obligatoria';
     if (!formData.phonePrefix) newErrors.phonePrefix = 'El prefijo del teléfono es obligatorio';
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'El número de teléfono es obligatorio';
@@ -158,7 +149,6 @@ const CompleteProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar los campos antes de enviar
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -167,9 +157,8 @@ const CompleteProfile = () => {
     setErrors({});
     setIsLoading(true);
 
-
     try {
-      // Crear el objeto FormData
+      // Create FormData object
       const data = new FormData();
       data.append('name', formData.name);
       data.append('lastName', formData.lastName);
@@ -183,10 +172,7 @@ const CompleteProfile = () => {
       if (file) data.append('userAvatar', file);
       data.append('profileFilled', true);
 
-      console.log('Enviando datos al backend:', formData);
-
-      // Enviar la solicitud multipart
-      const response = await axiosClient.put(
+      const updateResponse = await axiosClient.put(
         '/api/users/profile',
         data,
         {
@@ -196,21 +182,25 @@ const CompleteProfile = () => {
         }
       );
 
-      if (response.data.success) {
-        // alert('Perfil actualizado con éxito');
-        console.log('Perfil actualizado en el backend:', response.data.user);
-        await refreshUserData();
-        console.log('Estado actualizado del usuario tras refresh:', user);
-        navigate('/');
+      if (updateResponse.data.success) {
+        // Force a fresh fetch of user data
+        const updatedUser = await refreshUserData();
 
-        // if (user.profileFilled) {
-        //   navigate('/'); // Redirigir si el perfil está completo
-        // }
-      } else {
-        alert(`Error al actualizar el perfil: ${response.data.message}`);
+        if (updatedUser && updatedUser.profileFilled) {
+          toast.success('Perfil actualizado correctamente');
+          navigate('/', { replace: true });
+        } else {
+          toast.error('Error actualizando los datos del usuario');
+        }
       }
     } catch (error) {
       console.error('Error al completar el perfil:', error);
+      if (error?.response?.status === 401) {
+        toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        navigate('/signin');
+      } else {
+        toast.error('Error al actualizar el perfil');
+      }
     } finally {
       setIsLoading(false);
     }

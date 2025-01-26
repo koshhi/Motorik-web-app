@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../Button/Button';
@@ -9,17 +9,6 @@ import { useTranslation } from 'react-i18next';
 const MainNavbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  useEffect(() => {
-    console.log('Datos del usuario en MainNavbar:', user);
-  }, [user]);
-
-  useEffect(() => {
-    if (user && user.profileFilled) {
-      console.log('Perfil completado');
-    } else {
-      console.log('Perfil incompleto o usuario no definido.');
-    }
-  }, [user]);
 
   const { i18n } = useTranslation();
 
@@ -37,12 +26,6 @@ const MainNavbar = () => {
       navigate('/signin'); // Redirigir al login si no está autenticado
     }
   };
-
-  useEffect(() => {
-    if (user) {
-      console.log('Datos actualizados del usuario en MainNavbar:', user);
-    }
-  }, [user]);
 
   return (
     <Topbar>

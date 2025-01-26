@@ -39,29 +39,95 @@ export const AuthProvider = ({ children }) => {
   //   }
   // }, [token, setUser]);
 
-  const refreshUserData = useCallback(async () => {
-    if (token) {
-      try {
-        console.log('Obteniendo datos del usuario con token:', token);
-        const response = await axiosClient.get('/api/users/profile');
-        if (response.data.success) {
-          const updatedUser = response.data.user;
-          console.log('Actualizando datos del usuario en el contexto:', updatedUser);
-          setUser(updatedUser); // Actualiza el estado
-          console.log('Estado del usuario actualizado:', updatedUser);
-          console.log('profileFilled actualizado:', response.data.user.profileFilled);
-          return updatedUser;
+  // const refreshUserData = useCallback(async () => {
+  //   if (token) {
+  //     try {
+  //       console.log('Obteniendo datos del usuario con token:', token);
+  //       const response = await axiosClient.get('/api/users/profile');
+  //       if (response.data.success) {
+  //         const updatedUser = response.data.user;
+  //         console.log('Actualizando datos del usuario en el contexto:', updatedUser);
+  //         setUser(updatedUser); // Actualiza el estado
+  //         console.log('Estado del usuario actualizado:', updatedUser);
+  //         console.log('profileFilled actualizado:', response.data.user.profileFilled);
+  //         return updatedUser;
 
-        } else {
-          console.error('Error fetching user profile:', response.data.message);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
+  //       } else {
+  //         console.error('Error fetching user profile:', response.data.message);
+  //         setUser(null);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching user profile:', error);
+  //       setUser(null);
+  //     }
+  //   }
+  // }, [token]);
+
+  // const refreshUserData = useCallback(async () => {
+  //   if (!token) {
+  //     setUser(null);
+  //     return null;
+  //   }
+
+  //   try {
+  //     const response = await axiosClient.get('/api/users/profile');
+
+  //     if (response.data.success) {
+  //       const updatedUser = response.data.user;
+  //       return new Promise((resolve) => {
+  //         setUser(updatedUser);
+  //         // Asegurar que el estado se actualiza antes de resolver
+  //         setTimeout(() => {
+  //           console.log('Usuario actualizado en el contexto:', updatedUser);
+  //           resolve(updatedUser);
+  //         }, 100);
+  //       });
+  //     } else {
+  //       setUser(null);
+  //       return null;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error refreshing user data:', error);
+  //     if (error?.response?.status === 401) {
+  //       localStorage.removeItem('authToken');
+  //       setToken(null);
+  //       setUser(null);
+  //     }
+  //     return null;
+  //   }
+  // }, [token, setUser, setToken]);
+
+  /**
+ * Refresca los datos del usuario llamando a /api/users/profile
+ */
+  const refreshUserData = useCallback(async () => {
+    if (!token) {
+      setUser(null);
+      return null;
+    }
+
+    try {
+      const response = await axiosClient.get('/api/users/profile');
+
+      if (response.data.success) {
+        const updatedUser = response.data.user;
+        setUser(updatedUser);
+        return updatedUser;
+      } else {
+        setUser(null);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+      if (error?.response?.status === 401) {
+        // Token no válido o expirado -> cerrar sesión
+        localStorage.removeItem('authToken');
+        setToken(null);
         setUser(null);
       }
+      return null;
     }
-  }, [token]);
+  }, [token, setUser, setToken]);
 
   const refreshStripeStatus = useCallback(async (userId) => {
     try {
@@ -77,6 +143,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Carga inicial del usuario si hay token en localStorage
+   */
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (token) {
@@ -90,6 +159,9 @@ export const AuthProvider = ({ children }) => {
     fetchUserProfile();
   }, [token, refreshUserData]);
 
+  /**
+   * Logging informativo cada vez que cambia `user`
+   */
   useEffect(() => {
     if (user) {
       console.log('Estado actualizado del usuario:', user);
@@ -98,10 +170,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
+  /**
+   * Iniciar sesión por email (Magic Link)
+   */
   const login = async (email) => {
     try {
-      const response = await axiosClient.post('/api/users/check-or-register', { email });
-      // Aquí podrías mostrar un mensaje al usuario indicando que se ha enviado el enlace
+      await axiosClient.post('/api/users/check-or-register', { email });
       alert('Se ha enviado un enlace de inicio de sesión a tu correo electrónico.');
     } catch (error) {
       console.error('Error logging in', error);
@@ -109,6 +183,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Cerrar sesión
+   */
   const logout = async () => {
     try {
       await axiosClient.post('/api/users/logout');
@@ -122,8 +199,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser, refreshUserData, stripeStatus, refreshStripeStatus }}>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      loading,
+      setUser,
+      refreshUserData,
+      stripeStatus,
+      refreshStripeStatus,
+      setToken
+    }}>
       {children}
     </AuthContext.Provider>
   );
