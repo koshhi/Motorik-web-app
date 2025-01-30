@@ -187,7 +187,7 @@ const CompleteProfile = () => {
         const updatedUser = await refreshUserData();
 
         if (updatedUser && updatedUser.profileFilled) {
-          toast.success('Perfil actualizado correctamente');
+          toast.success('Perfil completado correctamente');
           navigate('/', { replace: true });
         } else {
           toast.error('Error actualizando los datos del usuario');

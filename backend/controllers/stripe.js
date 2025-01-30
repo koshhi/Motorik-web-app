@@ -78,6 +78,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // ---------
 
+/**
+ * POST /stripe/create-or-connect-account
+ * Crea una cuenta de Stripe (si no existe) y genera la URL de onboarding.
+ */
 router.post('/create-or-connect-account', auth, async (req, res) => {
   try {
     const { userId } = req.body
@@ -106,10 +110,22 @@ router.post('/create-or-connect-account', auth, async (req, res) => {
     user.stripeConnectedAccountId = account.id
     await user.save()
 
+    // const onboardingSession = await stripe.accountLinks.create({
+    //   account: account.id,
+    //   // refresh_url: `${process.env.FRONTEND_URL}/create-stripe-account`,
+    //   // return_url: `${process.env.FRONTEND_URL}/user/${userId}/settings?onboarding=success`,
+    //   refresh_url: `${process.env.FRONTEND_URL}/user/${userId}/settings?onboarding=cancelled`,
+    //   return_url: `${process.env.FRONTEND_URL}/stripe-connection-success`,
+    //   type: 'account_onboarding'
+    // })
+
+    // Generamos un Link de Onboarding con refresh y return
     const onboardingSession = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.FRONTEND_URL}/create-stripe-account`,
-      return_url: `${process.env.FRONTEND_URL}/user/${userId}/settings?onboarding=success`,
+      // En caso de “cancelar” o “volver atrás”, Stripe podría usar la refresh_url
+      refresh_url: `${process.env.FRONTEND_URL}/user/${userId}/settings?onboarding=cancelled`,
+      // En caso de terminar “con éxito” (o creer que sí), redirige a return_url
+      return_url: `${process.env.FRONTEND_URL}/stripe-connection-success`,
       type: 'account_onboarding'
     })
 
@@ -126,7 +142,7 @@ router.post('/create-or-connect-account', auth, async (req, res) => {
 
 /**
  * GET /stripe/refresh-account-status?userId=xxx
- * Revisa si la cuenta conectada está habilitada (charges_enabled).
+ * Verifica si la cuenta (stripeConnectedAccountId) está en charges_enabled = true.
  */
 router.get('/refresh-account-status', auth, async (req, res) => {
   try {
@@ -138,6 +154,7 @@ router.get('/refresh-account-status', auth, async (req, res) => {
     }
 
     if (!user.stripeConnectedAccountId) {
+      // No hay cuenta de Stripe asociada
       return res.json({
         hasStripeAccount: false,
         chargesEnabled: false
@@ -162,7 +179,8 @@ router.get('/refresh-account-status', auth, async (req, res) => {
 
 /**
  * POST /stripe/webhook
- * Webhook para recibir eventos como 'account.updated'
+ * Webhook para eventos de Stripe. Especialmente account.updated,
+ * donde podemos enterarnos si se habilitan los cobros (charges_enabled).
  */
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   let event
@@ -175,12 +193,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     return res.sendStatus(400)
   }
 
-  // Handle event
+  // Manejar evento
   switch (event.type) {
     case 'account.updated': {
       const account = event.data.object
       try {
-        // Buscar usuario con este accountId
+        // Buscar el user con este accountId
         const user = await User.findOne({ stripeConnectedAccountId: account.id })
         if (user) {
           user.chargesEnabled = account.charges_enabled
@@ -192,40 +210,176 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       }
       break
     }
-    // Manejar otros eventos si lo necesitas (p.ej. payout.created, payment_intent.succeeded, etc.)
     default:
       console.log(`Unhandled event type ${event.type}`)
   }
 
-  // Return a 200 to acknowledge receipt of the event
-  res.sendStatus(200)
+  return res.sendStatus(200)
 })
 
-router.post('/account', async (req, res) => {
+/**
+ * POST /stripe/disconnect-account
+ * Desvincular la cuenta de Stripe localmente (eliminando stripeConnectedAccountId).
+ */
+router.post('/disconnect-account', auth, async (req, res) => {
   try {
-    // Crea cuenta vacía
-    const account = await stripe.accounts.create({})
-    return res.json({ account: account.id })
-  } catch (error) {
-    console.error('Error al crear account Stripe:', error)
-    res.status(500).json({ error: error.message })
-  }
-})
+    const user = req.user
 
-router.post('/account_session', async (req, res) => {
-  try {
-    const { account } = req.body
-    const accountSession = await stripe.accountSessions.create({
-      account,
-      components: {
-        account_onboarding: { enabled: true }
-      }
+    if (!user.stripeConnectedAccountId) {
+      return res.status(400).json({
+        success: false,
+        message: 'No hay ninguna cuenta de Stripe conectada'
+      })
+    }
+
+    // Quita la referencia local
+    user.stripeConnectedAccountId = null
+    user.chargesEnabled = false
+    await user.save()
+
+    // Devuelve el usuario actualizado
+    return res.json({
+      success: true,
+      message: 'Cuenta de Stripe desvinculada.',
+      user // <--- user actualizado
     })
-    return res.json({ client_secret: accountSession.client_secret })
   } catch (error) {
-    console.error('Error al crear account session:', error)
-    res.status(500).json({ error: error.message })
+    console.error('Error desconectando cuenta de Stripe:', error)
+    return res.status(500).json({
+      success: false,
+      message: 'Error al desconectar cuenta de Stripe.'
+    })
   }
 })
+
+// backend/controllers/stripe.js
+router.post('/create-account-link', auth, async (req, res) => {
+  try {
+    const { userId } = req.body
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' })
+    }
+    if (!user.stripeConnectedAccountId) {
+      return res.status(400).json({ success: false, message: 'No hay cuenta de Stripe conectada' })
+    }
+
+    // Pedimos la info actual de la cuenta a Stripe
+    const account = await stripe.accounts.retrieve(user.stripeConnectedAccountId)
+
+    // Si la cuenta no está habilitada, creamos un Link de Onboarding
+    // que devuelva al user a Stripe para completar la verificación:
+    // (equivalente a type: 'account_onboarding')
+    if (!account.charges_enabled) {
+      // Generar un nuevo enlace de "account_onboarding"
+      const accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: `${process.env.FRONTEND_URL}/user/${userId}/settings?onboarding=cancelled`,
+        return_url: `${process.env.FRONTEND_URL}/stripe-connection-success`,
+        type: 'account_onboarding'
+      })
+
+      return res.json({
+        success: true,
+        url: accountLink.url, // ← nuevo link para continuar la verificación
+        message: 'Nuevo onboarding link generado'
+      })
+    } else {
+      // Si la cuenta YA tiene charges_enabled, quizá quieres devolver un login link,
+      // o simplemente avisar "Ya está todo verificado".
+      // Un caso de ejemplo: creamos link de login a Dashboard de Stripe:
+      //
+      const loginLink = await stripe.accounts.createLoginLink(account.id)
+      return res.json({
+        success: true,
+        url: loginLink.url,
+        message: 'La cuenta ya tiene pagos habilitados (charges_enabled).'
+      })
+      //
+      // O devuelves un error si no quieres crear links:
+      // return res.json({
+      //   success: false,
+      //   message: 'La cuenta ya tiene pagos habilitados (charges_enabled).'
+      // })
+    }
+  } catch (error) {
+    console.error('Error creando account link:', error)
+    return res.status(500).json({ success: false, message: 'Error creando enlace de cuenta' })
+  }
+})
+
+// router.post('/account', async (req, res) => {
+//   try {
+//     // Crea cuenta vacía
+//     const account = await stripe.accounts.create({})
+//     return res.json({ account: account.id })
+//   } catch (error) {
+//     console.error('Error al crear account Stripe:', error)
+//     res.status(500).json({ error: error.message })
+//   }
+// })
+
+// router.post('/account_session', async (req, res) => {
+//   try {
+//     const { account } = req.body
+//     const accountSession = await stripe.accountSessions.create({
+//       account,
+//       components: {
+//         account_onboarding: { enabled: true }
+//       }
+//     })
+//     return res.json({ client_secret: accountSession.client_secret })
+//   } catch (error) {
+//     console.error('Error al crear account session:', error)
+//     res.status(500).json({ error: error.message })
+//   }
+// })
+
+// POST /stripe/create-login-link
+// Recibe el ID de cuenta conectada y retorna un loginLink.url
+// router.post('/create-login-link', auth, async (req, res) => {
+//   try {
+//     const { connectedAccountId } = req.body
+//     if (!connectedAccountId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'No se recibió accountId'
+//       })
+//     }
+
+//     // Validate user's stripe account
+//     const user = req.user
+//     if (!user.stripeConnectedAccountId || user.stripeConnectedAccountId !== connectedAccountId) {
+//       return res.status(403).json({
+//         success: false,
+//         message: 'No autorizado para acceder a esta cuenta'
+//       })
+//     }
+
+//     // Get account status first
+//     const account = await stripe.accounts.retrieve(connectedAccountId)
+//     if (!account.charges_enabled) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'La cuenta aún no está completamente configurada'
+//       })
+//     }
+
+//     // Generate Stripe login link
+//     const loginLink = await stripe.accounts.createLoginLink(connectedAccountId)
+
+//     return res.json({
+//       success: true,
+//       url: loginLink.url
+//     })
+//   } catch (error) {
+//     console.error('Error creando login link de Stripe:', error)
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message || 'Error creando login link de Stripe'
+//     })
+//   }
+// })
 
 module.exports = router

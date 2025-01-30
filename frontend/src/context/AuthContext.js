@@ -11,11 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('authToken'));
   const [loading, setLoading] = useState(true);
+
+  // Estado de Stripe (hasStripeAccount, chargesEnabled, etc.)
   const [stripeStatus, setStripeStatus] = useState({
     hasStripeAccount: false,
     chargesEnabled: false,
     loading: true,
   });
+
   const navigate = useNavigate();
 
   // const refreshUserData = useCallback(async () => {
@@ -98,8 +101,9 @@ export const AuthProvider = ({ children }) => {
   // }, [token, setUser, setToken]);
 
   /**
- * Refresca los datos del usuario llamando a /api/users/profile
- */
+   * Carga o refresca la información del usuario logueado (user),
+   * llamando a /api/users/profile
+   */
   const refreshUserData = useCallback(async () => {
     if (!token) {
       setUser(null);
@@ -127,19 +131,43 @@ export const AuthProvider = ({ children }) => {
       }
       return null;
     }
-  }, [token, setUser, setToken]);
+    // }, [token, setUser, setToken]);
+  }, [token]);
 
+  // const refreshStripeStatus = useCallback(async (userId) => {
+  //   try {
+  //     const response = await axiosClient.get(`/stripe/refresh-account-status?userId=${userId}`);
+  //     setStripeStatus({
+  //       hasStripeAccount: response.data.hasStripeAccount,
+  //       chargesEnabled: response.data.chargesEnabled,
+  //       loading: false,
+  //     });
+  //   } catch (error) {
+  //     console.error('Error fetching Stripe status:', error);
+  //     setStripeStatus((prev) => ({ ...prev, loading: false }));
+  //   }
+  // }, []);
+
+  /**
+   * Refresca el estado de Stripe para saber si
+   * hasStripeAccount (true|false) y chargesEnabled (true|false)
+   */
   const refreshStripeStatus = useCallback(async (userId) => {
+    setStripeStatus(prev => ({ ...prev, loading: true }));
     try {
       const response = await axiosClient.get(`/stripe/refresh-account-status?userId=${userId}`);
       setStripeStatus({
+        loading: false,
         hasStripeAccount: response.data.hasStripeAccount,
         chargesEnabled: response.data.chargesEnabled,
-        loading: false,
       });
     } catch (error) {
       console.error('Error fetching Stripe status:', error);
-      setStripeStatus((prev) => ({ ...prev, loading: false }));
+      setStripeStatus({
+        loading: false,
+        hasStripeAccount: false,
+        chargesEnabled: false,
+      });
     }
   }, []);
 
@@ -147,26 +175,35 @@ export const AuthProvider = ({ children }) => {
    * Carga inicial del usuario si hay token en localStorage
    */
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const init = async () => {
       if (token) {
         await refreshUserData();
-        setLoading(false);
-      } else {
-        setLoading(false);
       }
+      setLoading(false);
     };
-
-    fetchUserProfile();
+    init();
   }, [token, refreshUserData]);
+  // useEffect(() => {
+  //   const fetchUserProfile = async () => {
+  //     if (token) {
+  //       await refreshUserData();
+  //       setLoading(false);
+  //     } else {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchUserProfile();
+  // }, [token, refreshUserData]);
 
   /**
    * Logging informativo cada vez que cambia `user`
    */
   useEffect(() => {
     if (user) {
-      console.log('Estado actualizado del usuario:', user);
+      console.log('Usuario en contexto:', user);
     } else {
-      console.log('No hay usuario en el contexto.');
+      console.log('Sin usuario en contexto.');
     }
   }, [user]);
 
@@ -176,7 +213,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email) => {
     try {
       await axiosClient.post('/api/users/check-or-register', { email });
-      alert('Se ha enviado un enlace de inicio de sesión a tu correo electrónico.');
+      toast.success('Revisa tu correo. Se ha enviado un enlace de inicio de sesión.');
     } catch (error) {
       console.error('Error logging in', error);
       toast.error('Error al iniciar sesión.');
@@ -184,7 +221,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Cerrar sesión
+   * Logout
    */
   const logout = async () => {
     try {
@@ -203,14 +240,15 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{
       user,
+      setUser,
+      token,
+      setToken,
+      loading,
       login,
       logout,
-      loading,
-      setUser,
       refreshUserData,
       stripeStatus,
-      refreshStripeStatus,
-      setToken
+      refreshStripeStatus
     }}>
       {children}
     </AuthContext.Provider>

@@ -25,7 +25,8 @@ import ManageEvent from './components/EventManagement/ManageEvent';
 import ManageEventAttendees from './components/EventManagement/ManageEventAttendees';
 import ManageEventRegistration from './components/EventManagement/ManageEventRegistration';
 import EditEvent from './components/EditEvent';
-import CreateStripeAccount from './pages/CreateStripeAccount';
+// import CreateStripeAccount from './pages/_CreateStripeAccount';
+import StripeConnectionSuccess from './pages/StripeConnectionSucces';
 import UserSettings from './pages/UserSettings';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/user/:userId" element={<UserProfile />} />
                 <Route path="/user/:userId/edit-profile" element={<CompleteProfile />} />
                 <Route path="/user/:userId/settings" element={<UserSettings />} />
+                <Route path="/stripe-connection-success" element={<StripeConnectionSuccess />} />
                 <Route path="/my-events" element={<MyEventsLayout />}>
                   <Route index element={<MyEvents />} />
                   <Route path="people" element={<MyEventsAttendees />} />
@@ -71,7 +73,7 @@ function App() {
                 <Route path="/email-verification" element={<VerifyEmail />} />
                 <Route path="/login-with-token" element={<LoginWithToken />} />  {/* Ruta para la verificación del email */}
                 <Route path="/complete-profile" element={<CompleteProfile />} />
-                <Route path="/create-stripe-account" element={<CreateStripeAccount />} />
+                {/* <Route path="/create-stripe-account" element={<CreateStripeAccount />} /> */}
               </Routes>
               <ToastContainer
                 position="top-right"
