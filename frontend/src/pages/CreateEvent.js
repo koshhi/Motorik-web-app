@@ -4,8 +4,11 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import EventForm from '../components/EventForm';
 import Button from '../components/Button/Button';
+import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 const CreateEvent = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const eventFormRef = useRef();
   const [loadingCreate, setLoadingCreate] = useState(false);
@@ -23,6 +26,14 @@ const CreateEvent = () => {
 
         if (!formData) {
           console.error('Errores en el formulario, no se puede enviar');
+          setLoadingCreate(false);
+          return;
+        }
+
+        // Verificar que si hay tickets de pago, el usuario tenga activados los cobros
+        const hasPaidTicket = formData.get('tickets').includes('"type":"paid"');
+        if (hasPaidTicket && (!user.stripeConnectedAccountId || !user.chargesEnabled)) {
+          toast.error('No puedes crear eventos de pago sin tener una cuenta de Stripe validada y con cobros activados. Por favor, activa los pagos en tu configuración.');
           setLoadingCreate(false);
           return;
         }

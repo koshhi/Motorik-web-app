@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useEventContext } from '../../context/EventContext';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
@@ -11,7 +12,7 @@ import Button from '../Button/Button';
 import Typography from '../Typography';
 import Modal from '../Modal/Modal';
 import AddTicketForm from '../Forms/AddTicketForm';
-import EditTicketForm from '../EditTicketForm';
+import EditTicketForm from '../Forms/EditTicketForm';
 import Tag from '../Tag';
 import DropdownButton from '../DropdownButton';
 
@@ -19,7 +20,8 @@ import DropdownButton from '../DropdownButton';
 
 const ManageEventRegistration = () => {
   const { id } = useParams();
-  const { eventDetails, setEventDetails } = useEventContext(); // Usa el contexto
+  const { eventDetails, setEventDetails } = useEventContext();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -85,9 +87,18 @@ const ManageEventRegistration = () => {
     }
   }, [tickets, setEventDetails]);
 
+  // Antes de enviar la petición, verificamos si el ticket es de pago y si el usuario tiene cuenta Stripe válida
+  const canCreatePaidTicket = user?.stripeConnectedAccountId && user?.chargesEnabled;
+
   // Agregar un nuevo ticket
   const handleAddTicket = async (ticketData) => {
     const { type, price, approvalRequired, name, capacity } = ticketData;
+
+    // Si se intenta crear un ticket de pago sin cuenta Stripe válida, se cancela
+    if (type === 'paid' && !canCreatePaidTicket) {
+      toast.error('No puedes agregar tickets de pago sin tener una cuenta de Stripe validada y con cobros activados. Por favor, activa los pagos en tu configuración.');
+      return;
+    }
 
     try {
       const response = await axiosClient.post(`/api/tickets/event/${id}`, {
@@ -114,6 +125,12 @@ const ManageEventRegistration = () => {
 
   // Actualizar un ticket existente
   const handleUpdateTicket = async (ticketId, updatedFields) => {
+    // Si se intenta actualizar un ticket a tipo "paid" sin cuenta Stripe válida, se cancela
+    if (updatedFields.type === 'paid' && !canCreatePaidTicket) {
+      toast.error('No puedes actualizar a un ticket de pago sin tener una cuenta de Stripe validada y con cobros activados.');
+      return;
+    }
+
     try {
       const response = await axiosClient.put(`/api/tickets/${ticketId}`, updatedFields);
       if (response.data.success) {
@@ -160,7 +177,10 @@ const ManageEventRegistration = () => {
       <Container style={{ paddingBottom: '40px' }}>
         <TicketsHeader>
           <Typography $variant="title-4-semibold">Entradas</Typography>
-          <Button $variant="outline" onClick={openAddModal}>Añadir Entrada</Button>
+          <Button $variant="outline" onClick={openAddModal}>
+            <img src="/icons/add.svg" alt="Añadir Entrada" />
+            Añadir Entrada
+          </Button>
         </TicketsHeader>
 
         {/* Lista de Tickets */}
@@ -199,14 +219,14 @@ const ManageEventRegistration = () => {
 
         {/* Modal para Agregar Ticket */}
         {isAddModalOpen && (
-          <Modal onClose={closeAddModal} title="Agregar Nuevo Ticket">
+          <Modal onClose={closeAddModal} title="Añadir Entrada">
             <AddTicketForm onSubmit={handleAddTicket} onClose={closeAddModal} />
           </Modal>
         )}
 
         {/* Modal para Editar Ticket */}
         {isEditModalOpen && ticketToEdit && (
-          <Modal onClose={closeEditModal} title="Editar Ticket">
+          <Modal onClose={closeEditModal} title="Editar Entrada">
             <EditTicketForm
               ticket={ticketToEdit}
               onSubmit={handleUpdateTicket}

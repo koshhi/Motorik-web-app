@@ -157,15 +157,7 @@ function UserSettings() {
         </Container>
       </PageHeader>
       <SectionRow>
-        <Container>
-          {/* <SettingsHeader>
-            <Typography as="h2" $variant="title-4-semibold">
-              Cuenta:
-            </Typography>
-            <Typography as="p" color={theme.colors.defaultWeak}>
-              Gestiona tus datos personales y preferencias.
-            </Typography>
-          </SettingsHeader> */}
+        <SettingsContainer>
           <SettingsBlock>
             <BlockHeader>
               <Typography as="h2" $variant="title-4-semibold">
@@ -223,9 +215,11 @@ function UserSettings() {
                       <Typography as="p" $variant="body-1-regular" color={theme.colors.defaultWeak}>
                         Conecta o crea tu cuenta de Stripe. No te llevará más de 5 minutos.
                       </Typography>
-                      <Button onClick={handleConnectStripe} disabled={isActivating}>
-                        {isActivating ? 'Redirigiendo a Stripe...' : 'Activar pagos'}
-                      </Button>
+                      <StripeActions>
+                        <Button onClick={handleConnectStripe} disabled={isActivating}>
+                          {isActivating ? 'Redirigiendo a Stripe...' : 'Activar pagos'}
+                        </Button>
+                      </StripeActions>
                     </ConnectedAccountBlock>
                   )}
 
@@ -240,13 +234,13 @@ function UserSettings() {
                           Stripe requiere algunos datos para habilitarte los cobros.
                         </Typography>
                         {/* <Typography>
-                          Tu ID de Stripe: {user?.stripeConnectedAccountId || 'No conectado'}
-                        </Typography> */}
+                            Tu ID de Stripe: {user?.stripeConnectedAccountId || 'No conectado'}
+                          </Typography> */}
                       </StripeDescription>
 
                       {/* <Typography as="h3" $variant="body-1-semibold">
-                        Tu cuenta de Stripe existe, pero aún no se han habilitado los cobros.
-                      </Typography> */}
+                          Tu cuenta de Stripe existe, pero aún no se han habilitado los cobros.
+                        </Typography> */}
                       {/* Botón para “Completar verificación” */}
                       <StripeActions>
                         <Button onClick={handleCompleteVerification} disabled={isActivating}>
@@ -289,7 +283,7 @@ function UserSettings() {
 
             </ConnectedAccountContainer>
           </SettingsBlock>
-        </Container>
+        </SettingsContainer>
       </SectionRow>
 
       {/* Modal de confirmación de borrado */}
@@ -336,7 +330,17 @@ const Container = styled.div`
   max-width: 1400px;
   width: 100%;
   gap: ${({ theme }) => theme.sizing.sm};
-  flex-wrap: wrap;
+`;
+
+// const SettingsWrapper = styled.div`
+//   display: flex;
+//   flex-direction: row;
+//   flex-wrap: wrap;
+//   gap: ${({ theme }) => theme.sizing.sm};
+// `;
+
+const SettingsContainer = styled(Container)`
+  //  flex-wrap: wrap;
 `;
 
 const BlockHeader = styled.div`
@@ -352,7 +356,9 @@ const SettingsBlock = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 100%;
+  // width: 100%;
+  flex-grow: 1;
+  flex-basis: 50%;
   border: 1px solid ${({ theme }) => theme.border.defaultWeak};
   border-radius: ${({ theme }) => theme.radius.xs};
 `;
@@ -411,6 +417,8 @@ const ConnectedAccountBlock = styled.div`
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
 `;
 
 const IntegrationIcon = styled.img`

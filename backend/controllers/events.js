@@ -6,7 +6,7 @@ const Ticket = require('../models/Ticket')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const auth = require('../middleware/auth')
-const { validateTickets, parseBoolean } = require('../utils/validators')
+const { validateTickets, parseBoolean, validatePaidEvent } = require('../utils/validators')
 const { sendEnrollmentConfirmationEmail } = require('../services/emailService')
 
 const {
@@ -260,133 +260,6 @@ eventsRouter.post('/:eventId/attendees/cancel', auth, async (req, res) => {
 })
 
 // Inscribir a un usuario en un evento
-// eventsRouter.post('/enroll/:id', auth, async (req, res) => {
-//   const eventId = req.params.id
-//   const { vehicleId, ticketId } = req.body
-
-
-//   const userId = req.user.id
-
-//   // Validar que vehicleId y ticketId están presentes
-//   if (!vehicleId || !ticketId) {
-//     return res.status(400).json({ success: false, message: 'vehicleId y ticketId son requeridos.' })
-//   }
-
-//   Iniciar una sesión para la transacción
-//   const session = await mongoose.startSession()
-//   session.startTransaction()
-
-//   try {
-//     // Validar que el usuario exista
-//     const user = await User.findById(userId).session(session)
-//     if (!user) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
-//     }
-
-//     // Validar que el vehículo exista y pertenezca al usuario
-//     const vehicle = await Vehicle.findOne({ _id: vehicleId, owner: userId }).session(session)
-//     if (!vehicle) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Vehículo no encontrado o no te pertenece.' })
-//     }
-
-//     // Buscar el evento por ID y poblar los tickets
-//     const event = await Event.findById(eventId).populate('tickets').session(session)
-//     if (!event) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
-//     }
-
-//     // Verificar si el usuario es el propietario del evento
-//     if (event.owner.toString() === userId) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(403).json({ success: false, message: 'No puedes inscribirte en tu propio evento.' })
-//     }
-
-//     // Verificar si el usuario ya está inscrito
-//     const isAlreadyEnrolled = event.attendees.some(attendee => attendee.userId.toString() === userId)
-//     if (isAlreadyEnrolled) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'Ya estás inscrito en este evento.' })
-//     }
-
-//     // Validar que el ticket existe y pertenece al evento
-//     const ticket = event.tickets.find(t => t._id.toString() === ticketId)
-//     if (!ticket) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
-//     }
-
-//     // Verificar si el ticket tiene asientos disponibles
-//     if (ticket.availableSeats <= 0) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'No hay asientos disponibles para este evento.' })
-//     }
-
-//     // Determinar el estado inicial basado en si el ticket requiere aprobación
-//     let status = 'attending'
-//     if (ticket.approvalRequired) {
-//       status = 'confirmation pending'
-//     }
-
-//     // Inscribir al usuario en el evento con el estado adecuado, incluyendo ticketId
-//     event.attendees.push({ userId, vehicleId, ticketId, status })
-
-//     // Actualizar la capacidad del ticket
-//     ticket.availableSeats -= 1
-
-//     // Guardar los cambios en el ticket
-//     await ticket.save({ session })
-
-//     // Guardar los cambios en el evento
-//     await event.save({ session })
-
-//     // Confirmar la transacción
-//     await session.commitTransaction()
-//     session.endSession()
-
-//     // Población de datos para la respuesta
-//     const populatedEvent = await Event.findById(eventId)
-//       .populate('attendees.userId', 'name lastName userAvatar email')
-//       .populate('attendees.vehicleId', 'brand model image')
-//       .populate('attendees.ticketId')
-//       .populate('owner', 'name lastName userAvatar')
-//       .populate('tickets')
-//       .exec()
-
-//     // Enviar correo de confirmación de inscripción
-//     try {
-//       await sendEnrollmentConfirmationEmail(
-//         user.email, // to
-//         event, // event
-//         ticket, // ticket
-//         vehicle, // vehicle
-//         status // status
-//       )
-//     } catch (emailError) {
-//       console.error('Error enviando el correo de confirmación de inscripción:', emailError)
-//       // Puedes optar por no abortar la inscripción si el correo falla
-//       // o manejarlo de otra manera según tus necesidades
-//     }
-
-//     res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: populatedEvent })
-//   } catch (error) {
-//     console.error('Error en la inscripción:', error)
-//     // Abortando la transacción en caso de error
-//     await session.abortTransaction()
-//     session.endSession()
-//     res.status(500).json({ success: false, message: 'Error interno del servidor.' })
-//   }
-// })
-
 eventsRouter.post('/enroll/:id', auth, async (req, res) => {
   const eventId = req.params.id
   const { vehicleId, ticketId } = req.body
@@ -504,229 +377,6 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error interno' })
   }
 })
-
-// eventsRouter.post('/enroll/:id', auth, async (req, res) => {
-//   const eventId = req.params.id
-//   const { vehicleId, ticketId } = req.body
-//   const session = await mongoose.startSession()
-//   session.startTransaction()
-
-//   try {
-//     const user = await User.findById(req.user.id).session(session)
-//     if (!user) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
-//     }
-
-//     const event = await Event.findById(eventId).populate('tickets').session(session)
-//     if (!event) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
-//     }
-
-//     const needsVehicle = !!event.needsVehicle
-
-//     if (needsVehicle && !vehicleId) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'vehicleId es requerido porque el evento requiere vehículo.' })
-//     }
-
-//     if (event.owner.toString() === req.user.id) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(403).json({ success: false, message: 'No puedes inscribirte en tu propio evento.' })
-//     }
-
-//     const isAlreadyEnrolled = event.attendees.some(attendee => attendee.userId.toString() === req.user.id)
-//     if (isAlreadyEnrolled) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'Ya estás inscrito en este evento.' })
-//     }
-
-//     const ticket = event.tickets.find(t => t._id.toString() === ticketId)
-//     if (!ticket) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
-//     }
-
-//     if (ticket.availableSeats <= 0) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'No hay asientos disponibles.' })
-//     }
-
-//     // Verificar que el vehículo pertenece al usuario
-//     if (needsVehicle) {
-//       const vehicle = await Vehicle.findOne({ _id: vehicleId, owner: user._id }).session(session)
-//       if (!vehicle) {
-//         await session.abortTransaction()
-//         session.endSession()
-//         return res.status(400).json({ success: false, message: 'Vehículo no encontrado o no te pertenece.' })
-//       }
-//     }
-
-//     let status = 'attending'
-//     if (ticket.approvalRequired) {
-//       status = 'confirmation pending'
-//     }
-
-//     event.attendees.push({ userId: req.user.id, vehicleId: vehicleId || undefined, ticketId, status })
-//     ticket.availableSeats -= 1
-//     await ticket.save({ session })
-//     await event.save({ session })
-//     console.log('Evento después de save:', event)
-
-//     // Calcular availableSeats como la suma de availableSeats de todos los tickets
-//     const updatedEvent = await Event.findById(eventId)
-//       .populate('attendees.userId', 'name lastName userAvatar email')
-//       .populate('attendees.vehicleId', 'brand model image nickname year')
-//       .populate('attendees.ticketId')
-//       .populate('owner', 'name lastName userAvatar')
-//       .populate('tickets')
-//       .session(session)
-//       .exec()
-
-//     console.log('Evento actualizado con populate:', updatedEvent)
-
-//     const availableSeats = updatedEvent.tickets.reduce((sum, ticket) => sum + ticket.availableSeats, 0)
-
-//     const eventObject = updatedEvent.toObject()
-//     eventObject.availableSeats = availableSeats
-
-//     await session.commitTransaction()
-//     session.endSession()
-
-//     // Enviar correo de confirmación
-//     try {
-//       await sendEnrollmentConfirmationEmail(
-//         user.email,
-//         event,
-//         ticket,
-//         vehicleId ? await Vehicle.findById(vehicleId) : null,
-//         status
-//       )
-//     } catch (emailError) {
-//       console.error('Error enviando correo:', emailError)
-//     }
-
-//     res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: eventObject })
-//   } catch (error) {
-//     console.error('Error en la inscripción:', error)
-//     await session.abortTransaction()
-//     session.endSession()
-//     res.status(500).json({ success: false, message: 'Error interno' })
-//   }
-// })
-
-// eventsRouter.post('/enroll/:id', auth, async (req, res) => {
-//   const eventId = req.params.id
-//   const { vehicleId, ticketId } = req.body
-//   const userId = req.user.id
-
-//   // Validar que vehicleId y ticketId están presentes
-//   if (!vehicleId || !ticketId) {
-//     return res.status(400).json({ success: false, message: 'vehicleId y ticketId son requeridos.' })
-//   }
-
-//   // Iniciar una sesión para la transacción
-//   const session = await mongoose.startSession()
-//   session.startTransaction()
-
-//   try {
-//     // Validar que el usuario exista
-//     const user = await User.findById(userId).session(session)
-//     if (!user) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
-//     }
-
-//     // Validar que el vehículo exista y pertenezca al usuario
-//     const vehicle = await Vehicle.findOne({ _id: vehicleId, owner: userId }).session(session)
-//     if (!vehicle) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Vehículo no encontrado o no te pertenece.' })
-//     }
-
-//     // Buscar el evento por ID
-//     const event = await Event.findById(eventId).session(session)
-//     if (!event) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
-//     }
-
-//     // Verificar si el usuario es el propietario del evento
-//     if (event.owner.toString() === userId) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(403).json({ success: false, message: 'No puedes inscribirte en tu propio evento.' })
-//     }
-
-//     // Verificar si el usuario ya está inscrito
-//     const isAlreadyEnrolled = event.attendees.some(attendee => attendee.userId.toString() === userId)
-//     if (isAlreadyEnrolled) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'Ya estás inscrito en este evento.' })
-//     }
-
-//     // Verificar si hay asientos disponibles
-//     if (event.availableSeats <= 0) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(400).json({ success: false, message: 'No hay asientos disponibles para este evento.' })
-//     }
-
-//     // Validar que el ticket existe y pertenece al evento
-//     const ticket = await Ticket.findOne({ _id: ticketId, eventId: eventId }).session(session)
-//     if (!ticket) {
-//       await session.abortTransaction()
-//       session.endSession()
-//       return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
-//     }
-
-//     // Determinar el estado inicial basado en si el ticket requiere aprobación
-//     let status = 'attending'
-//     if (ticket.approvalRequired) {
-//       status = 'confirmation pending'
-//     }
-
-//     // Inscribir al usuario en el evento con el estado adecuado, incluyendo ticketId
-//     event.attendees.push({ userId, vehicleId, ticketId, status })
-//     event.attendeesCount += 1
-//     event.availableSeats -= 1
-
-//     await event.save({ session })
-
-//     // Confirmar la transacción
-//     await session.commitTransaction()
-//     session.endSession()
-
-//     // Población de datos para la respuesta
-//     const populatedEvent = await Event.findById(eventId)
-//       .populate('attendees.userId', 'name lastName userAvatar email')
-//       .populate('attendees.vehicleId', 'brand model image')
-//       .populate('attendees.ticketId')
-//       .populate('owner', 'name lastName userAvatar')
-//       .populate('tickets') // Populamos los tickets asociados
-//       .exec()
-
-//     res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: populatedEvent })
-//   } catch (error) {
-//     console.error('Error en la inscripción:', error)
-//     // Abortando la transacción en caso de error
-//     await session.abortTransaction()
-//     session.endSession()
-//     res.status(500).json({ success: false, message: 'Error interno del servidor.' })
-//   }
-// })
 
 eventsRouter.get('/:id/enrollment', auth, async (req, res) => {
   const eventId = req.params.id
@@ -906,6 +556,21 @@ eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
     event.needsVehicle = parsedNeedsVehicle
     event.image = imageUrl
 
+    let parsedTickets
+    try {
+      parsedTickets = typeof req.body.tickets === 'string'
+        ? JSON.parse(req.body.tickets)
+        : req.body.tickets
+
+      // Validar la estructura de los tickets
+      validateTickets(parsedTickets)
+
+      // VALIDACIÓN: si se incluye al menos un ticket de pago, el usuario debe tener cuenta Stripe activa
+      validatePaidEvent(req.user, parsedTickets)
+    } catch (error) {
+      return res.status(400).json({ success: false, message: error.message })
+    }
+
     const updatedEvent = await event.save()
     res.status(200).json({ success: true, event: updatedEvent })
   } catch (error) {
@@ -1008,20 +673,20 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid locationCoordinates format.' })
     }
 
-    // Parsear 'tickets' desde JSON si es una cadena
     let parsedTickets
-    if (typeof tickets === 'string') {
-      try {
-        parsedTickets = JSON.parse(tickets)
-      } catch (error) {
-        return res.status(400).json({ success: false, message: 'Invalid format for tickets.' })
-      }
-    } else {
-      parsedTickets = tickets
-    }
+    try {
+      parsedTickets = typeof req.body.tickets === 'string'
+        ? JSON.parse(req.body.tickets)
+        : req.body.tickets
 
-    // Validar los tickets
-    validateTickets(parsedTickets)
+      // Validar la estructura de cada ticket
+      validateTickets(parsedTickets)
+
+      // VALIDACIÓN: si hay al menos un ticket de pago, el usuario debe tener una cuenta Stripe válida
+      validatePaidEvent(req.user, parsedTickets)
+    } catch (error) {
+      return res.status(400).json({ success: false, message: error.message })
+    }
 
     // Calcular la capacidad total del evento como la suma de las capacidades de los tickets
     const capacity = parsedTickets.reduce((acc, ticket) => acc + ticket.capacity, 0)
@@ -1221,19 +886,3 @@ eventsRouter.get('/', async (req, res) => {
 })
 
 module.exports = eventsRouter
-
-// Función auxiliar para calcular la distancia entre dos puntos geográficos (Haversine formula)
-// function calculateDistance(coords1, coords2) {
-//   const [lng1, lat1] = coords1
-//   const [lng2, lat2] = coords2
-//   const R = 6371 // Radio de la Tierra en km
-//   const dLat = (lat2 - lat1) * (Math.PI / 180)
-//   const dLng = (lng2 - lng1) * (Math.PI / 180)
-//   const a =
-//     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-//     Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-//     Math.sin(dLng / 2) * Math.sin(dLng / 2)
-//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-//   const distance = R * c // Distancia en km
-//   return distance
-// }

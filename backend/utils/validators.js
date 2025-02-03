@@ -39,7 +39,18 @@ const validateTickets = (tickets) => {
   })
 }
 
+// Nueva función para validar que el usuario pueda crear o editar un evento con tickets de pago.
+const validatePaidEvent = (user, tickets) => {
+  const hasPaidTicket = tickets.some(ticket => ticket.type === 'paid')
+  if (hasPaidTicket) {
+    if (!user.stripeConnectedAccountId || !user.chargesEnabled) {
+      throw new Error('No puedes crear o editar un evento con tickets de pago sin tener una cuenta de Stripe validada y con cobros activados.')
+    }
+  }
+}
+
 module.exports = {
   validateTickets,
-  parseBoolean
+  parseBoolean,
+  validatePaidEvent
 }

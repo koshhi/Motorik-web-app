@@ -5,7 +5,7 @@ const baseStyles = css`
   display: ${({ $fullWidth }) => ($fullWidth ? 'flex' : 'inline-flex')};
   width: ${({ $fullWidth }) => ($fullWidth ? '100%' : 'auto')};
 
-  gap: 8px;
+  gap: 4px;
   align-items: center;
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: 'ss01' on, 'ss05' on, 'ss06' on, 'ss07' on;
