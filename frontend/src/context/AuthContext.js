@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   const refreshStripeStatus = useCallback(async (userId) => {
     setStripeStatus(prev => ({ ...prev, loading: true }));
     try {
-      const response = await axiosClient.get(`/stripe/refresh-account-status?userId=${userId}`);
+      const response = await axiosClient.get(`/api/stripe/refresh-account-status?userId=${userId}`);
       setStripeStatus({
         loading: false,
         hasStripeAccount: response.data.hasStripeAccount,

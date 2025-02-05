@@ -46,7 +46,7 @@ app.use('/api/events', eventsRouter)
 app.use('/api/vehicles', vehiclesRouter)
 app.use('/api/tickets', ticketsRouter)
 app.use('/auth', authRouter)
-app.use('/stripe', stripeRouter)
+app.use('/api/stripe', stripeRouter)
 
 // Conexión a MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)

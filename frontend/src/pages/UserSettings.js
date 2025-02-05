@@ -74,12 +74,12 @@ function UserSettings() {
 
   /**
    * 1) handleConnectStripe: crea o conecta cuenta si no existía,
-   *    llamando a POST /stripe/create-or-connect-account
+   *    llamando a POST /api/stripe/create-or-connect-account
    */
   const handleConnectStripe = async () => {
     try {
       setIsActivating(true);
-      const { data } = await axiosClient.post('/stripe/create-or-connect-account', { userId });
+      const { data } = await axiosClient.post('/api/stripe/create-or-connect-account', { userId });
       if (data.onboardingUrl) {
         // Redirige al flujo de Onboarding
         window.location.href = data.onboardingUrl;
@@ -103,7 +103,7 @@ function UserSettings() {
   const handleCompleteVerification = async () => {
     try {
       setIsActivating(true);
-      const { data } = await axiosClient.post('/stripe/create-account-link', { userId });
+      const { data } = await axiosClient.post('/api/stripe/create-account-link', { userId });
       if (data.success && data.url) {
         window.location.href = data.url; // Redirige a Stripe
       } else {
@@ -118,11 +118,11 @@ function UserSettings() {
   };
 
   /**
-   * 3) handleDisconnectStripe: desvincula la cuenta, llamando a POST /stripe/disconnect-account
+   * 3) handleDisconnectStripe: desvincula la cuenta, llamando a POST /api/stripe/disconnect-account
    */
   const handleDisconnectStripe = async () => {
     try {
-      const { data } = await axiosClient.post('/stripe/disconnect-account');
+      const { data } = await axiosClient.post('/api/stripe/disconnect-account');
       if (data.success) {
         toast.success('Cuenta de Stripe desvinculada.');
         // Actualizar user local

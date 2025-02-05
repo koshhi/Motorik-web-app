@@ -20,7 +20,7 @@ function StripeOnboardingPage({ onClose }) {
 
     try {
       // const resp = await fetch('/stripe/account', { method: 'POST' });
-      const resp = await fetch(`${process.env.REACT_APP_API_URL}/stripe/account`, { method: 'POST' })
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/api/stripe/account`, { method: 'POST' })
       const json = await resp.json();
 
       if (json.account) {

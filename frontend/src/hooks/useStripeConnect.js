@@ -52,7 +52,7 @@ export function useStripeConnect(connectedAccountId) {
           publishableKey: process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY,
           fetchClientSecret: async () => {
             // Llamar a tu endpoint /account_session
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/stripe/account_session`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/stripe/account_session`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ account: connectedAccountId }),

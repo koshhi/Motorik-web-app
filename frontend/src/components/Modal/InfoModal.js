@@ -1,5 +1,4 @@
-// components/Modal/InfoModal.js
-
+// frontend/src/components/Modal/InfoModal.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
@@ -23,8 +22,12 @@ const InfoModal = ({ isOpen, onClose, onContinue }) => {
           </Typography>
         </InfoBlock>
         <ActionsContainer>
-          <Button onClick={onContinue} $fullWidth $contentAlign="center">Continuar</Button>
-          <Button $variant="outline" onClick={onClose} $fullWidth $contentAlign="center">Cerrar</Button>
+          <Button onClick={onContinue} $fullWidth $contentAlign="center">
+            Continuar
+          </Button>
+          <Button $variant="outline" onClick={onClose} $fullWidth $contentAlign="center">
+            Cerrar
+          </Button>
         </ActionsContainer>
       </InfoContainer>
     </Modal>
@@ -39,7 +42,6 @@ InfoModal.propTypes = {
 
 export default InfoModal;
 
-// Estilos
 const InfoContainer = styled.div`
   display: flex;
   flex-direction: column;

@@ -60,7 +60,7 @@ const CreateEventTicketModal = ({
     if (!userId) return;
     setLoadingStripeCheck(true);
     try {
-      const resp = await axiosClient.get(`/stripe/refresh-account-status?userId=${userId}`);
+      const resp = await axiosClient.get(`/api/stripe/refresh-account-status?userId=${userId}`);
       setHasStripeAccount(resp.data.hasStripeAccount);
       setChargesEnabled(resp.data.chargesEnabled);
     } catch (error) {
