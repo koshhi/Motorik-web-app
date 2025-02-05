@@ -1,11 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
+import Typography from '../Typography';
 
 const CardToogle = ({ category, isActive, onClick, icon }) => {
   return (
     <Option $isActive={isActive} onClick={onClick}>
       {icon}
-      <span>{category}</span>
+      <CategoryTitle as="p" $isActive={isActive} $variant="body-2-semibold">
+        {category}
+      </CategoryTitle>
     </Option>
   );
 };
@@ -24,23 +27,14 @@ const Option = styled.div`
   padding: ${({ theme }) => theme.sizing.sm};
   border-radius: ${({ theme }) => theme.sizing.xs};
   min-width: 136px;
+  transition: all 0.3s;
 
-  
-
-  img {
-    width: ${({ theme }) => theme.sizing.lg};
-    height: ${({ theme }) => theme.sizing.lg};
+  &:hover {
+    border: 1px solid ${({ $isActive, theme }) => ($isActive ? theme.border.brandMain : theme.border.defaultWeak)};
+    background-color: ${({ $isActive, theme }) => ($isActive ? theme.fill.brandAlphaMain16 : theme.fill.defaultWeak)};
   }
+`;
 
-  span {
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-    font-family: "Mona Sans";
-    font-size: 13px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 150%;
-    font-size: 14px;
-    color: ${({ $isActive, theme }) => ($isActive ? theme.colors.brandMain : theme.colors.defaultSubtle)};
-  }
+const CategoryTitle = styled(Typography)`
+  color: ${({ $isActive, theme }) => ($isActive ? theme.colors.brandMain : theme.colors.defaultSubtle)};
 `;

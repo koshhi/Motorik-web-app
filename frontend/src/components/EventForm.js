@@ -5,11 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import InputText from './Input/InputText';
 import InputTextArea from './Input/InputTextArea';
 import { getEventTypeIcon } from '../utilities';
-import EventTypeModal from './Modal/EventTypeModal';
-import EventTerrainModal from './Modal/EventTerrainModal';
+import CreateEventTypeModal from './Modal/CreateEventTypeModal';
+import CreateEventTerrainModal from './Modal/CreateEventTerrainModal';
 // import EventCapacityModal from './Modal/EventCapacityModal';
-import EventExperienceModal from './Modal/EventExperienceModal';
-import EventTicketModal from './Modal/EventTicketModal';
+import CreateEventExperienceModal from './Modal/CreateEventExperienceModal';
+import CreateEventTicketModal from './Modal/CreateEventTicketModal';
+import Typography from './Typography';
+import { theme } from '../theme';
 
 // Componente principal del formulario
 const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref) => {
@@ -347,13 +349,11 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
 
   return (
     <FormContainer>
-      {/* Tu formulario aquí */}
-      <Header>
+      <FormHeader>
         <Container>
-          <div className="HeaderWrapper">
-            <div className="TitleInputBlock">
-              <InputText
-                className="EventTitle"
+          <HeaderWrapper>
+            <TitleInputBlock>
+              <EventTitle
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
@@ -362,100 +362,99 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 required
               />
               {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
-            </div>
+            </TitleInputBlock>
             {user && (
-              <div className="EventOrganizer">
-                <img className="UserAvatar" src={user.userAvatar} alt="User Avatar" />
-                <div className="UserData">
-                  <p className="label">Organizado por</p>
-                  <p className="username">
+              <EventOrganizer>
+                <UserAvatar src={user.userAvatar} alt="User Avatar" />
+                <UserData>
+                  <Typography $variant="caption-medium" color={theme.colors.defaultWeak}>
+                    Organizado por
+                  </Typography>
+                  <Typography $variant="body-2-medium">
                     {user.name} {user.lastName}
-                  </p>
-                </div>
-              </div>
+                  </Typography>
+                </UserData>
+              </EventOrganizer>
             )}
-          </div>
+          </HeaderWrapper>
         </Container>
-      </Header>
+      </FormHeader>
       <FormWrapper>
         <Grid>
           <Details>
             <Image>
-              <div className="ImageContainer">
+              <ImageContainer>
                 {file ? (
-                  <div className="EventImageWrapper">
-                    <img src={URL.createObjectURL(file)} alt="Event" className="EventImage" />
-                    <div className="ImageInputBlock">
-                      <input
+                  <EventImageWrapper>
+                    <EventImage src={URL.createObjectURL(file)} alt="Event" />
+                    <ImageInputBlock>
+                      <InputFile
                         type="file"
                         id="file"
                         onChange={handleFileChange}
-                        className="inputFile"
                       />
-                      <label
+                      <InputFileLabel
                         htmlFor="file"
-                        className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
+                        className={errors.file ? 'error' : ''}
                       >
-                        <div className="labelContent">
-                          <img src="/icons/upload-file.svg" alt="Subir fichero" />
+                        <LabelContent>
+                          <img src="/icons/upload-file.svg" alt="Subir imagen" />
                           <p>Sube una imagen</p>
-                        </div>
+                        </LabelContent>
                         {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
-                      </label>
-                    </div>
-                  </div>
+                      </InputFileLabel>
+                    </ImageInputBlock>
+                  </EventImageWrapper>
                 ) : formData.imageUrl ? (
-                  <div className="EventImageWrapper">
-                    <img src={formData.imageUrl} alt="Event" className="EventImage" />
-                    <div className="ImageInputBlock">
-                      <input
+                  <EventImageWrapper>
+                    <EventImage src={formData.imageUrl} alt="Event" />
+                    <ImageInputBlock>
+                      <InputFile
                         type="file"
                         id="file"
                         onChange={handleFileChange}
-                        className="inputFile"
                       />
-                      <label
+                      <InputFileLabel
                         htmlFor="file"
-                        className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
+                        className={errors.file ? 'error' : ''}
                       >
-                        <div className="labelContent">
-                          <img src="/icons/upload-file.svg" alt="Subir fichero" />
+                        <LabelContent>
+                          <img src="/icons/upload-file.svg" alt="Subir imagen" />
                           <p>Sube una imagen</p>
-                        </div>
+                        </LabelContent>
                         {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
-                      </label>
-                    </div>
-                  </div>
+                      </InputFileLabel>
+                    </ImageInputBlock>
+                  </EventImageWrapper>
                 ) : (
-                  <div className="EventEmptyImageWrapper">
-                    <img
+                  <EventEmptyImageWrapper>
+                    <EmptyStateIcon
                       src={getEventTypeIcon(formData.eventType)}
                       alt="empty state icon"
-                      className="empty-state-icon"
                     />
-                    <div className="ImageInputBlock">
-                      <input
+                    <ImageInputBlock>
+                      <InputFile
                         type="file"
                         id="file"
                         onChange={handleFileChange}
-                        className="inputFile"
                       />
-                      <label
+                      <InputFileLabel
                         htmlFor="file"
-                        className={errors.file ? 'inputFileLabel error' : 'inputFileLabel'}
+                        className={errors.file ? 'error' : ''}
+
                       >
-                        <div className="labelContent">
+                        <LabelContent>
                           <img src="/icons/upload-file.svg" alt="Subir fichero" />
                           <p>Sube una imagen</p>
-                        </div>
+                        </LabelContent>
                         {errors.file && (
-                          <ErrorMessage className="error">{errors.file}</ErrorMessage>
+                          <ImageUploadError>{errors.file}</ImageUploadError>
                         )}
-                      </label>
-                    </div>
-                  </div>
+                      </InputFileLabel>
+                    </ImageInputBlock>
+                  </EventEmptyImageWrapper>
                 )}
-              </div>
+              </ImageContainer>
             </Image>
             <Description>
               <label>Detalles</label>
@@ -674,12 +673,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
 
 
                 {!isEditMode && (
-                  <Option>
+                  <Option onClick={() => handleOpenModal('ticket')}>
                     <div className="Title">
                       <img src="/icons/ticket.svg" alt="Ticket" /> Ticket
                     </div>
 
-                    <button className="OptionSelected" onClick={() => handleOpenModal('ticket')}>
+                    <button className="OptionSelected">
                       {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" />
                     </button>
                   </Option>
@@ -706,7 +705,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
 
                 {/* Renderizar modales según el estado */}
                 {activeModal === 'eventType' && (
-                  <EventTypeModal
+                  <CreateEventTypeModal
                     eventType={formData.eventType}
                     setEventType={(value) =>
                       setFormData((prevData) => ({ ...prevData, eventType: value }))
@@ -716,7 +715,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 )}
 
                 {activeModal === 'terrain' && (
-                  <EventTerrainModal
+                  <CreateEventTerrainModal
                     terrain={formData.terrain}
                     setTerrain={(value) =>
                       setFormData((prevData) => ({ ...prevData, terrain: value }))
@@ -726,7 +725,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 )}
 
                 {activeModal === 'experience' && (
-                  <EventExperienceModal
+                  <CreateEventExperienceModal
                     experience={formData.experience}
                     setExperience={(value) =>
                       setFormData((prevData) => ({ ...prevData, experience: value }))
@@ -746,7 +745,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 )} */}
 
                 {!isEditMode && activeModal === 'ticket' && (
-                  <EventTicketModal
+                  <CreateEventTicketModal
                     ticketName={formData.tickets[0].name}
                     ticketType={formData.tickets[0].type}
                     ticketPrice={formData.tickets[0].price}
@@ -799,124 +798,114 @@ const FormContainer = styled.div`
   width: 100%;
 `;
 
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px ${({ theme }) => theme.sizing.md};
+  max-width: 1400px;
+  width: 100%;
+`;
+
+const HeaderWrapper = styled.div`
+  padding: ${({ theme }) => theme.sizing.lg} 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  gap: ${({ theme }) => theme.sizing.xs};
+`;
+
 const Image = styled.div`
   width: 100%;
+`;
 
-  .ImageContainer {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    background-color: ${({ theme }) => theme.fill.defaultWeak};
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    border-radius: ${({ theme }) => theme.radius.sm};
+const ImageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background-color: ${({ theme }) => theme.fill.defaultWeak};
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: ${({ theme }) => theme.radius.sm};
+`;
 
-    .EventImageWrapper,
-    .EventEmptyImageWrapper {
-      position: relative;
+const EventImageWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
 
-      .ImageInputBlock {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        right: 0px;
-        bottom: 0px;
+const EventEmptyImageWrapper = styled(EventImageWrapper)`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
-        .inputFile {
-          width: 0.1px;
-          height: 0.1px;
-          opacity: 0;
-          overflow: hidden !important;
-          position: absolute;
-          z-index: -1;
-        }
-        .inputFileLabel {
-          cursor: pointer;
-          color: ${({ theme }) => theme.colors.defaultStrong};
-          font-variant-numeric: lining-nums tabular-nums;
-          font-feature-settings: 'ss01' on;
-          font-family: "Mona Sans";
-          font-size: 16px;
-          font-style: normal;
-          font-weight: 500;
-          line-height: 150%; /* 24px */
-          border-radius: ${({ theme }) => theme.radius.sm};
-          border: 1px solid transparent;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          flex-direction: column;
+const EmptyStateIcon = styled.img`
+  width: 50px;
+  height: 50px;
+`;
 
-          // &:hover {
-          //   border-color: ${({ theme }) => theme.border.defaultWeak};
-          // }
+const ImageInputBlock = styled.div`
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+`;
 
-          .labelContent {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 40px;
-            margin-bottom: 40px;
-          }
-          
-          .error {
-            position: absolute;
-            bottom: 12px;
-          }
-        }
+const InputFile = styled.input`
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden !important;
+  position: absolute;
+  z-index: -1;
+`;
 
-        .inputFileLabel.error {
-          border: 1px solid ${({ theme }) => theme.colors.errorMain};
-        
-          &:hover {
-            outline: 1px solid ${({ theme }) => theme.colors.errorMain};
-          }
-        }
-      }
-    }
+const InputFileLabel = styled.label`
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.defaultStrong};
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'ss01' on;
+  font-family: "Mona Sans";
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 150%; /* 24px */
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid transparent;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-direction: column;
 
-    .EventEmptyImageWrapper {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .empty-state-icon {
-        width: 50px;
-        height: 50px;
-      }
-    }
-
-    .EventImageWrapper {
-      transition: all 0.3s;
-      width: 100%;
-
-      &:hover {
-        opacity: 80%;
-      }
-      .EventImage {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: ${({ theme }) => theme.radius.sm};
-      }
-
-      .ImageInputBlock{
-        .inputFileLabel {
-          &:hover {
-            border: 1px solid transparent;
-          }
-          .labelContent {
-            background-color: ${({ theme }) => theme.fill.defaultMain};
-          }
-        }
-      }
+  &.error {
+    border: 1px solid ${({ theme }) => theme.colors.errorMain};
+  
+    &:hover {
+      outline: 1px solid ${({ theme }) => theme.colors.errorMain};
     }
   }
+`;
+const LabelContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 40px;
+  margin-bottom: 40px;
+`;
+
+const EventImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: ${({ theme }) => theme.radius.sm};     
 `;
 
 const Description = styled.div`
@@ -953,106 +942,63 @@ const Description = styled.div`
   }
 `;
 
-const Container = styled.div`
+const TitleInputBlock = styled.div`
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 0px ${({ theme }) => theme.sizing.md};
-  max-width: 1400px;
+  gap: ${({ theme }) => theme.sizing.xxs};
   width: 100%;
 `;
 
-const Header = styled.div`
+const EventTitle = styled(InputText)`
+  width: 100%;
+  padding: 0px;
+  border-radius: ${({ theme }) => theme.radius.xs};
+  border: 1px solid transparent;
+  background: none;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'ss01' on;
+
+  /* Titles/Mobile/Title 1/Bold */
+  font-family: "Mona Sans";
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%; /* 39.2px */
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.defaultSubtle};
+  }
+`;
+
+const EventOrganizer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
+`;
+
+const UserData = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xxs};
+`;
+
+const UserAvatar = styled.img`
+  border-radius: ${({ theme }) => theme.sizing.xs};
+  height: 40px;
+  width: 40px;
+`;
+
+const FormHeader = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 8px;
-  background: var(--bg-default-subtle, #FAFAFA);
-  padding-top: 68px;
-
-  .HeaderWrapper {
-    padding: 32px 0px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    gap: ${({ theme }) => theme.sizing.xs};
-
-    .TitleInputBlock {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-      width: 100%;
-    }
-  }
-
-  .EventTitle {
-    width: 100%;
-    padding: 0px;
-    border-radius: ${({ theme }) => theme.radius.xs};
-    border: 1px solid transparent;
-    background: none;
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-
-    /* Titles/Mobile/Title 1/Bold */
-    font-family: "Mona Sans";
-    font-size: 28px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 140%; /* 39.2px */
-
-    &::placeholder {
-      color: ${({ theme }) => theme.colors.defaultSubtle};
-    }
-  }
-
-  .EventOrganizer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: ${({ theme }) => theme.sizing.xs};
-
-    .UserAvatar {
-      border-radius: ${({ theme }) => theme.sizing.xs};
-      height: 40px;
-      width: 40px;
-    }
-
-    .UserData{
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: ${({ theme }) => theme.sizing.xxs};;
-
-      .label {
-        color: ${({ theme }) => theme.colors.defaultWeak};
-        font-variant-numeric: lining-nums tabular-nums;
-        font-feature-settings: 'ss01' on;
-        margin: 0px;
-        // font-family: "Mona Sans";
-        font-size: 12px;
-        font-style: normal;
-        font-weight: 500;
-        line-height: 100%%;
-      }
-        
-      .username {
-        color: ${({ theme }) => theme.colors.defaultMain};
-        font-variant-numeric: lining-nums tabular-nums;
-        font-feature-settings: 'ss01' on;
-        margin: 0px;
-        // font-family: "Mona Sans";
-        font-size: 14px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 100%;
-      }
-    }
-  }
+  background: ${({ theme }) => theme.fill.defaultSubtle};
+  padding-top: 74px;
 `;
 
 const FormWrapper = styled.div`
@@ -1085,12 +1031,12 @@ const Options = styled.div`
     line-height: 150%; /* 24px */
   }
 
-  // .OptionsContainer {
-  //   border-radius: 8px;
-  //   border: 1px solid var(--border-default-weak, #DCDCDC);
-  //   background: var(--bg-default-subtle, #FAFAFA);
-  //   overflow: hidden;
-  // }
+  .OptionsContainer {
+    border-radius: 8px;
+    border: 1px solid var(--border-default-weak, #DCDCDC);
+    background: var(--bg-default-subtle, #FAFAFA);
+    // overflow: hidden;
+  }
 `;
 
 
@@ -1100,9 +1046,13 @@ const Option = styled.div`
   align-items: flex-start;
   gap: 8px;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border-default-weak, #DCDCDC);
+  border-top: 1px solid var(--border-default-weak, #DCDCDC);
   cursor: pointer;
   transition: all 0.3s;
+
+  &:first-child {
+    border-top: none;
+  }
 
 
   &:hover {
@@ -1154,9 +1104,10 @@ const ErrorMessage = styled.div`
   line-height: 20px;         
 `;
 
-
-//----
-
+const ImageUploadError = styled(ErrorMessage)`
+  position: absolute;
+  bottom: 12px;
+`;
 
 const Grid = styled.div`
     display: grid;

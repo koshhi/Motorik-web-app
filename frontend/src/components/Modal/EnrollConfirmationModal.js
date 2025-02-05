@@ -1,15 +1,15 @@
-// components/Modal/ConfirmationModal.js
+// components/Modal/EnrollConfirmationModal.js
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import Modal from '../Modal/Modal';
+import Modal from './Modal';
 import Typography from '../Typography';
 import Button from '../Button/Button';
 import { theme } from '../../theme';
 import { toast } from 'react-toastify';
 
-const ConfirmationModal = ({
+const EnrollConfirmationModal = ({
   enrollmentStatus,
   userEmail,
   timeLeft,
@@ -87,7 +87,7 @@ const ConfirmationModal = ({
   );
 };
 
-export default ConfirmationModal;
+export default EnrollConfirmationModal;
 
 // Styled Components
 const ModalContent = styled.div`

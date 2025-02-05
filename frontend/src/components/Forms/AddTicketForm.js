@@ -174,7 +174,7 @@ const AddTicketForm = ({ onSubmit, onClose }) => {
 
         {/* Tipo de Ticket */}
         <InputWrapper>
-          <Typography $variant="body-2-medium" as="label">Tipo</Typography>
+          {/* <Typography $variant="body-2-medium" as="label">Tipo</Typography> */}
           <ToogableTabs
             options={ticketOptions}
             activeOption={formData.type}
@@ -301,7 +301,7 @@ const Form = styled.form`
 const FormFields = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: ${({ theme }) => theme.sizing.md};
   padding: 16px;
   width: 100%;
 `;

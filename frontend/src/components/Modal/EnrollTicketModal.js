@@ -1,9 +1,9 @@
-// components/Modal/TicketModal.js
+// components/Modal/EnrollTicketModal.js
 
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import Modal from '../Modal/Modal';
+import Modal from './Modal';
 import Typography from '../Typography';
 import Button from '../Button/Button';
 import TicketItem from '../EventContent/TicketItem';
@@ -11,7 +11,7 @@ import ModalCheckout from './ModalCheckout'; // Importar el ModalCheckout
 
 const TARIF_PERCENTAGE = 10; // 10%
 
-const TicketModal = ({
+const EnrollTicketModal = ({
   tickets,
   selectedTicketId,
   handleTicketSelect,
@@ -91,7 +91,7 @@ const TicketModal = ({
   );
 };
 
-TicketModal.propTypes = {
+EnrollTicketModal.propTypes = {
   tickets: PropTypes.arrayOf(
     PropTypes.shape({
       _id: PropTypes.string.isRequired,
@@ -110,7 +110,7 @@ TicketModal.propTypes = {
   organizerImage: PropTypes.string.isRequired,
 };
 
-export default TicketModal;
+export default EnrollTicketModal;
 
 // Styled Components
 const ModalContent = styled.div`

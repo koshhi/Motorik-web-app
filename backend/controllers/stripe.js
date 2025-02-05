@@ -309,6 +309,52 @@ router.post('/create-account-link', auth, async (req, res) => {
   }
 })
 
+router.post('/create-payment-intent', auth, async (req, res) => {
+  try {
+    const { eventId, ticketId } = req.body
+
+    // Buscar el evento (con el owner para obtener la cuenta conectada)
+    const event = await require('../models/Event').findById(eventId).populate('owner')
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
+    }
+
+    // Buscar el ticket
+    const ticket = await require('../models/Ticket').findById(ticketId)
+    if (!ticket) {
+      return res.status(404).json({ success: false, message: 'Ticket no encontrado.' })
+    }
+
+    if (ticket.type !== 'paid') {
+      return res.status(400).json({ success: false, message: 'El ticket no es de pago.' })
+    }
+
+    // Calcular el monto en céntimos (por ejemplo, ticket.price en euros * 100)
+    const amount = Math.round(ticket.price * 100)
+    // Calcular la comisión de Motorik; aquí usamos un 10% como ejemplo
+    const application_fee_amount = Math.round(amount * 0.10)
+
+    // Obtener la cuenta conectada del organizador
+    const destination = event.owner.stripeConnectedAccountId
+    if (!destination) {
+      return res.status(400).json({ success: false, message: 'La cuenta de Stripe del organizador no está configurada.' })
+    }
+
+    // Crear el PaymentIntent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'eur',
+      application_fee_amount,
+      transfer_data: { destination }
+    })
+
+    res.status(200).json({ success: true, clientSecret: paymentIntent.client_secret })
+  } catch (error) {
+    console.error('Error al crear PaymentIntent:', error)
+    res.status(500).json({ success: false, message: 'Error al crear el PaymentIntent.' })
+  }
+})
+
 // router.post('/account', async (req, res) => {
 //   try {
 //     // Crea cuenta vacía
