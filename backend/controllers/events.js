@@ -36,22 +36,60 @@ cloudinary.config({
 const storage = multer.diskStorage({})
 const upload = multer({ storage })
 
-// Obtener los eventos de un usuario autenticado (futuros y pasados)
+// // Obtener los eventos de un usuario autenticado (futuros y pasados)
+// eventsRouter.get('/my-events', auth, async (req, res) => {
+//   try {
+//     const userId = req.user.id
+//     const today = new Date()
+
+//     // Obtener eventos futuros organizados por el usuario
+//     const futureEvents = await Event.find({
+//       owner: userId,
+//       startDate: { $gte: today }
+//     }).sort({ startDate: 1 })
+//       .populate('owner', 'name lastName userAvatar description')
+//       .populate('tickets')
+
+//     // Obtener eventos a los que el usuario asistirá
+//     const attendeeEvents = await Event.find({
+//       'attendees.userId': userId,
+//       startDate: { $gte: today }
+//     }).sort({ startDate: 1 })
+//       .populate('owner', 'name lastName userAvatar description')
+//       .populate('attendees.userId', 'name lastName userAvatar')
+//       .populate('attendees.vehicleId', 'brand model nickname image')
+//       .populate('attendees.ticketId')
+
+//     res.status(200).json({ success: true, futureEvents, attendeeEvents })
+//   } catch (error) {
+//     console.error('Error al obtener los eventos del usuario:', error)
+//     res.status(500).json({ success: false, message: 'Error al obtener los eventos' })
+//   }
+// })
+
+// Obtener los eventos (organizados e inscritos) de un usuario autenticado (futuros y pasados)
 eventsRouter.get('/my-events', auth, async (req, res) => {
   try {
     const userId = req.user.id
     const today = new Date()
 
-    // Obtener eventos futuros organizados por el usuario
-    const futureEvents = await Event.find({
+    // Eventos organizados
+    const upcomingOrganized = await Event.find({
       owner: userId,
       startDate: { $gte: today }
     }).sort({ startDate: 1 })
       .populate('owner', 'name lastName userAvatar description')
       .populate('tickets')
 
-    // Obtener eventos a los que el usuario asistirá
-    const attendeeEvents = await Event.find({
+    const pastOrganized = await Event.find({
+      owner: userId,
+      startDate: { $lt: today }
+    }).sort({ startDate: -1 })
+      .populate('owner', 'name lastName userAvatar description')
+      .populate('tickets')
+
+    // Eventos inscritos (donde el usuario aparece en attendees)
+    const upcomingEnrolled = await Event.find({
       'attendees.userId': userId,
       startDate: { $gte: today }
     }).sort({ startDate: 1 })
@@ -60,10 +98,62 @@ eventsRouter.get('/my-events', auth, async (req, res) => {
       .populate('attendees.vehicleId', 'brand model nickname image')
       .populate('attendees.ticketId')
 
-    res.status(200).json({ success: true, futureEvents, attendeeEvents })
+    const pastEnrolled = await Event.find({
+      'attendees.userId': userId,
+      startDate: { $lt: today }
+    }).sort({ startDate: -1 })
+      .populate('owner', 'name lastName userAvatar description')
+      .populate('attendees.userId', 'name lastName userAvatar')
+      .populate('attendees.vehicleId', 'brand model nickname image')
+      .populate('attendees.ticketId')
+
+    res.status(200).json({
+      success: true,
+      organized: {
+        upcoming: upcomingOrganized,
+        past: pastOrganized
+      },
+      enrolled: {
+        upcoming: upcomingEnrolled,
+        past: pastEnrolled
+      }
+    })
   } catch (error) {
     console.error('Error al obtener los eventos del usuario:', error)
-    res.status(500).json({ success: false, message: 'Error al obtener los eventos' })
+    res.status(500).json({ success: false, message: 'Error al obtener los eventos' });
+  }
+})
+
+// Obtener la lista de asistentes (gente) de los eventos organizados por el usuario
+eventsRouter.get('/my-attendees', auth, async (req, res) => {
+  try {
+    const userId = req.user.id
+    const events = await Event.find({ owner: userId })
+      .populate('attendees.userId', 'name lastName userAvatar')
+
+    const attendees = []
+    events.forEach(event => {
+      event.attendees.forEach(att => {
+        if (att.status === 'attending') {
+          attendees.push(att.userId)
+        }
+      })
+    })
+
+    // Eliminar duplicados
+    const uniqueAttendees = []
+    const seen = new Set()
+    attendees.forEach(att => {
+      if (!seen.has(att._id.toString())) {
+        seen.add(att._id.toString())
+        uniqueAttendees.push(att)
+      }
+    })
+
+    res.status(200).json({ success: true, attendees: uniqueAttendees })
+  } catch (error) {
+    console.error('Error fetching attendees:', error)
+    res.status(500).json({ success: false, message: 'Error fetching attendees' })
   }
 })
 

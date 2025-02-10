@@ -10,11 +10,11 @@ import VerifyEmail from './pages/VerifyEmail';
 import Home from './pages/Home';
 import EventDetail from './pages/EventDetail';
 import CreateEvent from './pages/CreateEvent'
-import MyEvents from './pages/MyEvents/MyEvents';
+import MyEventsOrganized from './pages/MyEvents/MyEventsOrganized';
 import UserProfile from './pages/UserProfile/UserProfile';
 import UserGarage from './pages/UserProfile/UserGarage';
 import UserProfileLayout from './layouts/UserProfileLayout';
-import MyEventsLayout from './layouts/MyEventsLayout';
+import MyEvents from './layouts/MyEvents';
 import MyEventsSettings from './pages/MyEvents/MyEventsSettings';
 import MyEventsAttendees from './pages/MyEvents/MyEventsAttendees';
 import LoginWithToken from './components/LoginWithToken';
@@ -30,8 +30,8 @@ import StripeConnectionSuccess from './pages/StripeConnectionSucces';
 import UserSettings from './pages/UserSettings';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-
+import MyEventsEnrolled from './pages/MyEvents/MyEventsEnrolled';
+import ManageEventOptions from './components/EventManagement/ManageEventOptions';
 
 function App() {
 
@@ -50,8 +50,9 @@ function App() {
                   <Route index element={<ManageEvent />} />
                   <Route path="attendees" element={<ManageEventAttendees />} />
                   <Route path="registration" element={<ManageEventRegistration />} />
+                  <Route path="options" element={<ManageEventOptions />} />
                   {/* <Route path="participants" element={<Participants />} />
-            <Route path="communications" element={<Communications />} /> */}
+                  <Route path="communications" element={<Communications />} /> */}
                 </Route>
                 <Route path="/events/manage/:id/edit" element={<EditEvent />} />
                 <Route path="/create-event" element={<CreateEvent />} />
@@ -59,8 +60,9 @@ function App() {
                 <Route path="/user/:userId/edit-profile" element={<CompleteProfile />} />
                 <Route path="/user/:userId/settings" element={<UserSettings />} />
                 <Route path="/stripe-connection-success" element={<StripeConnectionSuccess />} />
-                <Route path="/my-events" element={<MyEventsLayout />}>
-                  <Route index element={<MyEvents />} />
+                <Route path="/my-events" element={<MyEvents />}>
+                  <Route index element={<MyEventsOrganized />} />
+                  <Route path="enrolled" element={<MyEventsEnrolled />} />
                   <Route path="people" element={<MyEventsAttendees />} />
                   <Route path="settings" element={<MyEventsSettings />} />
                 </Route>

@@ -43,14 +43,12 @@ const EventHeader = ({
               <img src="/icons/share.svg" alt="share-icon" />
             </Button>
             {isOwner ? (
-              // Si el usuario es el propietario, mostrar "Gestionar evento"
               <Link to={manageLink}>
                 <Button $variant="outline" aria-label="Gestionar evento">
                   Gestionar evento
                 </Button>
               </Link>
             ) : isEnrolled ? (
-              // Si el usuario está inscrito, mostrar "Ver mi inscripción"
               <Link to={`/events/${eventId}/enrollment-details`}>
                 <Button size="small" $variant="outline" aria-label="Ver detalles de inscripción">
                   Ver mi inscripción
@@ -58,13 +56,11 @@ const EventHeader = ({
                 </Button>
               </Link>
             ) : (
-              // Si el usuario no está inscrito, mostrar "Inscríbete"
               <Button
                 onClick={handleEnroll}
                 size="small"
                 $variant="primary"
                 aria-label="Inscríbete en el evento"
-                disabled={false}
               >
                 Inscríbete
               </Button>

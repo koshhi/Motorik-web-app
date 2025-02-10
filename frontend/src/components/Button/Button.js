@@ -32,11 +32,11 @@ const baseStyles = css`
   padding: ${({ size }) => {
     switch (size) {
       case 'medium':
-        return '12px 12px';
+        return '12px 16px';
       case 'large':
         return '20px 20px';
       default:
-        return '8px 8px';
+        return '8px 12px';
     }
   }};
   font-size: ${({ size }) => {

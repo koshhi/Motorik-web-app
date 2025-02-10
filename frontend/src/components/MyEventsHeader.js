@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { Link, useLocation } from 'react-router-dom';
+import Typography from './Typography';
 
 const MyEventsHeader = () => {
   const location = useLocation();
@@ -7,12 +8,13 @@ const MyEventsHeader = () => {
   return (
     <MyEventsHeaderWrapper>
       <Container>
-        <div className='Heading'>
-          <h1>Mis eventos</h1>
-        </div>
+        <Typography as="h1" $variant="title-4-semibold">Mis eventos</Typography>
         <SectionTabs>
           <Link to="/my-events" className={`SectionTab ${location.pathname === '/my-events' ? 'Active' : ''}`}>
-            Mis Eventos
+            Eventos organizados
+          </Link>
+          <Link to="/my-events/enrolled" className={`SectionTab ${location.pathname === '/my-events/enrolled' ? 'Active' : ''}`}>
+            Eventos Inscritos
           </Link>
           <Link to="/my-events/people" className={`SectionTab ${location.pathname === '/my-events/people' ? 'Active' : ''}`}>
             Gente

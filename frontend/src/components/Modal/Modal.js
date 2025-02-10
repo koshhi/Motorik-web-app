@@ -4,10 +4,26 @@ import Button from '../Button/Button';
 import Typography from '../Typography';
 import PropTypes from 'prop-types';
 
-const Modal = ({ children, onClose, title, maxWidth = '500px' }) => {
+const Modal = ({
+  children,
+  onClose,
+  title,
+  maxWidth = '500px',
+  maxHeight,
+  height,
+  minHeight,
+  // overflowY = 'auto'
+  overflowY
+}) => {
   return (
     <ModalWrapper >
-      <ModalContent style={{ maxWidth: maxWidth }}>
+      <ModalContent style={{
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
+        height: height,
+        minHeight: minHeight,
+        overflowY: overflowY
+      }}>
         <ModalHeader>
           <Typography $variant="title-5-semibold">{title}</Typography>
           <Button $variant="ghost" onClick={onClose}><img src='/icons/close.svg' alt='Close' /></Button>

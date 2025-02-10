@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import Typography from '../Typography';
 import Button from '../Button/Button';
 import TicketItem from '../EventContent/TicketItem';
+import { theme } from '../../theme';
 
 const TicketSelectionStep = ({ tickets, onTicketSelected, onCancel }) => {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -15,11 +16,11 @@ const TicketSelectionStep = ({ tickets, onTicketSelected, onCancel }) => {
   };
 
   return (
-    <Modal title="Selecciona tu Entrada" onClose={onCancel} maxWidth="600px">
+    <Modal title="Selecciona tu Entrada" onClose={onCancel} maxWidth="500px" maxHeight="calc(100% - 2rem)" >
       <Container>
-        <Typography $variant="body-1-regular">
-          Elige la entrada con la que deseas inscribirte:
-        </Typography>
+        <TicketHeading as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
+          Elige una entrada para inscribirte:
+        </TicketHeading>
         <TicketList>
           {tickets.map((ticket) => (
             <TicketItem
@@ -30,21 +31,22 @@ const TicketSelectionStep = ({ tickets, onTicketSelected, onCancel }) => {
             />
           ))}
         </TicketList>
-        <Actions>
-          <Button
-            onClick={() => {
-              const selectedTicket = tickets.find((t) => t._id === selectedTicketId);
-              if (selectedTicket) onTicketSelected(selectedTicket);
-            }}
-            disabled={!selectedTicketId}
-          >
-            Continuar
-          </Button>
-          <Button onClick={onCancel} $variant="outline">
-            Cancelar
-          </Button>
-        </Actions>
       </Container>
+      <Actions>
+        <Button onClick={onCancel} $variant="outline">
+          Cancelar
+        </Button>
+        <Button
+          onClick={() => {
+            const selectedTicket = tickets.find((t) => t._id === selectedTicketId);
+            if (selectedTicket) onTicketSelected(selectedTicket);
+          }}
+          disabled={!selectedTicketId}
+        >
+          Continuar
+          <img src="/icons/arrow-right-solid.svg" alt="Continue icon" />
+        </Button>
+      </Actions>
     </Modal>
   );
 };
@@ -58,20 +60,32 @@ TicketSelectionStep.propTypes = {
 export default TicketSelectionStep;
 
 const Container = styled.div`
-  padding: 16px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-y: scroll;
+`;
+
+const TicketHeading = styled(Typography)`
+  padding: ${({ theme }) => theme.sizing.sm};
+  width: 100%;
 `;
 
 const TicketList = styled.ul`
   list-style: none;
-  margin: 16px 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  witdh: 100%;
+  padding: ${({ theme }) => theme.sizing.sm};
 `;
 
 const Actions = styled.div`
+  width: 100%;
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: space-between;
+  padding: ${({ theme }) => theme.sizing.sm};
+  border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
 `;

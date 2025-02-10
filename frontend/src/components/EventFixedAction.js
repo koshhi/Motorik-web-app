@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from './Button/Button';
 import PropTypes from 'prop-types';
@@ -6,30 +7,46 @@ import Typography from './Typography';
 import PriceDisplay from './PriceDisplay';
 import { theme } from '../theme';
 
-const EventFixedAction = ({ eventName, eventDate, availableSeats, tickets }) => {
-
+const EventFixedAction = ({
+  eventName,
+  eventDate,
+  availableSeats,
+  tickets,
+  isEnrolled,
+  onEnroll,
+  handleEnroll,
+  isOwner
+}) => {
   return (
     <EventFixedBar>
-      <div className='Container'>
+      <Container>
         <EventHeading>
-          <Typography $variant="title-1-bold" as='h2'>{eventName}</Typography>
+          <Typography $variant="title-2-semibold" as='h2'>{eventName}</Typography>
           <Typography $variant="body-1-semibold" as='p' color={theme.colors.defaultWeak}>{eventDate}</Typography>
         </EventHeading>
         <EventSeats>
           <PriceDisplay tickets={tickets} /> {/* Usar el componente PriceDisplay */}
-          <Typography $variant="body-1-semibold" as='p' color={theme.colors.defaultStrong}>
+          <Typography $variant="body-1-semibold" as='p' color={theme.colors.defaultWeak}>
             {availableSeats} plaza{availableSeats !== 1 ? 's' : ''} disponible{availableSeats !== 1 ? 's' : ''}
           </Typography>
         </EventSeats>
         <EventActions>
-          <Button>Compartir</Button>
-          <Button>Seguir</Button>
-          <Button>Inscríbete</Button>
+          {/* <Button $variant="outline">Compartir</Button>
+          <Button $variant="outline">Seguir</Button> */}
+          <Button
+            onClick={handleEnroll}
+            $variant="primary"
+            size="medium"
+            disabled={isEnrolled || isOwner}
+          >
+            Inscríbete
+          </Button>
         </EventActions>
-      </div>
+      </Container>
     </EventFixedBar>
   );
 };
+
 
 EventFixedAction.propTypes = {
   eventName: PropTypes.string.isRequired,
@@ -38,11 +55,13 @@ EventFixedAction.propTypes = {
   tickets: PropTypes.arrayOf(
     PropTypes.shape({
       _id: PropTypes.string.isRequired,
-      type: PropTypes.string.isRequired, // 'free' o 'paid'
-      price: PropTypes.number, // Solo relevante si es de pago
+      type: PropTypes.string.isRequired,
+      price: PropTypes.number,
       availableSeats: PropTypes.number.isRequired,
     })
   ).isRequired,
+  isEnrolled: PropTypes.bool,
+  onEnroll: PropTypes.func,
 };
 
 export default EventFixedAction;
@@ -60,23 +79,22 @@ const EventFixedBar = styled.div`
   border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
   box-shadow: 0px -2px 8px 0px rgba(26, 26, 26, 0.08);
   z-index: 100;
+`;
 
-
-  .Container {
-    width: 100%;
-    max-width: 1400px;
-    display: flex;
-    padding: 24px 24px;
-    align-items: center;
-    gap: 40px;
-  }
+const Container = styled.div`
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
+  align-items: center;
+  gap: ${({ theme }) => theme.sizing.xl};
 `;
 
 const EventHeading = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  // gap: 4px;
   flex: 1 0 0;
 `;
 

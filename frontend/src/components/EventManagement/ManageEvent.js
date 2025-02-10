@@ -14,8 +14,14 @@ import { useEventContext } from '../../context/EventContext';
 
 
 const ManageEvent = () => {
-  const { eventDetails, setEventDetails } = useEventContext();
+  const { eventDetails, updateEventDetails } = useEventContext();
   const navigate = useNavigate();
+
+  // Si eventDetails aún no está definido, mostramos un mensaje de carga
+  if (!eventDetails) {
+    return <p>Cargando detalles del evento...</p>;
+  }
+
   const {
     id,
     title,
@@ -23,16 +29,16 @@ const ManageEvent = () => {
     locationCoordinates,
     image,
     shortLocation,
-    eventType,
-    tickets,
-    attendees,
-    attendeesCount,
     monthDate,
     dayDate,
     partialDateStart,
     partialDateEnd,
     published,
+    tickets,
+    attendees,
+    attendeesCount,
   } = eventDetails;
+
   const handleEditEvent = () => {
     navigate(`/events/manage/${eventDetails.id}/edit`);
   };
@@ -54,7 +60,7 @@ const ManageEvent = () => {
       if (response.data.success) {
         toast.success(response.data.message);
         // Actualizar el estado localmente
-        setEventDetails(response.data.event);
+        updateEventDetails(response.data.event);
       }
     } catch (error) {
       console.error('Error al publicar el evento:', error);

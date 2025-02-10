@@ -57,8 +57,13 @@ const PaymentStep = ({ eventId, ticket, onPaymentSuccess, onCancel }) => {
     return (
       <Elements stripe={stripePromise} options={elementsOptions}>
         <PaymentModal
+          // onPaymentSuccess={(paymentIntent) => {
+          //   console.log('Pago confirmado con PaymentIntent:', paymentIntent);
+          //   onPaymentSuccess(paymentIntent);
+          // }}
           onPaymentSuccess={(paymentIntent) => {
             console.log('Pago confirmado con PaymentIntent:', paymentIntent);
+            // Al confirmarse el pago, llamamos al callback que en el flujo disparará la inscripción.
             onPaymentSuccess(paymentIntent);
           }}
           onClose={onCancel}

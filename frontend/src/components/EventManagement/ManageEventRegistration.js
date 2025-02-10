@@ -16,11 +16,9 @@ import EditTicketForm from '../Forms/EditTicketForm';
 import Tag from '../Tag';
 import DropdownButton from '../DropdownButton';
 
-
-
 const ManageEventRegistration = () => {
   const { id } = useParams();
-  const { eventDetails, setEventDetails } = useEventContext();
+  const { eventDetails, updateEventDetails } = useEventContext();
   const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +63,7 @@ const ManageEventRegistration = () => {
     try {
       const response = await axiosClient.get(`/api/events/${id}`);
       if (response.data.success) {
-        setEventDetails(response.data.event); // Actualiza el estado del evento en el contexto
+        updateEventDetails(response.data.event); // Actualiza el estado del evento en el contexto
       } else {
         toast.error(response.data.message || 'Error al actualizar la capacidad del evento.');
       }
@@ -79,13 +77,20 @@ const ManageEventRegistration = () => {
   useEffect(() => {
     const calculateTotalCapacity = () => {
       const total = tickets.reduce((sum, ticket) => sum + ticket.capacity, 0);
-      setEventDetails(prev => ({ ...prev, capacity: total }));
+      updateEventDetails(currentEvent => {
+        // Si currentEvent ya tiene la capacidad calculada, no se actualiza
+        if (currentEvent && currentEvent.capacity === total) {
+          return currentEvent;
+        }
+        return { ...currentEvent, capacity: total };
+      });
     };
 
     if (tickets.length > 0) {
       calculateTotalCapacity();
     }
-  }, [tickets, setEventDetails]);
+  }, [tickets, updateEventDetails]);
+
 
   // Antes de enviar la petición, verificamos si el ticket es de pago y si el usuario tiene cuenta Stripe válida
   const canCreatePaidTicket = user?.stripeConnectedAccountId && user?.chargesEnabled;

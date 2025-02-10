@@ -1,5 +1,6 @@
 // frontend/src/components/EventEnrollFlow.js
 import React, { useReducer } from 'react';
+import PropTypes from 'prop-types';
 import TicketSelectionStep from './Enroll/TicketSelectionStep';
 import VehicleSelectionStep from './Enroll/VehicleSelectionStep';
 import PaymentStep from './Enroll/PaymentStep';
@@ -26,7 +27,11 @@ function enrollReducer(state, action) {
   }
 }
 
-const EventEnrollFlow = ({ event, onEnrollComplete, onCancel }) => {
+/**
+ * Se espera que el callback onEnrollComplete reciba el evento actualizado.
+ * La función enrollUser se pasará desde el padre (EventDetail) y debe retornar el evento actualizado.
+ */
+const EventEnrollFlow = ({ event, onEnrollComplete, onCancel, enrollUser }) => {
   const [state, dispatch] = useReducer(enrollReducer, initialState);
   const { step, selectedTicket, selectedVehicle } = state;
 
@@ -36,13 +41,24 @@ const EventEnrollFlow = ({ event, onEnrollComplete, onCancel }) => {
       <TicketSelectionStep
         tickets={event.tickets}
         onTicketSelected={(ticket) => {
+          // Guardamos el ticket seleccionado en el estado
           dispatch({ type: 'SET_TICKET', payload: ticket });
+          // Si el evento requiere vehículo, pasamos al paso 2
           if (event.needsVehicle) {
             dispatch({ type: 'SET_STEP', payload: 2 });
           } else if (ticket.type === 'paid') {
+            // Para tickets de pago sin vehículo requerido, ir al paso de pago
             dispatch({ type: 'SET_STEP', payload: 3 });
           } else {
-            dispatch({ type: 'SET_STEP', payload: 4 });
+            // Para tickets gratuitos sin vehículo requerido, ejecutamos la inscripción directamente
+            enrollUser(ticket, null)
+              .then((updatedEvent) => {
+                onEnrollComplete(updatedEvent);
+                dispatch({ type: 'SET_STEP', payload: 4 });
+              })
+              .catch((err) => {
+                console.error('Error en inscripción gratuita:', err);
+              });
           }
         }}
         onCancel={onCancel}
@@ -50,16 +66,26 @@ const EventEnrollFlow = ({ event, onEnrollComplete, onCancel }) => {
     );
   }
 
-  // Paso 2: Selección de Vehículo (si el evento requiere vehículo)
+  // Paso 2: Selección de Vehículo (para eventos que requieren vehículo)
   if (step === 2) {
     return (
       <VehicleSelectionStep
         onVehicleSelected={(vehicle) => {
+          // Al seleccionar el vehículo, se guarda en el estado
           dispatch({ type: 'SET_VEHICLE', payload: vehicle });
-          if (selectedTicket.type === 'paid') {
-            dispatch({ type: 'SET_STEP', payload: 3 });
+          // Ahora, para tickets gratuitos (ya que para pagos se iría al paso 3) se ejecuta la inscripción
+          if (selectedTicket && selectedTicket.type !== 'paid') {
+            enrollUser(selectedTicket, vehicle)
+              .then((updatedEvent) => {
+                onEnrollComplete(updatedEvent);
+                dispatch({ type: 'SET_STEP', payload: 4 });
+              })
+              .catch((err) => {
+                console.error('Error en inscripción gratuita con vehículo:', err);
+              });
           } else {
-            dispatch({ type: 'SET_STEP', payload: 4 });
+            // Si el ticket es de pago, pasamos al paso de pago
+            dispatch({ type: 'SET_STEP', payload: 3 });
           }
         }}
         onCancel={onCancel}
@@ -68,13 +94,23 @@ const EventEnrollFlow = ({ event, onEnrollComplete, onCancel }) => {
     );
   }
 
-  // Paso 3: Pasarela de Pago (para tickets de pago)
-  if (step === 3 && selectedTicket.type === 'paid') {
+  // Paso 3: Pago (para tickets de pago)
+  if (step === 3 && selectedTicket && selectedTicket.type === 'paid') {
     return (
       <PaymentStep
         eventId={event.id}
         ticket={selectedTicket}
-        onPaymentSuccess={() => {
+        onPaymentSuccess={(paymentIntent) => {
+          // Una vez confirmado el pago, se ejecuta la inscripción
+          enrollUser(selectedTicket, selectedVehicle)
+            .then((updatedEvent) => {
+              onEnrollComplete(updatedEvent); // Se actualiza el estado global del evento
+              dispatch({ type: 'RESET' });
+            })
+            .catch((err) => {
+              console.error('Error en inscripción de pago:', err);
+            });
+          // Se pasa al paso de confirmación
           dispatch({ type: 'SET_STEP', payload: 4 });
         }}
         onCancel={onCancel}
@@ -91,7 +127,7 @@ const EventEnrollFlow = ({ event, onEnrollComplete, onCancel }) => {
           vehicle: selectedVehicle,
         }}
         onComplete={() => {
-          onEnrollComplete();
+          onEnrollComplete(); // Llamada opcional si se desea
           dispatch({ type: 'RESET' });
         }}
         onCancel={onCancel}
@@ -100,6 +136,14 @@ const EventEnrollFlow = ({ event, onEnrollComplete, onCancel }) => {
   }
 
   return null;
+};
+
+EventEnrollFlow.propTypes = {
+  event: PropTypes.object.isRequired,
+  onEnrollComplete: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  // enrollUser es la función que ejecuta la inscripción y devuelve el evento actualizado
+  enrollUser: PropTypes.func.isRequired,
 };
 
 export default EventEnrollFlow;

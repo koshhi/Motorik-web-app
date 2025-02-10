@@ -3,20 +3,51 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import axiosClient from '../api/axiosClient';
+import useEvent from '../hooks/useEvent';
+import { useAuth } from '../context/AuthContext';
 import MainNavbar from '../components/Navbar/MainNavbar';
 import EventHeader from '../components/EventHeader/EventDetailHeader';
 import EventDetailContent from '../components/EventContent/EventDetailContent';
 import EventSummary from '../components/EventSummary/EventSummary';
 import EventFixedAction from '../components/EventFixedAction';
-import useEvent from '../hooks/useEvent';
-import { useAuth } from '../context/AuthContext';
 import EventEnrollFlow from '../components/EventEnrollFlow';
+import EnrollmentStatus from '../components/EventSummary/EnrollmentStatus';
+
 
 const EventDetail = () => {
   const { id } = useParams();
   const { user, loading: loadingAuth } = useAuth();
-  const { event, isOwner, loadingEvent, error } = useEvent(id, user);
+  const { event, isOwner, loadingEvent, error, setEvent } = useEvent(id, user);
   const [showEnrollFlow, setShowEnrollFlow] = useState(false);
+
+  // Función para inscribir al usuario; se espera que el endpoint devuelva el evento actualizado
+  const enrollUser = async (ticket, vehicle) => {
+    try {
+      const response = await axiosClient.post(`/api/events/enroll/${event.id}`, {
+        ticketId: ticket._id,
+        vehicleId: vehicle ? vehicle._id : null,
+      });
+      if (response.data.success) {
+        // Actualizamos el evento en el estado global (y por lo tanto en el contexto)
+        setEvent(response.data.event);
+        return response.data.event;
+      } else {
+        throw new Error(response.data.message || 'Error en la inscripción.');
+      }
+    } catch (err) {
+      console.error('Error en enrollUser:', err);
+      throw err;
+    }
+  };
+
+  // Determinar si el usuario ya está inscrito
+  const isEnrolled =
+    event &&
+    event.attendees &&
+    event.attendees.some((att) => (att.userId._id || att.userId.id).toString() === user.id.toString());
+
+
 
   if (loadingAuth || loadingEvent) return <p>Cargando...</p>;
   if (error) return <p>Error al cargar el evento: {error}</p>;
@@ -42,7 +73,7 @@ const EventDetail = () => {
         eventType={event.eventType}
         terrain={event.terrain}
         manageLink={`/events/manage/${event.id}`}
-        isEnrolled={false} // Ahora la lógica de enrollment se gestiona en el flujo
+        isEnrolled={isEnrolled}
         handleEnroll={() => setShowEnrollFlow(true)}
         eventId={event.id}
         organizer={event.owner}
@@ -57,12 +88,18 @@ const EventDetail = () => {
             tickets={event.tickets}
           />
           <EventSummaryContainer>
-            {/* {enrollmentStatus && (
+            {isEnrolled && (
               <EnrollmentStatus
-                handleCancelEnrollment={handleCancelEnrollment}
-                enrollmentStatus={userEnrollment?.status}
+                enrollmentStatus={
+                  event.attendees.find(
+                    (att) => (att.userId._id || att.userId.id).toString() === user.id.toString()
+                  )?.status
+                }
+                handleCancelEnrollment={() => {
+                  /* Aquí se podría implementar la función para cancelar inscripción */
+                }}
               />
-            )} */}
+            )}
             <EventSummary
               date={{
                 monthDate: event.monthDate,
@@ -72,27 +109,21 @@ const EventDetail = () => {
               }}
               location={event.location}
               shortLocation={event.shortLocation}
-              mapCoordinates={{ lat, lng }}
+              mapCoordinates={{
+                lat:
+                  event.locationCoordinates && event.locationCoordinates.coordinates
+                    ? event.locationCoordinates.coordinates[1]
+                    : undefined,
+                lng:
+                  event.locationCoordinates && event.locationCoordinates.coordinates
+                    ? event.locationCoordinates.coordinates[0]
+                    : undefined,
+              }}
               attendees={event.attendees}
               attendeesCount={event.attendeesCount}
               organizer={event.owner}
             />
           </EventSummaryContainer>
-
-          {/* <EventSummary
-            date={{
-              monthDate: event.monthDate,
-              dayDate: event.dayDate,
-              partialDateStart: event.partialDateStart,
-              partialDateEnd: event.partialDateEnd,
-            }}
-            location={event.location}
-            shortLocation={event.shortLocation}
-            mapCoordinates={{ lat, lng }}
-            attendees={event.attendees}
-            attendeesCount={event.attendeesCount}
-            organizer={event.owner}
-          /> */}
         </GridContainer>
       </EventBody>
       <EventFixedAction
@@ -100,12 +131,15 @@ const EventDetail = () => {
         eventDate={event.longDate}
         availableSeats={event.availableSeats}
         tickets={event.tickets}
+        isEnrolled={isEnrolled}
+        isOwner={isOwner}
+        handleEnroll={() => setShowEnrollFlow(true)}
       />
-
       {showEnrollFlow && (
         <EventEnrollFlow
           event={event}
-          onEnrollComplete={() => setShowEnrollFlow(false)}
+          enrollUser={enrollUser}
+          onEnrollComplete={(updatedEvent) => setShowEnrollFlow(false)}
           onCancel={() => setShowEnrollFlow(false)}
         />
       )}

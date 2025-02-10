@@ -1,13 +1,27 @@
-// frontend/src/components/enroll/EnrollmentConfirmationStep.js
-import React from 'react';
+// frontend/src/components/Enroll/EnrollmentConfirmationStep.js
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Modal from '../Modal/Modal';
 import styled from 'styled-components';
 import Typography from '../Typography';
-import Button from '../Button/Button';
 
 const EnrollmentConfirmationStep = ({ enrollmentData, onComplete, onCancel }) => {
   const { ticket, vehicle } = enrollmentData;
+
+  // Mostrar mensaje personalizado según el tipo de inscripción
+  const confirmationMessage = ticket.approvalRequired
+    ? 'Tu inscripción se ha realizado correctamente. En breve el organizador te confirmará tu asistencia.'
+    : '¡Inscripción exitosa! Tu inscripción se ha completado correctamente.';
+
+  // Una vez que se muestre esta pantalla, esperamos 3 segundos y automáticamente 
+  // llamamos onComplete para dar por finalizado el flujo.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onComplete();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
   return (
     <Modal title="Inscripción Confirmada" onClose={onCancel} maxWidth="500px">
       <Container>
@@ -20,7 +34,9 @@ const EnrollmentConfirmationStep = ({ enrollmentData, onComplete, onCancel }) =>
             Vehículo: {vehicle.brand} {vehicle.model} {vehicle.nickname ? `(${vehicle.nickname})` : ''}
           </Typography>
         )}
-        <Button onClick={onComplete}>Finalizar</Button>
+        <Typography $variant="body-2-regular">
+          {confirmationMessage}
+        </Typography>
       </Container>
     </Modal>
   );

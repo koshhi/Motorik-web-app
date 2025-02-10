@@ -1,15 +1,18 @@
 import { Outlet } from 'react-router-dom';
 import MyEventsHeader from '../components/MyEventsHeader';
 import MainNavbar from '../components/Navbar/MainNavbar';
+import { EventProvider } from '../context/EventContext';
 
-const MyEventsLayout = () => {
+const MyEvents = () => {
   return (
     <>
       <MainNavbar />
-      <MyEventsHeader />
-      <Outlet />
+      <EventProvider>
+        <MyEventsHeader />
+        <Outlet />
+      </EventProvider>
     </>
   );
 };
 
-export default MyEventsLayout;
+export default MyEvents;
