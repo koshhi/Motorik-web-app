@@ -2,21 +2,19 @@ import React from 'react';
 import styled from 'styled-components';
 import Typography from '../Typography';
 
-const ManageEventOptions = () => {
+const ManageEventCommunications = () => {
   return (
-    <EventOptionsContainer>
+    <EventCommunicationsContainer>
       <Container>
-        <Typography $variant="title-4-semibold">Opciones del evento</Typography>
-        <p>Borrar evento</p>
-        <p>Clonar evento</p>
+        <Typography $variant="title-4-semibold">Comunicaciones</Typography>
       </Container>
-    </EventOptionsContainer>
+    </EventCommunicationsContainer>
   );
 };
 
-export default ManageEventOptions;
+export default ManageEventCommunications;
 
-const EventOptionsContainer = styled.div`
+const EventCommunicationsContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -33,4 +31,3 @@ const Container = styled.div`
   max-width: 1400px;
   gap: ${({ theme }) => theme.sizing.md};
 `;
-

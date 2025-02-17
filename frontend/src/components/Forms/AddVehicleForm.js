@@ -11,6 +11,7 @@ import InputImage from '../Input/InputImage';
 import Select from '../Select/Select';
 import Typography from '../Typography';
 import { useVehicles } from '../../context/VehicleContext';
+import { theme } from '../../theme';
 
 const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
   const [formData, setFormData] = useState({
@@ -335,14 +336,14 @@ const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
         </FormItem>
 
         <FormItem>
-          <Typography as="label" $variant="body-1-regular">Marca:</Typography>
+          <Typography as="label" $variant="body-2-medium" color={theme.colors.defaultWeak}>Marca:</Typography>
           <RowWrapper>
             <Select
               name="brand"
               onChange={handleBrandChange}
               value={isCustomBrand ? 'Other Brand' : formData.brand}
               required
-              $size="large"
+              style={{ minHeight: "38px" }}
             >
               <option value="">Selecciona una marca</option>
               {brands.map((brand) => (
@@ -359,7 +360,7 @@ const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
                 onChange={handleCustomBrandChange}
                 placeholder="Escribe la marca"
                 required
-                $size="large"
+              // $size="large"
               />
             )}
           </RowWrapper>
@@ -368,7 +369,7 @@ const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
         </FormItem>
 
         <FormItem>
-          <Typography as="label" $variant="body-1-regular">Modelo:</Typography>
+          <Typography as="label" $variant="body-2-medium" color={theme.colors.defaultWeak}>Modelo:</Typography>
           <RowWrapper>
             {!isCustomBrand && (
               <Select
@@ -376,7 +377,7 @@ const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
                 onChange={handleModelChange}
                 value={isCustomModel ? 'Other Model' : formData.model}
                 required
-                $size="large"
+                style={{ minHeight: "38px" }}
               >
                 <option value="">Selecciona un modelo</option>
                 {models.map((model) => (
@@ -394,7 +395,6 @@ const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
                 onChange={handleCustomModelChange}
                 placeholder="Escribe el modelo"
                 required
-                $size="large"
               />
             )}
           </RowWrapper>
@@ -405,41 +405,38 @@ const AddVehicleForm = ({ onSubmit, vehicle, onClose }) => {
         <FormItem>
           <RowWrapper>
             <FormGroup>
-              <Typography as="label" $variant="body-1-regular">Año:</Typography>
+              <Typography as="label" $variant="body-2-medium" color={theme.colors.defaultWeak}>Año:</Typography>
               <InputText
                 type="number"
                 name="year"
                 value={formData.year}
                 onChange={handleInputChange}
                 required
-                $size="large"
               />
               {errors.year && <ErrorText>{errors.year}</ErrorText>}
             </FormGroup>
             <FormGroup>
-              <Typography as="label" $variant="body-1-regular">Apodo (opcional):</Typography>
+              <Typography as="label" $variant="body-2-medium" color={theme.colors.defaultWeak}>Apodo (opcional):</Typography>
               <InputText
                 type="text"
                 name="nickname"
                 value={formData.nickname}
                 onChange={handleInputChange}
-                $size="large"
               />
             </FormGroup>
           </RowWrapper>
         </FormItem>
 
         <ActionsContainer>
-          <Button type="submit" size="medium" disabled={loading}>
-            {loading ? 'Guardando...' : (vehicle ? 'Guardar Cambios' : 'Guardar Vehículo')}
-          </Button>
           <Button
             $variant="outline"
-            $fullWidth
             $contentAlign="center"
             onClick={onClose}
           >
             Cancelar
+          </Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Guardando...' : (vehicle ? 'Guardar Cambios' : 'Guardar Vehículo')}
           </Button>
         </ActionsContainer>
 
@@ -476,7 +473,7 @@ const FormItem = styled.div`
 
 const RowWrapper = styled.div`
   display: flex;
-  gap: 16px;
+  gap: ${({ theme }) => theme.sizing.sm};
   width: 100%;
 `;
 
@@ -494,7 +491,8 @@ const ErrorText = styled.p`
 
 const ActionsContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   gap: ${({ theme }) => theme.sizing.sm};
   padding: ${({ theme }) => theme.sizing.sm};
   border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};

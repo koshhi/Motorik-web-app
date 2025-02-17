@@ -37,7 +37,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleSaved, vehicle }) => {
       title={vehicle ? 'Editar Vehículo' : 'Añadir Vehículo'}
       onClose={onClose}
       isOpen={isOpen}
-      maxWidth="600px"
+      maxWidth="500px"
     >
       <AddVehicleForm
         onSubmit={handleSubmit}

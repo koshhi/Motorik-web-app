@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
@@ -18,6 +18,8 @@ const CompleteProfile = () => {
   const isEditMode = Boolean(userId);
   const pageTitle = isEditMode ? 'Editar perfil' : 'Completa tu perfil';
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { user, refreshUserData } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -188,10 +190,13 @@ const CompleteProfile = () => {
 
         if (updatedUser && updatedUser.profileFilled) {
           toast.success('Perfil completado correctamente');
-          navigate('/', { replace: true });
+          // Si viene un returnTo en el state, redirigimos a esa URL; de lo contrario, a la home.
+          const destination = location.state?.returnTo || '/';
+          navigate(destination, { replace: true });
         } else {
           toast.error('Error actualizando los datos del usuario');
         }
+
       }
     } catch (error) {
       console.error('Error al completar el perfil:', error);

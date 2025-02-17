@@ -9,6 +9,7 @@ import { useVehicles } from '../../context/VehicleContext';
 import { useAuth } from '../../context/AuthContext';
 import AddVehicleModal from '../Modal/AddVehicleModal';
 import InfoModal from '../Modal/InfoModal';
+import { theme } from '../../theme';
 
 const VehicleSelectionStep = ({ onVehicleSelected, onCancel, eventRequiresVehicle }) => {
   const { vehicles, fetchVehicles, loading } = useVehicles();
@@ -49,29 +50,57 @@ const VehicleSelectionStep = ({ onVehicleSelected, onCancel, eventRequiresVehicl
           onClose={onCancel}
         />
       )}
-      <Modal title="Selecciona tu Vehículo" onClose={onCancel} maxWidth="800px" isOpen={true}>
-        <Container>
-          {loading ? (
-            <p>Cargando vehículos...</p>
-          ) : vehicles.length === 0 ? (
-            <EmptyState>
+      <Modal title="Selecciona tu Vehículo" onClose={onCancel} maxWidth="500px" isOpen={true}>
+        {loading ? (
+          <>
+            <Container>
               <Typography $variant="body-1-regular">
-                No tienes vehículos registrados.
+                Cargando vehículos...
               </Typography>
-              <Button onClick={() => setShowAddModal(true)}>Añadir Vehículo</Button>
-            </EmptyState>
-          ) : (
-            <>
-              <Grid>
+            </Container>
+          </>
+        ) : vehicles.length === 0 ? (
+          <>
+            <Container>
+              <EmptyState>
+                <EmptyStateHeader>
+                  <Typography $variant="title-5-semibold">
+                    Tu garaje está vacío.
+                  </Typography>
+                  <Typography $variant="body-1-medium" $align="center" color={theme.colors.defaultWeak}>
+                    Añade un vehículo para continuar con la inscripción.
+                  </Typography>
+                </EmptyStateHeader>
+                <Button
+                  onClick={() => setShowAddModal(true)}>
+                  <img src="/icons/add.svg" alt="Añadir" />
+                  Añadir vehículo
+                </Button>
+              </EmptyState>
+            </Container>
+            <VehicleActions>
+              <Button onClick={onCancel} $variant="outline">
+                Cancelar
+              </Button>
+              <Button onClick={handleContinue} disabled={!selectedVehicleId}>
+                Continuar
+                <img src="/icons/arrow-right-solid.svg" alt="Continue icon" />
+              </Button>
+            </VehicleActions>
+          </>
+        ) : (
+          <>
+            <Container>
+              <VehiclesList>
                 {vehicles.map((vehicle) => (
-                  <Card
+                  <VehicleCard
                     key={vehicle._id}
                     selected={selectedVehicleId === vehicle._id}
                     onClick={() => handleCardClick(vehicle._id)}
                   >
                     <VehicleImage src={vehicle.image} alt={`${vehicle.brand} ${vehicle.model}`} />
                     <VehicleInfo>
-                      <Typography $variant="body-1-semibold">
+                      {/* <Typography $variant="body-1-semibold">
                         {vehicle.brand} {vehicle.model}
                       </Typography>
                       {vehicle.nickname && (
@@ -81,23 +110,51 @@ const VehicleSelectionStep = ({ onVehicleSelected, onCancel, eventRequiresVehicl
                       )}
                       <Typography $variant="body-2-regular">
                         Año: {vehicle.year}
-                      </Typography>
+                      </Typography> */}
+                      {vehicle.nickname ? (
+                        <>
+                          <Typography $variant="body-1-medium" color={theme.colors.defaultMain}>
+                            {vehicle?.brand}
+                            <Typography as="span" color={theme.colors.defaultStrong} style={{ marginLeft: '4px' }}>
+                              {vehicle?.model}
+                            </Typography>
+                          </Typography>
+                          <Typography $variant="title-5-semibold" color={theme.colors.defaultMain}>{vehicle.nickname}</Typography>
+                          <Typography $variant="body-3-medium" color={theme.colors.defaultStrong}>{vehicle.year}</Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Typography $variant="body-1-medium" color={theme.colors.defaultMain}>
+                            {vehicle?.brand}
+                          </Typography>
+                          <Typography $variant="title-5-semibold" color={theme.colors.defaultMain}>{vehicle.model}</Typography>
+                          <Typography $variant="body-3-medium" color={theme.colors.defaultStrong}>{vehicle.year}</Typography>
+                        </>
+                      )}
                     </VehicleInfo>
-                  </Card>
+                  </VehicleCard>
                 ))}
-              </Grid>
-              <Actions>
-                <Button onClick={() => setShowAddModal(true)}>Añadir Vehículo</Button>
-                <Button onClick={handleContinue} disabled={!selectedVehicleId}>
-                  Continuar
-                </Button>
-                <Button onClick={onCancel} $variant="outline">
-                  Cancelar
-                </Button>
-              </Actions>
-            </>
-          )}
-        </Container>
+                <VehicleAdd
+                  onClick={() => setShowAddModal(true)}>
+                  <img src="/icons/add.svg" alt="Añadir" />
+                  <Typography $variant="title-5-medium" color={theme.colors.defaultWeak}>
+                    Añadir vehículo
+                  </Typography>
+                </VehicleAdd>
+              </VehiclesList>
+            </Container>
+            <VehicleActions>
+              <Button onClick={onCancel} $variant="outline">
+                Cancelar
+              </Button>
+              <Button onClick={handleContinue} disabled={!selectedVehicleId}>
+                Continuar
+                <img src="/icons/arrow-right-solid.svg" alt="Continue icon" />
+              </Button>
+            </VehicleActions>
+          </>
+        )}
+
       </Modal>
       {showAddModal && (
         <AddVehicleModal
@@ -122,51 +179,95 @@ VehicleSelectionStep.propTypes = {
 export default VehicleSelectionStep;
 
 const Container = styled.div`
-  padding: 16px;
+  padding: ${({ theme }) => theme.sizing.sm};
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 `;
 
 const EmptyState = styled.div`
-  text-align: center;
-  padding: 32px;
-`;
-
-const Grid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 16px;
-`;
-
-const Card = styled.div`
-  border: 2px solid ${({ selected, theme }) => (selected ? theme.colors.brandMain : theme.border.defaultSubtle)};
-  border-radius: 8px;
-  padding: 8px;
-  cursor: pointer;
-  width: calc(33.33% - 16px);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;  
+  gap: ${({ theme }) => theme.sizing.sm};
+  border-radius: ${({ theme }) => theme.radius.xs};
+  border: 2px dashed ${({ theme }) => theme.border.defaultWeak};
+  background: ${({ theme }) => theme.fill.defaultMain};
+  padding: ${({ theme }) => theme.sizing.sm};
+`;
+
+const EmptyStateHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.sizing.xxs};
+  width: 100%;
+`;
+
+const VehiclesList = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.sizing.sm};
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const VehicleCard = styled.ul`
+  border: 2px solid ${({ selected, theme }) => (selected ? theme.colors.brandMain : theme.border.defaultSubtle)};
+  border-radius: ${({ theme }) => theme.radius.xs};
+  padding: ${({ theme }) => theme.radius.xs};
+  gap: ${({ theme }) => theme.sizing.sm};
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
   transition: border 0.3s ease;
+  width: 100%;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.brandMain};
   }
 `;
 
-const VehicleImage = styled.img`
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 4px;
-`;
-
 const VehicleInfo = styled.div`
-  margin-top: 8px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xxs};
 `;
 
-const Actions = styled.div`
+const VehicleActions = styled.div`
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: space-between;
+  border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
+  padding: ${({ theme }) => theme.sizing.sm};
+  width: 100%;
+`;
+
+const VehicleImage = styled.img`
+  height: 80px;
+  width: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+`;
+
+const VehicleAdd = styled.li`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;  
+  gap: ${({ theme }) => theme.sizing.xs};
+  border-radius: ${({ theme }) => theme.radius.xs};
+  border: 2px dashed ${({ theme }) => theme.border.defaultWeak};
+  background: ${({ theme }) => theme.fill.defaultMain};
+  padding: ${({ theme }) => theme.sizing.sm};
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.fill.defaultSubtle};
+  }
 `;

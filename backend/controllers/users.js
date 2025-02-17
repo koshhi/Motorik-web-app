@@ -24,8 +24,8 @@ const storage = multer.diskStorage({})
 const upload = multer({ storage })
 
 usersRouter.post('/check-or-register', async (req, res) => {
-  const { email } = req.body
-
+  const { email, returnTo } = req.body
+  console.log('POST /check-or-register: email:', email, 'returnTo:', returnTo)
   try {
     let user = await User.findOne({ email })
 
@@ -33,9 +33,12 @@ usersRouter.post('/check-or-register', async (req, res) => {
     if (user) {
       // const loginToken = tokenService.generateAuthToken(user)
       const loginToken = tokenService.generateMagicLinkToken(user)
-
-      // const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
-      const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}`
+      // Si se envía un returnTo, lo agregamos a la URL
+      // const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`
+      const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`
+      console.log('Login link generado para usuario existente:', loginLink)
+      // // const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
+      // const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}`
 
       await sendLoginEmail(email, 'Log in to Motorik', `
         <h1>Bienvenido de nuevo a Motorik</h1>
@@ -55,7 +58,9 @@ usersRouter.post('/check-or-register', async (req, res) => {
 
       const loginToken = tokenService.generateMagicLinkToken(user)
       // const loginToken = tokenService.generateAuthToken(user)
-      const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
+      // const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
+      const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`
+      console.log('Signin link generado para nuevo usuario:', loginLink)
 
       await sendLoginEmail(email, 'Bienvenido a Motorik', `
         <h1>Únete a Motorik</h1>
@@ -72,7 +77,9 @@ usersRouter.post('/check-or-register', async (req, res) => {
 })
 
 usersRouter.get('/login-with-token', async (req, res) => {
-  const { token } = req.query
+  // const { token } = req.query
+  const { token, returnTo } = req.query
+  console.log('GET /login-with-token: returnTo recibido:', returnTo)
 
   try {
     // Verify and decode the token
@@ -133,7 +140,8 @@ usersRouter.get('/login-with-token', async (req, res) => {
       success: true,
       authToken,
       user,
-      profileFilled
+      profileFilled,
+      returnTo: returnTo || '/'
     })
   } catch (error) {
     console.error('Error in /login-with-token:', error)

@@ -36,37 +36,6 @@ cloudinary.config({
 const storage = multer.diskStorage({})
 const upload = multer({ storage })
 
-// // Obtener los eventos de un usuario autenticado (futuros y pasados)
-// eventsRouter.get('/my-events', auth, async (req, res) => {
-//   try {
-//     const userId = req.user.id
-//     const today = new Date()
-
-//     // Obtener eventos futuros organizados por el usuario
-//     const futureEvents = await Event.find({
-//       owner: userId,
-//       startDate: { $gte: today }
-//     }).sort({ startDate: 1 })
-//       .populate('owner', 'name lastName userAvatar description')
-//       .populate('tickets')
-
-//     // Obtener eventos a los que el usuario asistirá
-//     const attendeeEvents = await Event.find({
-//       'attendees.userId': userId,
-//       startDate: { $gte: today }
-//     }).sort({ startDate: 1 })
-//       .populate('owner', 'name lastName userAvatar description')
-//       .populate('attendees.userId', 'name lastName userAvatar')
-//       .populate('attendees.vehicleId', 'brand model nickname image')
-//       .populate('attendees.ticketId')
-
-//     res.status(200).json({ success: true, futureEvents, attendeeEvents })
-//   } catch (error) {
-//     console.error('Error al obtener los eventos del usuario:', error)
-//     res.status(500).json({ success: false, message: 'Error al obtener los eventos' })
-//   }
-// })
-
 // Obtener los eventos (organizados e inscritos) de un usuario autenticado (futuros y pasados)
 eventsRouter.get('/my-events', auth, async (req, res) => {
   try {
@@ -223,10 +192,10 @@ eventsRouter.post('/:eventId/attendees/:attendeeId/approve', auth, async (req, r
     if (!attendee) {
       return res.status(404).json({ success: false, message: 'Asistente no encontrado.' })
     }
-
-    // El estado antes era "confirmation pending"
+    // Se guarda el estado anterior, se cambia y se guarda el evento
     const oldStatus = attendee.status
     attendee.status = 'attending'
+    await event.save()
 
     await event.save()
 
@@ -256,17 +225,21 @@ eventsRouter.post('/:eventId/attendees/:attendeeId/approve', auth, async (req, r
 })
 
 // Rechazar una inscripción
+// Rechazar una inscripción
 eventsRouter.post('/:eventId/attendees/:attendeeId/reject', auth, async (req, res) => {
   const { eventId, attendeeId } = req.params
 
   try {
     const event = await Event.findById(eventId)
+      .populate('attendees.userId', 'name lastName userAvatar email')
+      .populate('attendees.vehicleId', 'brand model nickname image')
+      .populate('attendees.ticketId')
 
     if (!event) {
       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
     }
 
-    // Verificar si el usuario es el organizador
+    // Solo el organizador puede gestionar las solicitudes
     if (event.owner.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'No autorizado.' })
     }
@@ -276,19 +249,155 @@ eventsRouter.post('/:eventId/attendees/:attendeeId/reject', auth, async (req, re
       return res.status(404).json({ success: false, message: 'Asistente no encontrado.' })
     }
 
-    // Actualizar el estado a 'not attending' y liberar el cupo
+    // Cambiar el estado a "not attending" (para conservar el registro)
     attendee.status = 'not attending'
-    event.attendeesCount -= 1
-    event.availableSeats += 1
+
+    // Usar el modelo Ticket para obtener el documento completo y liberar el asiento
+    const ticket = await require('../models/Ticket').findById(attendee.ticketId)
+    if (ticket) {
+      ticket.availableSeats += 1
+      await ticket.save()
+    }
+
+    // Recalcular el número de asistentes activos (solo los que estén "attending" o "confirmation pending")
+    event.attendeesCount = event.attendees.filter(att =>
+      att.status === 'attending' || att.status === 'confirmation pending'
+    ).length
+
+    // Recalcular availableSeats a partir de los tickets actualizados
+    const ticketsAll = await require('../models/Ticket').find({ eventId: event._id })
+    event.availableSeats = ticketsAll.reduce((sum, t) => sum + t.availableSeats, 0)
 
     await event.save()
 
-    res.status(200).json({ success: true, message: 'Inscripción rechazada.', attendee })
+    // Volver a poblar el evento para devolverlo actualizado
+    const updatedEvent = await Event.findById(eventId)
+      .populate('attendees.userId', 'name lastName userAvatar email')
+      .populate('attendees.vehicleId', 'brand model nickname image')
+      .populate('attendees.ticketId')
+      .populate('owner', 'name lastName userAvatar')
+      .populate('tickets')
+
+    return res.status(200).json({
+      success: true,
+      message: 'Inscripción rechazada.',
+      attendee,
+      event: updatedEvent
+    })
   } catch (error) {
     console.error('Error al rechazar la inscripción:', error)
-    res.status(500).json({ success: false, message: 'Error interno del servidor.' })
+    return res.status(500).json({ success: false, message: 'Error interno del servidor.' })
   }
 })
+
+// eventsRouter.post('/:eventId/attendees/:attendeeId/reject', auth, async (req, res) => {
+//   const { eventId, attendeeId } = req.params
+
+//   try {
+//     const event = await Event.findById(eventId)
+//     if (!event) {
+//       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
+//     }
+
+//     // Solo el organizador puede gestionar las solicitudes
+//     if (event.owner.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'No autorizado.' })
+//     }
+
+//     const attendee = event.attendees.id(attendeeId)
+//     if (!attendee) {
+//       return res.status(404).json({ success: false, message: 'Asistente no encontrado.' })
+//     }
+
+//     // Actualizar el estado a "not attending" para conservar el registro
+//     attendee.status = 'not attending'
+
+//     // Buscar el Ticket (documento completo) y liberar el asiento
+//     const ticket = await require('../models/Ticket').findById(attendee.ticketId)
+//     if (ticket) {
+//       ticket.availableSeats += 1
+//       await ticket.save()
+//     }
+
+//     // Recalcular el número de asistentes activos (solo los que están "attending" o "confirmation pending")
+//     event.attendeesCount = event.attendees.filter(att =>
+//       att.status === 'attending' || att.status === 'confirmation pending'
+//     ).length
+
+//     // Recalcular availableSeats a partir de todos los Tickets asociados
+//     const ticketsAll = await require('../models/Ticket').find({ eventId: event._id })
+//     event.availableSeats = ticketsAll.reduce((sum, t) => sum + t.availableSeats, 0)
+
+//     await event.save()
+
+//     // Volver a poblar el evento actualizado para enviarlo en la respuesta
+//     const updatedEvent = await Event.findById(eventId)
+//       .populate('attendees.userId', 'name lastName userAvatar email')
+//       .populate('attendees.vehicleId', 'brand model nickname image')
+//       .populate('attendees.ticketId')
+//       .populate('owner', 'name lastName userAvatar')
+//       .populate('tickets')
+
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Inscripción rechazada.',
+//       attendee,
+//       event: updatedEvent
+//     })
+//   } catch (error) {
+//     console.error('Error al rechazar la inscripción:', error)
+//     return res.status(500).json({ success: false, message: 'Error interno del servidor.' })
+//   }
+// })
+
+// eventsRouter.post('/:eventId/attendees/:attendeeId/reject', auth, async (req, res) => {
+//   const { eventId, attendeeId } = req.params
+
+//   try {
+//     const event = await Event.findById(eventId)
+
+//     if (!event) {
+//       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
+//     }
+
+//     // Verificar si el usuario es el organizador
+//     if (event.owner.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'No autorizado.' })
+//     }
+
+//     const attendee = event.attendees.id(attendeeId)
+//     if (!attendee) {
+//       return res.status(404).json({ success: false, message: 'Asistente no encontrado.' })
+//     }
+
+//     // Actualizar el estado a "not attending" (para conservar el registro)
+//     attendee.status = 'not attending'
+
+//     // Buscar el ticket asociado a este registro y "liberar" el asiento
+//     // En lugar de usar event.tickets (que puede contener solo ObjectIds), usamos Ticket.findById
+//     const ticket = await Ticket.findById(attendee.ticketId)
+//     if (ticket) {
+//       ticket.availableSeats += 1
+//       await ticket.save()
+//     }
+
+//     // Recalcular el número de asistentes activos (solo "attending" y "confirmation pending")
+//     event.attendeesCount = event.attendees.filter(att =>
+//       att.status === 'attending' || att.status === 'confirmation pending'
+//     ).length
+
+//     // Recalcular el campo availableSeats a partir de los tickets actualizados
+//     const ticketsAll = await require('../models/Ticket').find({ eventId: event._id })
+//     event.availableSeats = ticketsAll.reduce((sum, t) => sum + t.availableSeats, 0)
+
+//     await event.save()
+
+//     res.status(200).json({ success: true, message: 'Inscripción rechazada.', attendee })
+//   } catch (error) {
+//     console.error('Error al rechazar la inscripción:', error)
+//     res.status(500).json({ success: false, message: 'Error interno del servidor.' })
+//   }
+// })
 
 // Cancelar inscripción de un usuario
 eventsRouter.post('/:eventId/attendees/cancel', auth, async (req, res) => {
@@ -300,43 +409,42 @@ eventsRouter.post('/:eventId/attendees/cancel', auth, async (req, res) => {
 
   try {
     const event = await Event.findById(eventId).populate('tickets').session(session)
-
     if (!event) {
       await session.abortTransaction()
       session.endSession()
       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
     }
 
-    const attendee = event.attendees.find(
-      (att) => att.userId.toString() === userId && att.status !== 'not attending'
+    // Buscar el registro de inscripción del usuario (sin eliminarlo)
+    const attendee = event.attendees.find(att =>
+      att.userId.toString() === userId && att.status !== 'not attending'
     )
-
     if (!attendee) {
       await session.abortTransaction()
       session.endSession()
       return res.status(404).json({ success: false, message: 'No estás inscrito en este evento.' })
     }
 
-    // Actualizar el estado a 'not attending'
+    // Actualizar el estado a "not attending"
     attendee.status = 'not attending'
-    // Recuperar el ticket y restaurar asientos
+
+    // Recuperar el ticket asociado y liberar el asiento
     const ticket = event.tickets.find(t => t._id.toString() === attendee.ticketId.toString())
     if (ticket) {
       ticket.availableSeats += 1
       await ticket.save({ session })
     }
-    event.attendeesCount -= 1
-    // event.availableSeats += 1
+
+    // Recalcular el contador de asistentes activos (solo los que están en "attending" o "confirmation pending")
+    event.attendeesCount = event.attendees.filter(att =>
+      att.status === 'attending' || att.status === 'confirmation pending'
+    ).length
+
+    // Recalcular el campo availableSeats del evento
+    const ticketsAll = await Ticket.find({ eventId: event._id }).session(session)
+    event.availableSeats = ticketsAll.reduce((sum, t) => sum + t.availableSeats, 0)
 
     await event.save({ session })
-
-    // Remover el eventId de user.enrolledEvents
-    const user = await User.findById(userId).session(session)
-    if (user) {
-      user.enrolledEvents = user.enrolledEvents.filter(eId => eId.toString() !== eventId)
-      await user.save({ session })
-    }
-
     await session.commitTransaction()
     session.endSession()
 
@@ -357,6 +465,7 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
   session.startTransaction()
 
   try {
+    // 1. Obtener al usuario autenticado dentro de la sesión
     const user = await User.findById(req.user.id).session(session)
     if (!user) {
       await session.abortTransaction()
@@ -364,6 +473,7 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Usuario no encontrado.' })
     }
 
+    // 2. Obtener el evento y popular sus tickets
     const event = await Event.findById(eventId).populate('tickets').session(session)
     if (!event) {
       await session.abortTransaction()
@@ -371,20 +481,35 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Evento no encontrado.' })
     }
 
+    // 3. Si el evento requiere vehículo, asegurarse de que se envíe y que el vehículo pertenezca al usuario
     const needsVehicle = !!event.needsVehicle
-
+    // if (needsVehicle && !vehicleId) {
+    //   await session.abortTransaction()
+    //   session.endSession()
+    //   return res.status(400).json({ success: false, message: 'vehicleId es requerido porque el evento requiere vehículo.' })
+    // }
     if (needsVehicle && !vehicleId) {
       await session.abortTransaction()
       session.endSession()
       return res.status(400).json({ success: false, message: 'vehicleId es requerido porque el evento requiere vehículo.' })
     }
+    if (needsVehicle) {
+      const vehicle = await Vehicle.findOne({ _id: vehicleId, owner: user._id }).session(session)
+      if (!vehicle) {
+        await session.abortTransaction()
+        session.endSession()
+        return res.status(400).json({ success: false, message: 'Vehículo no encontrado o no te pertenece.' })
+      }
+    }
 
+    // 4. Impedir que el organizador se inscriba en su propio evento
     if (event.owner.toString() === req.user.id) {
       await session.abortTransaction()
       session.endSession()
       return res.status(403).json({ success: false, message: 'No puedes inscribirte en tu propio evento.' })
     }
 
+    // 5. Verificar que el usuario no esté ya inscrito
     const isAlreadyEnrolled = event.attendees.some(attendee => attendee.userId.toString() === req.user.id)
     if (isAlreadyEnrolled) {
       await session.abortTransaction()
@@ -392,18 +517,42 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Ya estás inscrito en este evento.' })
     }
 
+    // 6. Buscar el ticket seleccionado y verificar que tenga asientos disponibles
     const ticket = event.tickets.find(t => t._id.toString() === ticketId)
     if (!ticket) {
       await session.abortTransaction()
       session.endSession()
       return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
     }
-
     if (ticket.availableSeats <= 0) {
       await session.abortTransaction()
       session.endSession()
       return res.status(400).json({ success: false, message: 'No hay asientos disponibles.' })
     }
+
+    // // 6. Buscar el ticket seleccionado y verificar que tenga asientos disponibles
+    // const ticket = event.tickets.find(t => t._id.toString() === ticketId)
+    // if (!ticket) {
+    //   await session.abortTransaction()
+    //   session.endSession()
+    //   return res.status(404).json({ success: false, message: 'Ticket no encontrado en este evento.' })
+    // }
+
+    // if (ticket.availableSeats <= 0) {
+    //   await session.abortTransaction()
+    //   session.endSession()
+    //   return res.status(400).json({ success: false, message: 'No hay asientos disponibles.' })
+    // }
+
+    // // Verificar que, si es necesario, el vehículo pertenece al usuario
+    // if (needsVehicle) {
+    //   const vehicle = await Vehicle.findOne({ _id: vehicleId, owner: user._id }).session(session)
+    //   if (!vehicle) {
+    //     await session.abortTransaction()
+    //     session.endSession()
+    //     return res.status(400).json({ success: false, message: 'Vehículo no encontrado o no te pertenece.' })
+    //   }
+    // }
 
     // Verificar que el vehículo pertenece al usuario
     if (needsVehicle) {
@@ -415,42 +564,50 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       }
     }
 
-    let status = 'attending'
-    if (ticket.approvalRequired) {
-      status = 'confirmation pending'
-    }
+    // 7. Determinar el estado de la inscripción
+    let status = ticket.approvalRequired ? 'confirmation pending' : 'attending'
 
+    // 8. Agregar el registro de inscripción (sin eliminarlo en caso de cancelación o rechazo)
     event.attendees.push({ userId: req.user.id, vehicleId: vehicleId || undefined, ticketId, status })
+
+    // 9. Actualizar el ticket: decrementar availableSeats
     ticket.availableSeats -= 1
     await ticket.save({ session })
-    await event.save({ session })
-    console.log('Evento después de save:', event)
 
-    // Poblar el evento actualizado con la sesión
+    // 10. Recalcular y actualizar el campo availableSeats del evento
+    // Sumar availableSeats de todos los tickets (ya que cada ticket tiene su propio contador)
+    const overallAvailable = event.tickets.reduce((sum, t) => sum + t.availableSeats, 0)
+    event.availableSeats = overallAvailable
+
+    // 11. Actualizar el contador de asistentes activos (considerando solo "attending" y "confirmation pending")
+    event.attendeesCount = event.attendees.filter(att => att.status === 'attending' || att.status === 'confirmation pending').length
+
+    await event.save({ session })
+
+    // 12. Volver a poblar el evento actualizado para devolverlo en la respuesta
     const updatedEvent = await Event.findById(eventId)
       .populate('attendees.userId', 'name lastName userAvatar email')
       .populate('attendees.vehicleId', 'brand model image nickname year')
       .populate('attendees.ticketId')
       .populate('owner', 'name lastName userAvatar')
       .populate('tickets')
-      .session(session) // Asegurar que la sesión se utiliza aquí
+      .session(session)
       .exec()
 
-    console.log('Evento actualizado con populate:', updatedEvent)
-
-    const availableSeats = updatedEvent.tickets.reduce((sum, ticket) => sum + ticket.availableSeats, 0)
-
+    // Recalcular availableSeats a partir de los tickets actualizados
+    const newOverallAvailable = updatedEvent.tickets.reduce((sum, t) => sum + t.availableSeats, 0)
     const eventObject = updatedEvent.toObject()
-    eventObject.availableSeats = availableSeats
+    eventObject.availableSeats = newOverallAvailable
 
+    // 13. Confirmar la transacción
     await session.commitTransaction()
     session.endSession()
 
-    // Enviar correo de confirmación
+    // 14. Enviar correo de confirmación (opcional)
     try {
       await sendEnrollmentConfirmationEmail(
         user.email,
-        event,
+        event, // Se puede enviar el evento original o actualizado según convenga
         ticket,
         vehicleId ? await Vehicle.findById(vehicleId) : null,
         status
@@ -459,15 +616,62 @@ eventsRouter.post('/enroll/:id', auth, async (req, res) => {
       console.error('Error enviando correo:', emailError)
     }
 
-    res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: eventObject })
+    return res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: eventObject })
   } catch (error) {
     console.error('Error en la inscripción:', error)
     await session.abortTransaction()
     session.endSession()
-    res.status(500).json({ success: false, message: 'Error interno' })
+    return res.status(500).json({ success: false, message: 'Error interno' })
   }
 })
 
+//     event.attendees.push({ userId: req.user.id, vehicleId: vehicleId || undefined, ticketId, status })
+//     ticket.availableSeats -= 1
+//     await ticket.save({ session })
+//     await event.save({ session })
+//     console.log('Evento después de save:', event)
+
+//     // Poblar el evento actualizado con la sesión
+//     const updatedEvent = await Event.findById(eventId)
+//       .populate('attendees.userId', 'name lastName userAvatar email')
+//       .populate('attendees.vehicleId', 'brand model image nickname year')
+//       .populate('attendees.ticketId')
+//       .populate('owner', 'name lastName userAvatar')
+//       .populate('tickets')
+//       .session(session) // Asegurar que la sesión se utiliza aquí
+//       .exec()
+
+//     console.log('Evento actualizado con populate:', updatedEvent)
+
+//     const availableSeats = updatedEvent.tickets.reduce((sum, ticket) => sum + ticket.availableSeats, 0)
+
+//     const eventObject = updatedEvent.toObject()
+//     eventObject.availableSeats = availableSeats
+
+//     await session.commitTransaction()
+//     session.endSession()
+
+//     // Enviar correo de confirmación
+//     try {
+//       await sendEnrollmentConfirmationEmail(
+//         user.email,
+//         event,
+//         ticket,
+//         vehicleId ? await Vehicle.findById(vehicleId) : null,
+//         status
+//       )
+//     } catch (emailError) {
+//       console.error('Error enviando correo:', emailError)
+//     }
+
+//     res.status(200).json({ success: true, message: 'Inscripción exitosa.', event: eventObject })
+//   } catch (error) {
+//     console.error('Error en la inscripción:', error)
+//     await session.abortTransaction()
+//     session.endSession()
+//     res.status(500).json({ success: false, message: 'Error interno' })
+//   }
+// })
 eventsRouter.get('/:id/enrollment', auth, async (req, res) => {
   const eventId = req.params.id
   const userId = req.user.id
@@ -778,7 +982,7 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       return res.status(400).json({ success: false, message: error.message })
     }
 
-    // Calcular la capacidad total del evento como la suma de las capacidades de los tickets
+    // // Calcular la capacidad total del evento como la suma de las capacidades de los tickets
     const capacity = parsedTickets.reduce((acc, ticket) => acc + ticket.capacity, 0)
 
     // Manejar la carga de la imagen si se proporciona
@@ -815,6 +1019,7 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       owner: req.user.id,
       published: false,
       capacity,
+      availableSeats: capacity,
       needsVehicle: parsedNeedsVehicle
     })
 

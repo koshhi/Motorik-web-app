@@ -3,7 +3,7 @@
 const { Schema, model } = require('mongoose')
 const { format } = require('date-fns')
 const { es } = require('date-fns/locale')
-const slugify = require('slugify')
+// const slugify = require('slugify')
 
 const attendeeSchema = new Schema({
   userId: {
@@ -95,6 +95,11 @@ const eventSchema = new Schema({
     type: Number,
     required: true,
     min: [1, 'La capacidad debe ser al menos 1']
+  },
+  availableSeats: {
+    type: Number,
+    required: true,
+    default: 0
   },
   attendeesCount: {
     type: Number,

@@ -76,7 +76,7 @@ const TicketList = styled.ul`
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: ${({ theme }) => theme.sizing.xs};
   witdh: 100%;
   padding: ${({ theme }) => theme.sizing.sm};
 `;
@@ -84,7 +84,7 @@ const TicketList = styled.ul`
 const Actions = styled.div`
   width: 100%;
   display: flex;
-  gap: 8px;
+  gap: ${({ theme }) => theme.sizing.xs};
   justify-content: space-between;
   padding: ${({ theme }) => theme.sizing.sm};
   border-top: 1px solid ${({ theme }) => theme.border.defaultSubtle};
