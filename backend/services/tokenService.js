@@ -34,9 +34,21 @@ const generateRefreshToken = (user) => {
 }
 
 // Generar Token para Magic Link
-const generateMagicLinkToken = (user) => {
-  console.log('Creating MagicLinkToken for user ID:', user._id)
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+// const generateMagicLinkToken = (user) => {
+//   console.log('Creating MagicLinkToken for user ID:', user._id)
+//   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//     expiresIn: '15m' // Expira en 15 minutos
+//   })
+// }
+
+// Generar Token para Magic Link con returnTo
+const generateMagicLinkToken = (user, returnTo) => {
+  console.log('Creating MagicLinkToken for user ID:', user._id, 'returnTo:', returnTo)
+  const payload = { id: user._id }
+  if (returnTo) {
+    payload.returnTo = returnTo
+  }
+  return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: '15m' // Expira en 15 minutos
   })
 }
