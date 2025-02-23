@@ -4,7 +4,7 @@ import styled, { css } from 'styled-components';
 const baseStyles = css`
   display: ${({ $fullWidth }) => ($fullWidth ? 'flex' : 'inline-flex')};
   width: ${({ $fullWidth }) => ($fullWidth ? '100%' : 'auto')};
-
+  flex-shrink: 0;
   gap: 4px;
   align-items: center;
   font-variant-numeric: lining-nums tabular-nums;
