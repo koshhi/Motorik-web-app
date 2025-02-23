@@ -32,6 +32,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MyEventsEnrolled from './pages/MyEvents/MyEventsEnrolled';
 import ManageEventOptions from './components/EventManagement/ManageEventOptions';
+import ManageEventCommunications from './components/EventManagement/ManageEventCommunications';
 
 function App() {
 
@@ -51,8 +52,8 @@ function App() {
                   <Route path="attendees" element={<ManageEventAttendees />} />
                   <Route path="registration" element={<ManageEventRegistration />} />
                   <Route path="options" element={<ManageEventOptions />} />
-                  {/* <Route path="participants" element={<Participants />} />
-                  <Route path="communications" element={<Communications />} /> */}
+                  {/* {/* <Route path="participants" element={<Participants />} /> */}
+                  <Route path="communications" element={<ManageEventCommunications />} />
                 </Route>
                 <Route path="/events/manage/:id/edit" element={<EditEvent />} />
                 <Route path="/create-event" element={<CreateEvent />} />
@@ -78,7 +79,7 @@ function App() {
                 {/* <Route path="/create-stripe-account" element={<CreateStripeAccount />} /> */}
               </Routes>
               <ToastContainer
-                position="top-right"
+                position="bottom-center"
                 autoClose={5000}
                 hideProgressBar={false}
                 newestOnTop={false}

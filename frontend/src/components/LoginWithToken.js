@@ -17,30 +17,29 @@ const LoginWithToken = () => {
 
 
         if (response.data.success) {
-          // 1. Guardar en localStorage
           localStorage.setItem('authToken', response.data.authToken);
-
-          // 2. También avisa al AuthContext de que hay un token nuevo
           setToken(response.data.authToken);
-
-          // 3. Refresca el usuario en el contexto
           await refreshUserData();
 
-          // 4. Redirige según profileFilled
+          const destination = response.data.returnTo || '/';
           if (!response.data.user.profileFilled) {
-            navigate('/complete-profile');
+            navigate('/complete-profile', { state: { returnTo: destination } });
           } else {
-            navigate('/');
+            navigate(destination);
           }
+
         }
       } catch (error) {
-        setError('Error al iniciar sesión');
+        if (error.response?.data?.error === 'TokenExpiredError') {
+          setError('El enlace de inicio de sesión ha expirado. Por favor, solicita uno nuevo.');
+        } else {
+          setError('Error al iniciar sesión');
+        }
         console.error('Error:', error);
       }
     };
 
     loginWithToken();
-    // }, [navigate, refreshUserData]);
   }, [navigate, refreshUserData, setToken, location.search]);
 
 

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import axiosClient from '../../api/axiosClient';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/Button/Button';
@@ -13,6 +13,7 @@ import { getPlatform, getIcon } from '../../utils/socialMediaUtils';
 
 const UserProfile = () => {
   const { userId } = useParams()
+  const navigate = useNavigate();
   const { user, refreshUserData } = useAuth();
   const { profileUser, loadingProfile, errorProfile } = useUserProfile(userId);
   const { futureEvents, attendeeEvents, loadingEvents, errorEvents } = useUserEvents(userId);
@@ -43,6 +44,48 @@ const UserProfile = () => {
             <UserInfo>
               <Bio>
                 <Typography $variant="title-4-semibold" as="h3">Bio</Typography>
+                {!profileUser.description ? (
+                  isOwnProfile ? (
+                    <EmptyStateWrapper>
+                      <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>
+                        Añade una biografía para que otros miembros de la comunidad te conozcan mejor.
+                      </Typography>
+                      <Button
+                        $variant="outline"
+                        onClick={() => navigate(`/user/${userId}/edit-profile`, { state: { returnTo: `/user/${userId}` } })}
+                      >
+                        Editar perfil
+                      </Button>
+                    </EmptyStateWrapper>
+                  ) : (
+                    <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>
+                      Este usuario no tiene Bio
+                    </Typography>
+                  )
+                ) : (
+                  <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>
+                    {profileUser.description}
+                  </Typography>
+                )}
+                {profileUser.socialMediaLinks && profileUser.socialMediaLinks.length > 0 && (
+                  <SocialMediaList>
+                    {profileUser.socialMediaLinks.map((socialMediaLink, index) => {
+                      const platform = getPlatform(socialMediaLink.url);
+                      const icon = getIcon(platform);
+
+                      return (
+                        <SocialMediaItem key={index}>
+                          <IconLink href={socialMediaLink.url} target='_blank' rel='noreferrer'>
+                            <img src={icon} alt={platform} />
+                          </IconLink>
+                        </SocialMediaItem>
+                      );
+                    })}
+                  </SocialMediaList>
+                )}
+              </Bio>
+              {/* <Bio>
+                <Typography $variant="title-4-semibold" as="h3">Bio</Typography>
                 <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>{profileUser.description}</Typography>
                 {
                   profileUser.socialMediaLinks && profileUser.socialMediaLinks.length > 0 && (
@@ -62,8 +105,8 @@ const UserProfile = () => {
                     </SocialMediaList>
                   )
                 }
-              </Bio>
-              <Vehicles>
+              </Bio> */}
+              {/* <Vehicles>
                 <Typography $variant="title-4-semibold" as="h3">Garaje</Typography>
                 {profileUser.vehicles && profileUser.vehicles.length > 0 ? (
                   <VehicleList>
@@ -103,7 +146,68 @@ const UserProfile = () => {
                     {isOwnProfile ? 'No tienes vehículos' : `Sin Vehículos`}
                   </Typography>
                 )}
+              </Vehicles> */}
+              <Vehicles>
+                <Typography $variant="title-4-semibold" as="h3">Garaje</Typography>
+                {profileUser.vehicles && profileUser.vehicles.length > 0 ? (
+                  <VehicleList>
+                    {profileUser.vehicles.map(vehicle => (
+                      <Vehicle key={vehicle.id}>
+                        <VehicleContent>
+                          <VehicleImage src={vehicle.image} alt={vehicle.brand + ' ' + vehicle.model} />
+                          <VehicleData>
+                            {vehicle.nickname ? (
+                              <>
+                                <Typography $variant="body-1-medium" color={theme.colors.defaultMain}>
+                                  {vehicle?.brand}
+                                  <Typography as="span" color={theme.colors.defaultStrong} style={{ marginLeft: '4px' }}>
+                                    {vehicle?.model}
+                                  </Typography>
+                                </Typography>
+                                <Typography $variant="title-5-semibold" color={theme.colors.defaultMain}>
+                                  {vehicle.nickname}
+                                </Typography>
+                                <Typography $variant="body-3-medium" color={theme.colors.defaultStrong}>
+                                  {vehicle.year}
+                                </Typography>
+                              </>
+                            ) : (
+                              <>
+                                <Typography $variant="body-1-medium" color={theme.colors.defaultMain}>
+                                  {vehicle?.brand}
+                                </Typography>
+                                <Typography $variant="title-5-semibold" color={theme.colors.defaultMain}>
+                                  {vehicle.model}
+                                </Typography>
+                                <Typography $variant="body-3-medium" color={theme.colors.defaultStrong}>
+                                  {vehicle.year}
+                                </Typography>
+                              </>
+                            )}
+                          </VehicleData>
+                        </VehicleContent>
+                      </Vehicle>
+                    ))}
+                  </VehicleList>
+                ) : (
+                  // Empty state para vehículos: Si es el propio perfil, mostrar botón para añadir vehículo
+                  isOwnProfile ? (
+                    <EmptyStateWrapper>
+                      <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>
+                        Añade tus vehiculos a tu garaje y haz gala de ellos. Al inscribirte en un evento podrás elegir con cuál asistir.
+                      </Typography>
+                      <Button $variant="outline" onClick={() => navigate(`/user/${userId}/garage`)}>
+                        Añadir vehículo
+                      </Button>
+                    </EmptyStateWrapper>
+                  ) : (
+                    <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>
+                      Sin Vehículos
+                    </Typography>
+                  )
+                )}
               </Vehicles>
+
               <Achievements>
                 <Typography $variant="title-4-semibold" as="h3">Logros</Typography>
                 <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>Proximamente...</Typography>
@@ -134,12 +238,30 @@ const UserProfile = () => {
                   <TabContent>
                     {futureEvents.length > 0 ? (
                       futureEvents.map(event => (
-                        <EventCardRow key={event.id || event.id} event={event} />
+                        <EventCardRow key={event.id} event={event} />
                       ))
                     ) : (
-                      <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
-                        {isOwnProfile ? 'Aún no has creado ningún evento' : `Aún no ha creado ningún evento`}
-                      </Typography>
+                      // Empty state para eventos organizados
+                      isOwnProfile ? (
+                        <EmptyState>
+                          <EmptyStateHeader>
+                            <Typography as="p" $variant="title-4-semibold" color={theme.colors.defaultMain}>
+                              No tienes eventos que mostrar.
+                            </Typography>
+                            <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
+                              Cuando crees un evento aparecerá aquí.
+                            </Typography>
+                          </EmptyStateHeader>
+                          <Button onClick={() => navigate('/create-event')}>
+                            <img src="/icons/add-white.svg" alt="Crear evento" />
+                            Crear Evento
+                          </Button>
+                        </EmptyState>
+                      ) : (
+                        <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
+                          Aún no ha creado ningún evento
+                        </Typography>
+                      )
                     )}
                   </TabContent>
                 )}
@@ -151,10 +273,46 @@ const UserProfile = () => {
                         <EventCardRow key={event.id || event.id} event={event} />
                       ))
                     ) : (
+                      // Empty state para eventos organizados
+                      isOwnProfile ? (
+                        <EmptyState>
+                          <EmptyStateHeader>
+                            <Typography as="p" $variant="title-4-semibold" color={theme.colors.defaultMain}>
+                              Aún no estás inscrito en ningún evento
+                            </Typography>
+                            <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
+                              Cuando te inscribas en un evento aparecerá aquí.
+                            </Typography>
+                          </EmptyStateHeader>
+                          <Button onClick={() => navigate('/')}>
+                            <img src='/icons/find-plan.svg' alt="Encuentra plan" />
+                            Encuentra plan
+                          </Button>
+                        </EmptyState>
+                      ) : (
+                        <EmptyState>
+                          <EmptyStateHeader>
+                            <Typography as="p" $variant="title-4-semibold" color={theme.colors.defaultMain}>
+                              Aún no se ha inscrito en ningún evento
+                            </Typography>
+                          </EmptyStateHeader>
+                        </EmptyState>
+                        // <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
+                        //   Aún no se ha inscrito en ningún evento
+                        // </Typography>
+                      )
+                    )}
+
+                    {/* original
+                    {attendeeEvents.length > 0 ? (
+                      attendeeEvents.map(event => (
+                        <EventCardRow key={event.id || event.id} event={event} />
+                      ))
+                    ) : (
                       <Typography $variant="body-1-regular" color={theme.colors.defaultWeak}>
                         {isOwnProfile ? 'Aún no estás inscrito en ningún evento' : `Aún no se ha inscrito en ningún evento`}
                       </Typography>
-                    )}
+                    )} */}
                   </TabContent>
                 )}
               </TabContentWrapper>
@@ -359,4 +517,30 @@ const ErrorContainer = styled.div`
   color: red;
   text-align: center;
   margin-top: 20px;
+`;
+
+const EmptyStateWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.sm};
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  padding: 80px 16px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--Spacing-sm, 16px);
+  align-self: stretch;
+  border-radius: 16px;
+  border: 2px dashed ${({ theme }) => theme.border.defaultWeak};
+`;
+
+const EmptyStateHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.sizing.xxs};
 `;

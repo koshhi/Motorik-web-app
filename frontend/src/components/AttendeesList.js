@@ -13,36 +13,154 @@ import { es } from 'date-fns/locale';
 
 const AttendeesList = ({ attendees, needsVehicle, onApprove, onReject }) => (
 
-  <ListWrapper>
-    <Typography $variant='title-3-semibold' as='h2'>Lista de asistentes</Typography>
+  // <ListWrapper>
+  //   <Typography $variant='title-3-semibold' as='h2'>Lista de asistentes</Typography>
 
+  //   {attendees.length > 0 ? (
+  //     <Table>
+  //       <ListHeader>
+  //         <HeaderCellName>
+  //           <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+  //             Nombre
+  //           </Typography>
+  //         </HeaderCellName>
+  //         {needsVehicle && (
+  //           <HeaderCellVehicle>
+  //             <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+  //               Vehículo
+  //             </Typography>
+  //           </HeaderCellVehicle>
+  //         )}
+  //         <HeaderCellTicket>
+  //           <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+  //             Entrada
+  //           </Typography>
+  //         </HeaderCellTicket>
+  //         <HeaderCellEnrollmentDate>
+  //           <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+  //             Fecha
+  //           </Typography>
+  //         </HeaderCellEnrollmentDate>
+  //         <HeaderCellStatus>
+  //           <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+  //             Estado
+  //           </Typography>
+  //         </HeaderCellStatus>
+  //         <HeaderCellActions></HeaderCellActions>
+  //       </ListHeader>
+  //       <List>
+  //         {attendees.map((attendee) => (
+  //           <ListRow key={attendee._id}>
+  //             <TableCellName>
+  //               <Avatar src={attendee.userId.userAvatar} alt={`${attendee.userId.name} avatar`} />
+  //               <AttendeeData>
+  //                 <Typography as="p" $variant="body-2-semibold">
+  //                   {attendee.userId.name} {attendee.userId.lastName}
+  //                 </Typography>
+  //                 <Typography as="p" $variant="body-2-regular">
+  //                   {attendee.userId.email}
+  //                 </Typography>
+  //               </AttendeeData>
+  //             </TableCellName>
+  //             {needsVehicle && (
+  //               <TableCellVehicle>
+  //                 <Typography as="p" $variant="body-2-regular">
+  //                   {attendee.vehicleId.brand}
+  //                 </Typography>
+  //                 <Typography as="p" $variant="body-2-regular">
+  //                   {attendee.vehicleId.model}
+  //                 </Typography>
+  //               </TableCellVehicle>
+  //             )}
+  //             <TableCellTicket>
+  //               <Typography as="p" $variant="body-2-regular">
+  //                 {attendee.ticketId.name}
+  //               </Typography>
+  //               <Typography as="p" $variant="body-2-regular">
+  //                 {attendee.ticketId.type === 'free' ? 'Gratis' : `${attendee.ticketId.price}€`}
+  //               </Typography>
+  //             </TableCellTicket>
+  //             <TableCellEnrollmentDate>
+  //               <Typography as="p" $variant="body-2-regular">
+  //                 {format(new Date(attendee.createdAt), 'dd/MM/yyyy', { locale: es })}
+  //               </Typography>
+  //             </TableCellEnrollmentDate>
+  //             <TableCellStatus>
+  //               <Tag $variant={statusTagVariants[attendee.status]}>
+  //                 {getStatusLabel(attendee.status)}
+  //               </Tag>
+  //             </TableCellStatus>
+  //             <TableCellActions>
+  //               {attendee.status === 'confirmation pending' && (
+  //                 <>
+  //                   <Button size="small" $variant="outlineDanger" onClick={() => onReject(attendee._id)}>
+  //                     Rechazar
+  //                   </Button>
+  //                   <Button size="small" onClick={() => onApprove(attendee._id)}>
+  //                     <img src="/icons/check-circle-white.svg" alt="check-circle-icon" />
+  //                     Aprobar
+  //                   </Button>
+  //                 </>
+  //               )}
+  //             </TableCellActions>
+  //           </ListRow>
+  //         ))}
+  //       </List>
+  //     </Table>
+  //   ) : (
+  //     <EmptyMessage>
+  //       <MessageContainer>
+  //         <EmptyMedia>
+  //           <EmptyImg src="/icons/attendees-solid.svg" alt="empty state icon" />
+  //         </EmptyMedia>
+  //         <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
+  //           Aún no hay inscritos.
+  //         </Typography>
+  //         <Typography
+  //           as="p"
+  //           $variant="body-2-regular"
+  //           color={theme.colors.defaultWeak}
+  //           style={{ maxWidth: "280px" }}
+  //           $align="center"
+  //         >
+  //           Prueba a compartir el evento o invita a algún asistente.
+  //         </Typography>
+  //       </MessageContainer>
+  //     </EmptyMessage>
+  //   )}
+  // </ListWrapper>
+
+  <ListWrapper>
+    <Typography $variant="title-3-semibold" as="h2">
+      Lista de asistentes
+    </Typography>
     {attendees.length > 0 ? (
       <Table>
         <ListHeader>
           <HeaderCellName>
-            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform="uppercase">
               Nombre
             </Typography>
           </HeaderCellName>
           {needsVehicle && (
             <HeaderCellVehicle>
-              <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+              <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform="uppercase">
                 Vehículo
               </Typography>
             </HeaderCellVehicle>
           )}
           <HeaderCellTicket>
-            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform="uppercase">
               Entrada
             </Typography>
           </HeaderCellTicket>
           <HeaderCellEnrollmentDate>
-            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform="uppercase">
               Fecha
             </Typography>
           </HeaderCellEnrollmentDate>
           <HeaderCellStatus>
-            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform='uppercase'>
+            <Typography as="p" $variant="overline-semibold" color={theme.colors.defaultWeak} $textTransform="uppercase">
               Estado
             </Typography>
           </HeaderCellStatus>
@@ -65,10 +183,10 @@ const AttendeesList = ({ attendees, needsVehicle, onApprove, onReject }) => (
               {needsVehicle && (
                 <TableCellVehicle>
                   <Typography as="p" $variant="body-2-regular">
-                    {attendee.vehicleId.brand}
+                    {attendee.vehicleId ? attendee.vehicleId.brand : '-'}
                   </Typography>
                   <Typography as="p" $variant="body-2-regular">
-                    {attendee.vehicleId.model}
+                    {attendee.vehicleId ? attendee.vehicleId.model : '-'}
                   </Typography>
                 </TableCellVehicle>
               )}
@@ -91,16 +209,41 @@ const AttendeesList = ({ attendees, needsVehicle, onApprove, onReject }) => (
                 </Tag>
               </TableCellStatus>
               <TableCellActions>
-                {attendee.status === 'confirmation pending' && (
+                {attendee.status === 'confirmation pending' ? (
                   <>
-                    <Button size="small" $variant="outline" onClick={() => onApprove(attendee._id)}>
-                      Aprobar
-                    </Button>
-                    <Button size="small" $variant="defaultDanger" onClick={() => onReject(attendee._id)}>
+                    <Button
+                      size="small"
+                      $variant="outlineDanger"
+                      onClick={() => {
+                        console.log('[AttendeesList] Rechazar clicked for attendee:', attendee._id);
+                        onReject(attendee._id);
+                      }}
+                    >
                       Rechazar
                     </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        console.log('[AttendeesList] Aprobar clicked for attendee:', attendee._id);
+                        onApprove(attendee._id);
+                      }}
+                    >
+                      <img src="/icons/check-circle-white.svg" alt="check-circle-icon" />
+                      Aprobar
+                    </Button>
                   </>
-                )}
+                ) : attendee.status === 'attending' ? (
+                  <Button
+                    size="small"
+                    $variant="outlineDanger"
+                    onClick={() => {
+                      console.log('[AttendeesList] Cancelar inscripción clicked for attendee:', attendee._id);
+                      onReject(attendee._id);
+                    }}
+                  >
+                    Cancelar inscripción
+                  </Button>
+                ) : null}
               </TableCellActions>
             </ListRow>
           ))}
@@ -119,8 +262,8 @@ const AttendeesList = ({ attendees, needsVehicle, onApprove, onReject }) => (
             as="p"
             $variant="body-2-regular"
             color={theme.colors.defaultWeak}
-            style={{ maxWidth: "280px" }}
-            align="center"
+            style={{ maxWidth: '280px' }}
+            $align="center"
           >
             Prueba a compartir el evento o invita a algún asistente.
           </Typography>
@@ -128,6 +271,9 @@ const AttendeesList = ({ attendees, needsVehicle, onApprove, onReject }) => (
       </EmptyMessage>
     )}
   </ListWrapper>
+
+
+
 );
 
 const getStatusLabel = (status) => {

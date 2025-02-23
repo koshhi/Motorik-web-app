@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
@@ -12,12 +12,16 @@ import { toast } from 'react-toastify';
 import { getPlatform, getIcon } from '../utils/socialMediaUtils';
 import { CircleFlag } from 'react-circle-flags';
 import { Autocomplete } from '@react-google-maps/api';
+import Typography from '../components/Typography';
+import { theme } from '../theme';
 
 const CompleteProfile = () => {
   const { userId } = useParams();
   const isEditMode = Boolean(userId);
   const pageTitle = isEditMode ? 'Editar perfil' : 'Completa tu perfil';
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { user, refreshUserData } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -96,6 +100,41 @@ const CompleteProfile = () => {
     }
   };
 
+  const handleAddressBlur = () => {
+    if (formData.address && (!formData.locality || formData.locality === '')) {
+      console.log("handleAddressBlur activado. Geocodificando la dirección:", formData.address);
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ address: formData.address }, (results, status) => {
+        console.log("Resultado del geocode. Estado:", status, "Resultados:", results);
+        if (status === 'OK' && results.length > 0) {
+          const addressComponents = results[0].address_components;
+          let locality = '';
+          let country = '';
+
+          addressComponents.forEach(component => {
+            const types = component.types;
+            if (types.includes('locality')) {
+              locality = component.long_name;
+            } else if (types.includes('administrative_area_level_2') && !locality) {
+              locality = component.long_name;
+            } else if (types.includes('country')) {
+              country = component.long_name;
+            }
+          });
+
+          console.log("Locality extraída:", locality, "y Country extraído:", country);
+          setFormData(prev => ({
+            ...prev,
+            locality,
+            country,
+          }));
+        } else {
+          console.log('Geocoding no encontró resultados o ocurrió un error:', status);
+        }
+      });
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -103,7 +142,8 @@ const CompleteProfile = () => {
     if (name === 'address') {
       setFormData(prev => ({
         ...prev,
-        address: value
+        address: value,
+        locality: ''
       }));
     } else {
       setFormData({ ...formData, [name]: value });
@@ -117,6 +157,16 @@ const CompleteProfile = () => {
   const handleAddLink = () => {
     if (newLink.trim()) {
       const platform = getPlatform(newLink);
+
+      // Check if the link already exists
+      const isDuplicate = formData.socialMediaLinks.some(
+        link => link.url.toLowerCase() === newLink.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        toast.error('Enlace duplicado');
+        return;
+      }
 
       setFormData((prevState) => ({
         ...prevState,
@@ -188,10 +238,13 @@ const CompleteProfile = () => {
 
         if (updatedUser && updatedUser.profileFilled) {
           toast.success('Perfil completado correctamente');
-          navigate('/', { replace: true });
+          // Si viene un returnTo en el state, redirigimos a esa URL; de lo contrario, a la home.
+          const destination = location.state?.returnTo || '/';
+          navigate(destination, { replace: true });
         } else {
           toast.error('Error actualizando los datos del usuario');
         }
+
       }
     } catch (error) {
       console.error('Error al completar el perfil:', error);
@@ -208,15 +261,13 @@ const CompleteProfile = () => {
 
   const selectedCountry = countryCodes.find(code => code.dial_code === formData.phonePrefix);
 
-  // if (!isLoaded) return <div>Cargando...</div>;
-
-
   return (
-    <EditForm onSubmit={handleSubmit}>
+    <CompleteProfileForm onSubmit={handleSubmit}>
       <Navigation>
-        <div className='container'>
+        <Container>
           {isEditMode ? (
-            <h2>Editar perfil</h2>
+            <Typography as="h1" $variant="title-3-semibold">{pageTitle}</Typography>
+
           ) : (
             <div className='tabs'>
               <div className='tab'>Completa tu perfil</div>
@@ -224,454 +275,422 @@ const CompleteProfile = () => {
               <div className='tab'>Añade tu garaje</div>
             </div>
           )}
-          <Button type="submit">Guardar cambios</Button>
-        </div>
+          <Button type="submit" size="medium">Guardar cambios</Button>
+        </Container>
       </Navigation>
-      <div className='header'>
-        <h1>{pageTitle}</h1>
-      </div>
       <FormContainer>
-        <div className='ImageContainer'>
-          {file ? (
-            // Si hay un archivo subido, mostrar la imagen seleccionada
-            <div className='ImageWrapper'>
-              <img src={URL.createObjectURL(file)} alt="User Avatar" className="AvatarImage" />
-            </div>
-          ) : formData.userAvatar ? (
-            // Si no hay archivo subido pero hay una imagen de perfil guardada, mostrarla
-            <div className='ImageWrapper'>
-              <img src={formData.userAvatar} alt="User Avatar" className="AvatarImage" />
-            </div>
-          ) : (
-            // Si no hay archivo ni imagen de perfil guardada, mostrar el placeholder
-            <div className="EmptyImageWrapper">
-              <img src="/icons/helmet.svg" alt="empty avatar" className="EmptyAvatarImage" />
-            </div>
-          )}
-          <label className='uploadField'>
-            <div className='labelContent'>
-              <img src="/icons/upload-file.svg" alt="Subir fichero" />
-              <p>Sube una imagen</p>
-            </div>
-            <input
-              type="file"
-              id="file"
-              onChange={handleFileChange}
-              className="inputFile"
-            />
-          </label>
-        </div>
-        <div className='Row'>
-          <label>
-            Nombre:
-            <InputText
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              $size="large"
-              placeholder="Introduce tu nombre"
-              $variant={errors.name ? 'error' : ''}
-              required
-            />
-            {errors.name && <ErrorMsg>{errors.name}</ErrorMsg>}
-
-          </label>
-          <label>
-            Apellidos:
-            <InputText
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              $size="large"
-              placeholder="Introduce tus apellidos"
-              $variant={errors.lastName ? 'error' : ''}
-              required
-            />
-            {errors.lastName && <ErrorMsg>{errors.lastName}</ErrorMsg>}
-
-          </label>
-        </div>
-        <label>
-          Dirección:
-          <Autocomplete
-            onLoad={onLoad}
-            onPlaceChanged={onPlaceChanged}
-          >
-            <InputText
-              ref={addressRef}
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              $size="large"
-              placeholder="Introduce tu dirección"
-              $variant={errors.address ? 'error' : ''}
-              required
-              autoComplete="off"
-            />
-          </Autocomplete>
-          {errors.address && <ErrorMsg>{errors.address}</ErrorMsg>}
-
-          <p className='inputNote'>Tu dirección completa no se mostrará al público.</p>
-        </label>
-        <div className='Row'>
-          <label>
-            Prefijo:
-            <div className='phonePrefixWrapper'>
-              {selectedCountry && (
-                <CircleFlag className='prefixFlag' countryCode={selectedCountry.code} height="20" />
-              )}
-              <Select
-                name="phonePrefix"
-                value={formData.phonePrefix}
-                onChange={handleChange}
-                $size="large"
-                $variant={errors.phonePrefix ? 'error' : ''}
-                required
-                autoComplete="off"
-              >
-                {countryCodes.map((code) => (
-                  <option key={`${code.dial_code}-${code.code}`} value={code.dial_code}>
-                    {code.name} ({code.dial_code})
-                  </option>
-                ))}
-              </Select>
-            </div>
-            {errors.phonePrefix && <ErrorMsg>{errors.phonePrefix}</ErrorMsg>}
-
-          </label>
-          <label>
-            Teléfono:
-            <InputText
-              type="text"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              $size="large"
-              placeholder="Introduce tu número"
-              $variant={errors.phoneNumber ? 'error' : ''}
-              required
-              autoComplete="off"
-            />
-            {errors.phoneNumber && <ErrorMsg>{errors.phoneNumber}</ErrorMsg>}
-
-          </label>
-        </div>
-
-        <label>
-          Descripción:
-          <InputTextArea style={{ height: '160px' }}
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            $size="large"
-            autoComplete="off"
-          />
-        </label>
-        <div className='LinksListWrapper'>
-          <label>
-            Redes Sociales:
-            <div className='LinkInputBlock'>
+        <FormContent>
+          <UserAvatarRow>
+            {file ? (
+              // Si hay un archivo subido, mostrar la imagen seleccionada
+              <ImageWrapper>
+                <AvatarImage src={URL.createObjectURL(file)} alt="User Avatar" />
+              </ImageWrapper>
+            ) : formData.userAvatar ? (
+              // Si no hay archivo subido pero hay una imagen de perfil guardada, mostrarla
+              <ImageWrapper>
+                <AvatarImage src={formData.userAvatar} alt="User Avatar" />
+              </ImageWrapper>
+            ) : (
+              // Si no hay archivo ni imagen de perfil guardada, mostrar el placeholder
+              <EmptyImageWrapper>
+                <EmptyAvatarImage src="/icons/helmet.svg" alt="empty avatar" />
+              </EmptyImageWrapper>
+            )}
+            <UploadField>
+              <UploadAvatarButton>
+                <img src="/icons/upload-file.svg" alt="Subir fichero" />
+                <Typography $variant="body-1-semibold">Sube una imagen</Typography>
+              </UploadAvatarButton>
+              <InputFile type="file" id="file" onChange={handleFileChange} />
+            </UploadField>
+          </UserAvatarRow>
+          <FormRow>
+            <NameInputWrapper>
+              <Typography $variant="body-2-medium">Nombre:</Typography>
               <InputText
                 type="text"
-                name="socialMediaLink"
-                value={newLink}
-                onChange={(e) => setNewLink(e.target.value)}
-                placeholder="Introduce el enlace"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
                 $size="large"
+                placeholder="Introduce tu nombre"
+                $variant={errors.name ? 'error' : ''}
+                required
               />
-              <Button $variant="outline" style={{ alignSelf: 'stretch' }} type="button" onClick={handleAddLink}>Añadir Enlace</Button>
-            </div>
-          </label>
-          <ul className='LinksList'>
-            {formData.socialMediaLinks.map((link, index) => (
-              <li className='Link' key={index}>
-                <img src={getIcon(link.platform)} alt={`${link.platform} icon`} style={{ marginRight: '8px' }} />
-                <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a>
-                <Button $variant="ghost" $size="small" type="button" onClick={() => handleRemoveLink(index)}>Eliminar</Button>
-              </li>
-            ))}
-          </ul>
-        </div>
+              {errors.name && <ErrorMsg>{errors.name}</ErrorMsg>}
+            </NameInputWrapper>
+            <LastNameInputWrapper>
+              <Typography $variant="body-2-medium">Apellidos:</Typography>
+              <InputText
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                $size="large"
+                placeholder="Introduce tus apellidos"
+                $variant={errors.lastName ? 'error' : ''}
+                required
+              />
+              {errors.lastName && <ErrorMsg>{errors.lastName}</ErrorMsg>}
+            </LastNameInputWrapper>
+          </FormRow>
+          <FormRow>
+            <AddressInputWrapper>
+              <Typography $variant="body-2-medium">Dirección:</Typography>
+              <Autocomplete
+                onLoad={onLoad}
+                onPlaceChanged={onPlaceChanged}
+              >
+                <InputText
+                  ref={addressRef}
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  onBlur={handleAddressBlur}
+                  $size="large"
+                  placeholder="Introduce tu dirección"
+                  $variant={errors.address ? 'error' : ''}
+                  required
+                  autoComplete="off"
+                />
+              </Autocomplete>
+              <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>Mostraremos solo tu ciudad. Tu dirección completa no se mostrará.</Typography>
+              {errors.address && <ErrorMsg>{errors.address}</ErrorMsg>}
+            </AddressInputWrapper>
+          </FormRow>
+          <FormRow>
+            <PhonePrefixInputWrapper>
+              <Typography $variant="body-2-medium">Prefijo:</Typography>
+              <PhonePrefixInput>
+                {selectedCountry && (
+                  <PrefixFlag countryCode={selectedCountry.code} height="20" />
+                )}
+                <PrefixSelect
+                  name="phonePrefix"
+                  value={formData.phonePrefix}
+                  onChange={handleChange}
+                  $size="large"
+                  $variant={errors.phonePrefix ? 'error' : ''}
+                  required
+                  autoComplete="off"
+                >
+                  {countryCodes.map((code) => (
+                    <option key={`${code.dial_code}-${code.code}`} value={code.dial_code}>
+                      {code.name} ({code.dial_code})
+                    </option>
+                  ))}
+                </PrefixSelect>
+              </PhonePrefixInput>
+              {errors.phonePrefix && <ErrorMsg>{errors.phonePrefix}</ErrorMsg>}
+            </PhonePrefixInputWrapper>
+            <PhoneInputWrapper>
+              <Typography $variant="body-2-medium">Teléfono:</Typography>
+              <InputText
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                $size="large"
+                placeholder="Introduce tu número"
+                $variant={errors.phoneNumber ? 'error' : ''}
+                required
+                autoComplete="off"
+              />
+              {errors.phoneNumber && <ErrorMsg>{errors.phoneNumber}</ErrorMsg>}
+            </PhoneInputWrapper>
+          </FormRow>
+          <FormRow>
+            <InputTextAreaWrapper>
+              <Typography $variant="body-2-medium">Descripción:</Typography>
+              <InputTextArea style={{ fieldSizing: 'content' }}
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                $size="large"
+                autoComplete="off"
+              />
+            </InputTextAreaWrapper>
+          </FormRow>
+          <SocialMediaLinksRow>
+            <InputLinksWrapper>
+              <Typography $variant="body-2-medium">Redes sociales:</Typography>
+              <LinksInputInnerWrapper>
+                <InputText
+                  type="text"
+                  name="socialMediaLink"
+                  value={newLink}
+                  onChange={(e) => setNewLink(e.target.value)}
+                  placeholder="Introduce el enlace"
+                  $size="large"
+                />
+                <Button $variant="outline" style={{ alignSelf: 'stretch' }} type="button" onClick={handleAddLink}>Añadir Enlace</Button>
+              </LinksInputInnerWrapper>
+            </InputLinksWrapper>
+            {formData.socialMediaLinks.length > 0 && (
+              <LinksList>
+                {formData.socialMediaLinks.map((link, index) => (
+                  <SocialLinkItem key={index}>
+                    <SocialLink href={link.url} target="_blank" rel="noopener noreferrer">
+                      <img src={getIcon(link.platform)} alt={`${link.platform} icon`} style={{ marginRight: '8px' }} />
+                      <Typography style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{link.url}</Typography>
+                    </SocialLink>
+                    <Button $variant="ghost" $size="small" type="button" onClick={() => handleRemoveLink(index)}>Eliminar</Button>
+                  </SocialLinkItem>
+                ))}
+              </LinksList>
+            )}
+          </SocialMediaLinksRow>
+        </FormContent>
         <FormActions>
-          <Button type="submit" disabled={isLoading}>{isLoading ? 'Guardando...' : 'Guardar cambios'}</Button>
+          {isEditMode && (
+            <Button
+              size="medium"
+              $variant="outline"
+              type="button"
+              onClick={() => navigate(-1)}
+            >
+              Cancelar
+            </Button>
+          )}
+          <Button size="medium" type="submit" disabled={isLoading}>{isLoading ? 'Guardando...' : 'Guardar cambios'}</Button>
         </FormActions>
       </FormContainer>
-    </EditForm>
+    </CompleteProfileForm>
   );
 };
 
 export default CompleteProfile;
 
-const EditForm = styled.form`
+const CompleteProfileForm = styled.form`
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   background: ${({ theme }) => theme.fill.defaultSubtle};
   position: relative;
-  padding-bottom: 24px;
-  height: 100vh;
-
-  label {
-    color: ${({ theme }) => theme.colors.defaultStrong};
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-    font-family: "Mona Sans";
-    font-size: 14px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 140%;
-    display: flex;
-    flex-direction: column; 
-    gap: 6px;
-    flex-grow: 1;
-    width: 100%;
-
-    .inputNote {
-      color: ${({ theme }) => theme.colors.defaultWeak};
-      font-weight: 400;
-    }
-  }
-  
-  .Row {
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 124px 0px ${({ theme }) => theme.sizing.xxl} 0px;
-
-    h1 {
-      color: ${({ theme }) => theme.colors.defaultStrong};
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
-      font-family: "Mona Sans";
-      font-size: 28px;
-      font-style: normal;
-      font-weight: 600;
-      line-height: 140%; /* 39.2px */
-    }
+  padding-bottom: 120px;
 `;
 
-const FormActions = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  justify-content: flex-end;
-`;
-
-const FormContainer = styled.div`
-  display: flex;
-  width: 590px;
-  padding: var(--Spacing-lg, 32px);
-  flex-direction: column;
-  align-items: center;
-  gap: var(--Spacing-lg, 32px);
-  border-radius: var(--Spacing-xs, 8px);
-  background: var(--bg-default-main, #FFF);
-  box-shadow: 0px 2px 12px 0px rgba(26, 26, 26, 0.04);
-
-  .ImageContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .uploadField {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-
-    .labelContent {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
-      font-family: "Mona Sans";
-      font-style: normal;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      padding: 8px;
-      font-size: 16px;
-      background-color: transparent;
-      border: 2px solid ${({ theme }) => theme.border.defaultWeak};
-      color: ${({ theme }) => theme.colors.defaultMain};
-      line-height: 150%;
-      
-      p {
-        color: var(--text-icon-default-main, #292929);
-        font-variant-numeric: lining-nums tabular-nums;
-        font-feature-settings: 'ss01' on;
-        font-family: "Mona Sans";
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 600;
-        line-height: 150%;
-      }
-    }
-
-    .inputFile {
-      width: 0.1px;
-      height: 0.1px;
-      opacity: 0;
-      overflow: hidden !important;
-      position: absolute;
-      z-index: -1;
-    }
-  }
-
-  .ImageWrapper,
-  .EmptyImageWrapper {
-    width: 160px;
-    height: 160px;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .EmptyImageWrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    border: 1px solid var(--border-default-weak, #DCDCDC);
-    background: var(--bg-default-subtle, #FAFAFA);
-
-    .EmptyAvatarImage {
-      width: 60px;
-      height: 60px;
-    }
-  }
-
-  .ImageWrapper {
-    .AvatarImage {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .phonePrefixWrapper {
-    position: relative;
-
-    .prefixFlag  {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-    }
-
-    select {
-      padding-left: 44px;
-      height: 53px;
-    }
-  }
-
-  .LinksListWrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-
-    .LinkInputBlock {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-
-      Button {
-        flex-shrink: 0;
-      }
-    }
-
-    .LinksList {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-
-
-      .Link {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;
-        padding: 4px 4px 4px 16px;
-        border-radius: 8px;
-        width: 100%;
-        justify-content: space-between;
-        background: ${({ theme }) => theme.fill.defaultSubtle};
-
-        a {
-          width: 100%;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          color: var(--text-icon-default-strong, #464646);
-          font-variant-numeric: lining-nums tabular-nums;
-          font-feature-settings: 'ss01' on;
-          /* Body/Body 2/Medium */
-          font-family: "Mona Sans";
-          font-size: 14px;
-          font-style: normal;
-          font-weight: 500;
-          line-height: 140%; /* 19.6px */
-        }
-      }
-    }
-  }
-`;
 
 const Navigation = styled.div`
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--bg-default-main, #FFF);
+  background: ${({ theme }) => theme.fill.defaultMain};
   position: fixed;
   left: 0;
   top: 0;
   right: 0;
   z-index: 1;
-
-  .container {
-    width: 100%;
-    max-width: 1400px;
+  border-bottom: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  
+  .tabs{
     display: flex;
-    padding: 16px 24px;
-    align-items: center;
-    gap: 40px;
-    justify-content: space-between;
-
-    .tabs{
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      flex-direction: row;
-      
-      .tab {
-      
-      }
-    }
+    align-items: flex-start;
+    gap: 16px;
+    flex-direction: row;
   }
+`;
+
+const FormContainer = styled.div`
+  display: flex;
+  max-width: 590px;
+  flex-direction: column;
+  align-items: center;
+  border-radius: ${({ theme }) => theme.sizing.sm};
+  background: ${({ theme }) => theme.fill.defaultMain};
+  box-shadow: 0px 2px 12px 0px rgba(26, 26, 26, 0.04);
+  margin-top: 120px;
+  border: 1px solid ${({ theme }) => theme.border.defaultWeak};
+`;
+
+const FormContent = styled.div`
+  padding: ${({ theme }) => theme.sizing.md};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.sizing.md};
+`;
+
+const Container = styled.div`
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
+  align-items: center;
+  gap: 40px;
+  justify-content: space-between;
+`;
+
+const UserAvatarRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+`;
+
+const ImageWrapper = styled.div`
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
+    overflow: hidden;
+`;
+
+const EmptyImageWrapper = styled(ImageWrapper)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  border: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  background: ${({ theme }) => theme.fill.defaultSubtle};
+`;
+
+const EmptyAvatarImage = styled.img`
+  width: 60px;
+  height: 60px;
+`;
+
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const InputWrapper = styled.label`
+  display: flex;
+  flex-direction: column; 
+  gap: 6px;
+  flex-grow: 1;
+  width: 100%;
+`;
+
+const NameInputWrapper = styled(InputWrapper)``;
+
+const LastNameInputWrapper = styled(InputWrapper)``;
+
+const AddressInputWrapper = styled(InputWrapper)``;
+
+const PhonePrefixInputWrapper = styled(InputWrapper)``;
+
+const PhoneInputWrapper = styled(InputWrapper)``;
+
+const PhonePrefixInput = styled.div`
+  position: relative;
+`;
+
+const PrefixFlag = styled(CircleFlag)`
+  position: absolute;
+  top: 16px;
+  left: 16px;
+`;
+
+const PrefixSelect = styled(Select)`
+  padding-left: 44px;
+  height: 53px;
+`;
+
+const InputTextAreaWrapper = styled(InputWrapper)``;
+
+const InputLinksWrapper = styled(InputWrapper)``;
+
+const FormRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  justify-content: ${({ children }) => children.length > 1 ? 'space-between' : 'flex-end'};
+  border-top: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  width: 100%;
+  padding: ${({ theme }) => theme.sizing.md};
+`;
+
+const SocialMediaLinksRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  // padding-bottom: 0px;
+`;
+
+const SocialLinkItem = styled.li`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 16px;
+  border-radius: 8px;
+  width: 100%;
+  justify-content: space-between;
+  background: ${({ theme }) => theme.fill.defaultSubtle};
+`;
+
+const SocialLink = styled.a`
+  width: 100%;
+  display: inline-flex;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const LinksInputInnerWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+`;
+
+const LinksList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 `;
 
 const ErrorMsg = styled.p`
   color: red;
   font-size: 12px;
   margin-top: 4px;
+`;
+
+const UploadAvatarButton = styled.div`
+  background-color: transparent;
+  border: 1px solid ${theme.border.defaultWeak};
+  color: ${theme.colors.defaultMain};
+  transition: all 0.3s ease-in-out;
+  gap: ${({ theme }) => theme.radius.xs};
+  display: inline-flex;
+  border-radius: ${({ theme }) => theme.radius.xs};
+  padding: ${({ theme }) => theme.radius.xs} 12px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${theme.palette.alabaster[100]};
+  }
+`;
+
+const UploadField = styled.label`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`;
+
+const InputFile = styled.input`
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden !important;
+  position: absolute;
+  z-index: -1;
 `;

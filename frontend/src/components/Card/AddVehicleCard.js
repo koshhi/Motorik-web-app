@@ -6,7 +6,7 @@ function AddVehicleCard({ onClick }) {
   return (
     <CardContainer onClick={onClick}>
       <CardContent>
-        <img src="/icons/add-solid.svg" alt="Añadir" />
+        <img src="/icons/add-circle-black.svg" alt="Añadir" />
         <Typography $variant="title-5-medium">
           Añadir vehículo
         </Typography>

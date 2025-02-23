@@ -24,23 +24,45 @@ const storage = multer.diskStorage({})
 const upload = multer({ storage })
 
 usersRouter.post('/check-or-register', async (req, res) => {
-  const { email } = req.body
-
+  const { email, returnTo } = req.body
+  console.log('POST /check-or-register: email:', email, 'returnTo:', returnTo)
   try {
     let user = await User.findOne({ email })
 
     // Si el usuario ya está registrado, generar el Magic Link
     if (user) {
-      // const loginToken = tokenService.generateAuthToken(user)
-      const loginToken = tokenService.generateMagicLinkToken(user)
+      const loginToken = tokenService.generateMagicLinkToken(user, returnTo)
+      const loginLink = `${process.env.FRONTEND_URL}/login-with-token?token=${encodeURIComponent(loginToken)}`
+      console.log('Login link generado para usuario existente:', loginLink)
 
-      // const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
-      const loginLink = `http://localhost:5001/login-with-token?token=${encodeURIComponent(loginToken)}`
-
-      await sendLoginEmail(email, 'Log in to Motorik', `
-        <h1>Bienvenido de nuevo a Motorik</h1>
-        <p>Haz clic en el enlace para iniciar sesión:</p>
-        <a href="${loginLink}">Iniciar sesión</a>
+      await sendLoginEmail(email, 'Inicia sesión en Motorik', `
+        <div style="background: #FAFAFA; padding: 80px 8px;height: 100vh; display: block;">
+          <div style="background: #FFFFFF; padding: 24px; max-width: 400px; border-radius: 16px; border: 1px solid #DCDCDC; margin: 0 auto;"> 
+            <p style="margin-bottom: 16px; font-family: sans-serif !important; color: #10110f; text-align: left; font-size: 24px; font-style: normal; font-weight: 700; line-height: 140%; margin: 0px; padding-bottom: 8px; ">
+              Inicia sesión en Motorik
+            </p>
+            <p style="color: #464646; text-align: left; font-size: 16px; font-style: normal; font-family: sans-serif !important; font-weight: 500 !important; line-height: 150%; margin: 0px; padding-bottom: 16px; ">
+              Haz clic en el enlace para iniciar sesión:
+            </p>
+            <a href="${loginLink}" style="background-color: #10110f; border: none; border-radius: 8px; color: white; padding: 16px 16px; text-decoration: none; font-family: sans-serif !important;font-size: 18px; font-weight: 600; cursor: pointer; display: inline-block;display: block;text-align: center;">
+              Iniciar sesión
+            </a>
+            <p style="color: #656565; text-align: left; font-size: 16px; font-style: normal; font-family: sans-serif !important; font-weight: 500 !important; line-height: 150%; margin: 0px; padding: 16px 0px 24px 0px;">
+              Si no intentaste iniciar sesión, puedes ignorar este correo electrónico de forma segura.
+            </p>
+            <div style="display: block; height: 1px; background: #DCDCDC; margin-bottom: 24px;"></div>
+            <img src="http://cdn.mcauto-images-production.sendgrid.net/50b2706544b24184/c892ff76-363a-48c0-a509-50390f7a1aab/256x32.png" alt="Motorik Logo" style="height: 16px;">
+            <p style="color: #656565; text-align: left; font-family: sans-serif !important; font-size: 14px; font-style: normal; font-weight: 500; line-height: 140%; margin: 0px; padding-top: 16px; ">
+              La plataforma de referencia para encontrar planes del motor.
+            </p>
+            <p style="color: #656565; text-align: left; font-family: sans-serif !important; font-size: 14px; font-style: normal; font-weight: 500; line-height: 140%; margin: 0px; padding-top: 16px; ">
+              ¿Tienes problemas con Motorik? 
+              <a href="mailto:motorik.events@gmail.com" 
+                style="color: #10110f; text-align: left; font-family: sans-serif !important; font-size: 14px; font-style: normal; font-weight: 500; line-height: 140%; margin: 0px; text-decoration: underline;">Contáctanos
+              </a
+            </p>
+            </div>
+        </div>
       `)
 
       return res.status(200).json({ success: true, message: 'Login email sent.' })
@@ -52,36 +74,59 @@ usersRouter.post('/check-or-register', async (req, res) => {
       })
 
       await user.save()
+      const loginToken = tokenService.generateMagicLinkToken(user, returnTo)
+      const loginLink = `${process.env.FRONTEND_URL}/login-with-token?token=${encodeURIComponent(loginToken)}`
 
-      const loginToken = tokenService.generateMagicLinkToken(user)
-      // const loginToken = tokenService.generateAuthToken(user)
-      const loginLink = `http://localhost:5001/login-with-token?token=${loginToken}`
+      console.log('Signin link generado para nuevo usuario:', loginLink)
 
       await sendLoginEmail(email, 'Bienvenido a Motorik', `
-        <h1>Únete a Motorik</h1>
-        <p>Haz clic en el enlace para crear tu cuenta e iniciar sesión:</p>
-        <a href="${loginLink}">Crear cuenta</a>
+        <div style="background: #FAFAFA; padding: 80px 8px; height: 100vh; display: block;">
+          <div style="background: #FFFFFF; padding: 24px; max-width: 400px;border-radius: 16px; border: 1px solid #DCDCDC; margin: 0 auto;"> 
+            <p style="margin-bottom: 16px; font-family: sans-serif !important; color: #10110f; text-align: left; font-size: 24px; font-style: normal; font-weight: 700; line-height: 140%; margin: 0px; padding-bottom: 8px; ">
+              Únete a Motorik
+            </p>
+            <p style="color: #464646; text-align: left; font-size: 16px; font-style: normal; font-family: sans-serif !important; font-weight: 500 !important; line-height: 150%; margin: 0px; padding-bottom: 16px; ">
+              Haz clic en el enlace para crear tu cuenta e iniciar sesión:
+            </p>
+            <a href="${loginLink}" style="background-color: #10110f; border: none; border-radius: 8px; color: white; padding: 16px 16px; text-decoration: none; font-family: sans-serif !important;font-size: 18px; font-weight: 600; cursor: pointer; display: inline-block;display: block;text-align: center;">
+              Crear cuenta
+            </a>
+            <p style="color: #656565; text-align: left; font-size: 16px; font-style: normal; font-family: sans-serif !important; font-weight: 500 !important; line-height: 150%; margin: 0px; 16px 0px 24px 0px">
+              Si no intentaste iniciar sesión, puedes ignorar este correo electrónico de forma segura.
+            </p>
+            <div style="display: block; height: 1px; background: #DCDCDC; margin-bottom: 24px;"></div>
+            <img src="http://cdn.mcauto-images-production.sendgrid.net/50b2706544b24184/c892ff76-363a-48c0-a509-50390f7a1aab/256x32.png" alt="Motorik Logo" style="height: 16px;">
+            <p style="color: #656565; text-align: left; font-family: sans-serif !important; font-size: 14px; font-style: normal; font-weight: 500; line-height: 140%; margin: 0px; padding-top: 16px; ">
+              La plataforma de referencia para encontrar planes del motor.
+            </p>
+            <p style="color: #656565; text-align: left; font-family: sans-serif !important; font-size: 14px; font-style: normal; font-weight: 500; line-height: 140%; margin: 0px; padding-top: 16px; ">
+              ¿Tienes problemas con Motorik? 
+              <a href="mailto:motorik.events@gmail.com" 
+                style="color: #10110f; text-align: left; font-family: sans-serif !important; font-size: 14px; font-style: normal; font-weight: 500; line-height: 140%; margin: 0px; padding-top: 16px; text-decoration: underline;">Contáctanos
+              </a
+            </p>
+            </div>
+        </div>
       `)
 
       return res.status(200).json({ success: true, message: 'Verification email sent.' })
     }
   } catch (error) {
     console.error('Error processing email:', error)
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'TokenExpiredError' })
+    }
     return res.status(500).json({ success: false, message: 'Error processing request.' })
   }
 })
 
 usersRouter.get('/login-with-token', async (req, res) => {
   const { token } = req.query
+  // const { token, returnTo } = req.query
+  console.log('GET /login-with-token: token recibido:', token)
 
   try {
-    // Verify and decode the token
-    // console.log('Token received:', token)
-    // console.log('JWT_SECRET:', process.env.JWT_SECRET)
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    // console.log('Decoded token:', decoded)
-
     const user = await User.findById(decoded.id)
 
     if (!user) {
@@ -89,20 +134,10 @@ usersRouter.get('/login-with-token', async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' })
     }
 
-    // console.log('User found:', user)
-
     const profileFilled = user.profileFilled
-
-    // Generate new tokens
     const authToken = tokenService.generateAccessToken(user)
-    // console.log('Generated authToken:', authToken)
-
     const refreshToken = tokenService.generateRefreshToken(user)
-    // console.log('Generated refreshToken:', refreshToken)
 
-    // Store the refresh token in the database
-    // user.refreshToken = refreshToken
-    // await user.save()
     try {
       user.refreshToken = refreshToken
       await user.save()
@@ -133,7 +168,8 @@ usersRouter.get('/login-with-token', async (req, res) => {
       success: true,
       authToken,
       user,
-      profileFilled
+      profileFilled,
+      returnTo: decoded.returnTo || '/'
     })
   } catch (error) {
     console.error('Error in /login-with-token:', error)
@@ -167,7 +203,12 @@ usersRouter.post('/refresh-token', async (req, res) => {
       authToken
     })
   } catch (error) {
-    return res.status(403).json({ success: false, message: 'Invalid or expired refresh token.' })
+    // return res.status(403).json({ success: false, message: 'Invalid or expired refresh token.' })
+    console.error('Error in /login-with-token:', error)
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'TokenExpiredError' })
+    }
+    return res.status(400).json({ success: false, message: 'Invalid token.' })
   }
 })
 

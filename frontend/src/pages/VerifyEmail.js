@@ -8,6 +8,8 @@ import Button from '../components/Button/Button';
 const VerifyEmail = () => {
   const location = useLocation();
   const email = location.state?.email || 'tu correo';
+  const returnTo = location.state?.returnTo || '/';
+
   const [seconds, setSeconds] = useState(10);  // Temporizador de 10 segundos
   const [canResend, setCanResend] = useState(false);  // Control para habilitar el botón
 
@@ -27,7 +29,7 @@ const VerifyEmail = () => {
 
   const handleResend = async () => {
     try {
-      await axiosClient.post('/api/users/check-or-register', { email }); // Línea actualizada
+      await axiosClient.post('/api/users/check-or-register', { email, returnTo });
       setSeconds(10);  // Reiniciar el temporizador
       setCanResend(false);  // Deshabilitar el botón de nuevo
     } catch (error) {
