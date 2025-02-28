@@ -1,0 +1,55 @@
+{
+  "header": {
+    "title": "Events near"
+  },
+  "location": {
+    "loading": "Fetching your location...",
+    "label": "Where?",
+    "placeholder": "Enter an address"
+  },
+  "radius": {
+    "label": "Search radius (km):",
+    "rangeLabel": "Select the radius:"
+  },
+  "buttons": {
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "moreFilters": "More Filters",
+    "filterAlt": "Filters",
+    "closeAlt": "Close"
+  },
+  "time": {
+    "flexible": "Flexible date",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "this_week": "This week",
+    "this_month": "This month"
+  },
+  "modal": {
+    "header": "More Filters",
+    "closeAlt": "Close"
+  },
+  "filters": {
+    "terrain": {
+      "label": "Terrain:",
+      "all": "All",
+      "offroad": "Offroad",
+      "road": "Road",
+      "mixed": "Mixed"
+    },
+    "experience": {
+      "label": "Experience:",
+      "all": "All",
+      "none": "None",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "ticket": {
+      "label": "Ticket:",
+      "all": "All",
+      "free": "Free",
+      "paid": "Paid"
+    }
+  }
+}

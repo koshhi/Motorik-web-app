@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
-import InputText from "./Input/InputText";
+// import InputText from "./Input/InputText";
 import EventTypeTab from './Tab/EventTypeTab';
 import { getEventTypeSvgIcon } from '../utilities';
 import { theme } from '../theme';
@@ -10,10 +10,15 @@ import InputRange from './Input/InputRange';
 import InputLocation from './Input/InputLocation';
 import { getMunicipality } from '../utils/GetMunicipality';
 import { Autocomplete } from '@react-google-maps/api';
+import { useTranslation } from 'react-i18next';
+
 
 // const libraries = ['places'];
 
 const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
+  const { t: tCategories } = useTranslation('eventCategories');
+  const { t: tFilter } = useTranslation('filterForm');
+
   const minRadius = 10;
   const maxRadius = 1000;
 
@@ -191,19 +196,21 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
     <Filter>
       <FormContainer>
         <MainFilters>
-          <h2>Planes cerca de</h2>
+          {/* <h2>Planes cerca de</h2> */}
+          <h2>{tFilter('header.title')}</h2>
           <div className='filtersContainer'>
             <Location
               type="button"
               onClick={toggleLocationFields}
               ref={locationRef}
             >
-              <img src="/icons/location.svg" alt="location icon" />{municipality ? municipality : 'Obteniendo tu ubicación...'}
+              <img src="/icons/location.svg" alt="location icon" />
+              {municipality ? municipality : tFilter('location.loading')}
             </Location>
             {showLocationFields && (
               <LocationDropdown ref={dropdownRef}>
                 <div className='LocationAddressBlock'>
-                  <label htmlFor="locationInput">¿Dónde?</label>
+                  <label htmlFor="locationInput">{tFilter('location.label')}</label>
                   <Autocomplete
                     onLoad={(autocomplete) => {
                       autocompleteRef.current = autocomplete;
@@ -216,7 +223,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                       type="text"
                       value={tempAddress}
                       onChange={(e) => setTempAddress(e.target.value)}
-                      placeholder="Escribe una dirección"
+                      placeholder={tFilter('location.placeholder')}
                       id="locationInput"
                       size="large"
                       variant="default"
@@ -224,22 +231,22 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                   </Autocomplete>
                 </div>
                 <div className='LocationRadiusBlock'>
-                  <label htmlFor="radiusRange">Radio de búsqueda (km):</label>
+                  <label htmlFor="radiusRange">{tFilter('radius.label')}</label>
                   <InputRange
                     min={minRadius}
                     max={maxRadius}
                     step={10}
                     value={tempRadius}
                     onChange={(e) => setTempRadius(Number(e.target.value))}
-                    label="Selecciona el radio:"
+                    label={tFilter('radius.label')}
                   />
                 </div>
                 <div className='LocationDropdownButtons'>
                   <Button type="button" id="applyButton" onClick={handleApply}>
-                    Aplicar
+                    {tFilter('buttons.apply')}
                   </Button>
                   <Button type="button" id="cancelButton" $variant="outline" onClick={handleCancel}>
-                    Cancelar
+                    {tFilter('buttons.cancel')}
                   </Button>
                 </div>
 
@@ -247,11 +254,11 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
             )}
             <div className='TimeFrameWrapper'>
               <TimeFrame value={filters.timeFilter || 'flexible'} onChange={(e) => handleFilterChange('timeFilter', e.target.value)}>
-                <option value="flexible">Fecha flexible</option>
-                <option value="today">Hoy</option>
-                <option value="tomorrow">Mañana</option>
-                <option value="this_week">Esta semana</option>
-                <option value="this_month">Este mes</option>
+                <option value="flexible">{tFilter('time.flexible')}</option>
+                <option value="today">{tFilter('time.today')}</option>
+                <option value="tomorrow">{tFilter('time.tomorrow')}</option>
+                <option value="this_week">{tFilter('time.this_week')}</option>
+                <option value="this_month">{tFilter('time.this_month')}</option>
               </TimeFrame>
             </div>
           </div>
@@ -261,7 +268,8 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
             {['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'].map((category) => (
               <EventTypeTab
                 key={category}
-                category={category}
+                // category={category}
+                category={tCategories(category)}
                 isActive={filters.typology.includes(category)}
                 onClick={() => handleFilterChange('typology', category)}
                 icon={getEventTypeSvgIcon(category, filters.typology.includes(category) ? theme.colors.brandMain : theme.colors.defaultSubtle)}
@@ -269,43 +277,46 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
             ))}
           </div>
           <div className='MoreFilters'>
-            <Button $variant='outline' type="button" onClick={() => setShowModal(true)}>Otros Filtros<img src="/icons/filter.svg" alt='Filtros' /></Button>
+            <Button $variant='outline' type="button" onClick={() => setShowModal(true)}>
+              {tFilter('buttons.moreFilters')}
+              <img src="/icons/filter.svg" alt='Filtros' />
+            </Button>
 
             {showModal && (
               <ModalWrapper>
                 <Modal>
                   <div className='Heading'>
-                    <h3>Otros Filtros</h3>
+                    <h3>{tFilter('modal.header')}</h3>
                     <Button $variant='ghost' type="button" onClick={() => setShowModal(false)}><img src='/icons/close.svg' alt='Close' /></Button>
                   </div>
                   <div className='ModalContent'>
                     <div>
-                      <label>Terreno:</label>
+                      <label>{tFilter('filters.terrain.label')}</label>
                       <Select value={filters.terrain || ''} onChange={(e) => handleFilterChange('terrain', e.target.value)}>
-                        <option value="">Todos</option>
-                        <option value="offroad">Offroad</option>
-                        <option value="road">Carretera</option>
-                        <option value="mixed">Mixto</option>
+                        <option value="">{tFilter('filters.terrain.all')}</option>
+                        <option value="offroad">{tFilter('filters.terrain.offroad')}</option>
+                        <option value="road">{tFilter('filters.terrain.road')}</option>
+                        <option value="mixed">{tFilter('filters.terrain.mixed')}</option>
                       </Select>
                     </div>
 
                     <div>
-                      <label>Experiencia:</label>
+                      <label>{tFilter('filters.experience.label')}</label>
                       <Select value={filters.experience || ''} onChange={(e) => handleFilterChange('experience', e.target.value)}>
-                        <option value="">Todos</option>
-                        <option value="none">Ninguno</option>
-                        <option value="beginner">Principiante</option>
-                        <option value="intermediate">Intermedio</option>
-                        <option value="advanced">Avanzado</option>
+                        <option value="">{tFilter('filters.experience.all')}</option>
+                        <option value="none">{tFilter('filters.experience.none')}</option>
+                        <option value="beginner">{tFilter('filters.experience.beginner')}</option>
+                        <option value="intermediate">{tFilter('filters.experience.intermediate')}</option>
+                        <option value="advanced">{tFilter('filters.experience.advanced')}</option>
                       </Select>
                     </div>
 
                     <div>
-                      <label>Ticket:</label>
+                      <label>{tFilter('filters.ticket.label')}</label>
                       <Select value={filters.ticketType || ''} onChange={(e) => handleFilterChange('ticketType', e.target.value)}>
-                        <option value="">Todos</option>
-                        <option value="free">Gratis</option>
-                        <option value="paid">De pago</option>
+                        <option value="">{tFilter('filters.ticket.all')}</option>
+                        <option value="free">{tFilter('filters.ticket.free')}</option>
+                        <option value="paid">{tFilter('filters.ticket.paid')}</option>
                       </Select>
                     </div>
                   </div>
@@ -316,7 +327,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
           </div>
         </SecondaryFilters>
       </FormContainer>
-    </Filter>
+    </Filter >
   );
 };
 

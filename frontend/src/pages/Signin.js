@@ -49,29 +49,29 @@ const Signin = () => {
       <SigninBlock>
         <Header>
           <Link className='BackLink' to="/"><img src="/icons/chevron-left.svg" alt="Back button" /></Link>
-          <p>Únete o entra a Motorik</p>
+          <p>{t('signinHeader')}</p>
         </Header>
         <OauthSignin>
           {/* <h2 className='Title'>{t('oauthTitle')}Unete o entra en un click</h2> */}
           <h2 className='Title'>{t('oauthTitle')}</h2>
-          <p className='Subtitle'>Entra con tu cuenta de Google o Facebook</p>
+          <p className='Subtitle'>{t('oauthSubtitle')}</p>
           <div className='OauthButtons'>
-            <Button className='GoogleSignin' onClick={handleGoogleSignin} $variant="outline" size="medium"><img src="icons/google-color.svg" alt="Google logo" /><p>Continuar con Google</p><img src="icons/chevron-right.svg" alt="arrow icon" /></Button>
-            <Button className='FacebookSignin' onClick={handleFacebookSignin} $variant="outline" size="medium"><img src="icons/facebook-color.svg" alt="Google logo" /><p>Continuar con Facebook</p><img src="icons/chevron-right.svg" alt="arrow icon" /></Button>
+            <Button className='GoogleSignin' onClick={handleGoogleSignin} $variant="outline" size="medium"><img src="icons/google-color.svg" alt="Google logo" /><p>{t('googleSigninButton')}</p><img src="icons/chevron-right.svg" alt="arrow icon" /></Button>
+            <Button className='FacebookSignin' onClick={handleFacebookSignin} $variant="outline" size="medium"><img src="icons/facebook-color.svg" alt="Google logo" /><p>{t('facebookSigninButton')}</p><img src="icons/chevron-right.svg" alt="arrow icon" /></Button>
           </div>
         </OauthSignin>
         <EmailSigninForm onSubmit={handleEmailSubmit}>
-          <p className='Subtitle'>Entra con tu correo electrónico</p>
+          <p className='Subtitle'>{t('emailSigninSubtitle')}</p>
           <InputText
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Introduce tu email"
+            placeholder={t('emailPlaceholder')}
             required
             $size='large'
           />
           {error && <p>{error}</p>}
-          <Button className='EmailSignin' size="medium" type="submit">Continuar con Email<img src="icons/chevron-right-white.svg" alt="arrow icon" /></Button>
+          <Button className='EmailSignin' size="medium" type="submit">{t('emailSigninButton')}<img src="icons/chevron-right-white.svg" alt="arrow icon" /></Button>
         </EmailSigninForm>
 
       </SigninBlock>
