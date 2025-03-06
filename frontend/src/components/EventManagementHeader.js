@@ -50,13 +50,13 @@ const EventManagementHeader = () => {
               to={`/events/manage/${id}/registration`}
               className={`SectionTab ${location.pathname.includes('registration') ? 'Active' : ''}`}
             >
-              Registro
+              Entradas
             </Link>
             <Link
-              to={`/events/manage/${id}/email`}
-              className={`SectionTab ${location.pathname.includes('email') ? 'Active' : ''}`}
+              to={`/events/manage/${id}/communications`}
+              className={`SectionTab ${location.pathname.includes('communications') ? 'Active' : ''}`}
             >
-              Email
+              Comunicaciones
             </Link>
             <Link
               to={`/events/manage/${id}/options`}

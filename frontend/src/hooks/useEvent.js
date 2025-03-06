@@ -39,16 +39,6 @@ const useEvent = (eventId, user) => {
     }
   }, [eventId, user]);
 
-  // // Agregar polling cada 5 segundos para actualizar el evento
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     if (eventId) {
-  //       fetchEvent();
-  //     }
-  //   }, 5000); // cada 5 segundos (ajusta según necesites)
-  //   return () => clearInterval(interval);
-  // }, [eventId]);
-
   return { event, isOwner, loadingEvent, error, setEvent };
 };
 

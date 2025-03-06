@@ -7,6 +7,8 @@ import Button from '../Button/Button';
 import Typography from '../Typography';
 import OrganizerInfo from './OrganizerInfo';
 import Tag from '../Tag';
+import ClipboardButton from '../ClipboardButton/ClipboardButton';
+
 
 const EventHeader = ({
   title,
@@ -18,7 +20,8 @@ const EventHeader = ({
   isEnrolled,
   handleEnroll,
   eventId,
-  organizer
+  organizer,
+  copyUrl
 }) => {
   return (
     <HeaderContainer>
@@ -39,9 +42,17 @@ const EventHeader = ({
             </TagsWrapper>
           </HeaderLeft>
           <HeaderRight>
-            <Button $variant="outline" aria-label="Compartir evento" style={{ padding: '10px' }}>
+            {/* <Button $variant="outline" aria-label="Compartir evento" style={{ padding: '10px' }}>
               <img src="/icons/share.svg" alt="share-icon" />
-            </Button>
+            </Button> */}
+            <ClipboardButton
+              text={copyUrl}
+              $variant="outline"
+              aria-label="Compartir evento"
+              tooltipText="Evento copiado"
+              label="Compartir"
+            />
+
             {isOwner ? (
               <Link to={manageLink}>
                 <Button $variant="outline" aria-label="Gestionar evento">

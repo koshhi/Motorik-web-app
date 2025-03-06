@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import InputText from '../components/Input/InputText';
 import Button from '../components/Button/Button';
@@ -13,44 +13,55 @@ const Signin = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('signin');
 
+  const location = useLocation();
+  const returnTo = location.state?.returnTo || '/'; // Valor por defecto si no viene definido
+  console.log('Signin: returnTo recibido desde location.state:', returnTo);
+
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      // Petición al backend para enviar el Magic Link
-      const response = await axiosClient.post('/api/users/check-or-register', { email });
+      // const response = await axiosClient.post('/api/users/check-or-register', { email });
+      const response = await axiosClient.post('/api/users/check-or-register', { email, returnTo });
 
       if (response.data.success) {
-        navigate('/email-verification', { state: { email } });
+        // Pasamos email y returnTo para que luego se pueda redirigir al usuario a la URL original
+        navigate('/email-verification', { state: { email, returnTo } });
       } else {
         setError(response.data.message || 'Error enviando el email, por favor intenta de nuevo.');
       }
     } catch (err) {
       console.error('Error en Signin:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Error procesando la solicitud, por favor intenta de nuevo.');
-      }
+      setError(err.response?.data?.message || 'Error procesando la solicitud, por favor intenta de nuevo.');
     }
   };
 
   const handleGoogleSignin = () => {
-    window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`;
+    const url = `${process.env.REACT_APP_API_URL}/auth/google?returnTo=${encodeURIComponent(returnTo)}`;
+    console.log('Google signin URL:', url);
+    window.location.href = url;
+    // window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`;
+    // window.location.href = `${process.env.REACT_APP_API_URL}/auth/google?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
   const handleFacebookSignin = () => {
-    window.location.href = `${process.env.REACT_APP_API_URL}/auth/facebook`;
+    // window.location.href = `${process.env.REACT_APP_API_URL}/auth/facebook`;
+    // window.location.href = `${process.env.REACT_APP_API_URL}/auth/facebook?returnTo=${encodeURIComponent(returnTo)}`;
+    const url = `${process.env.REACT_APP_API_URL}/auth/facebook?returnTo=${encodeURIComponent(returnTo)}`;
+    console.log('Facebook signin URL:', url);
+    window.location.href = url;
   };
 
   return (
     <SigninContainer>
       <SigninBlock>
         <Header>
-          <Link className='BackLink' to="/"><img src="/icons/chevron-left.svg" alt="Back button" /></Link>
-          <p>{t('signinHeader')}</p>
+          <Link className='BackLink' to={returnTo}><img src="/icons/chevron-left.svg" alt="Back button" /></Link>
+          {/* <p>Únete o entra a Motorik</p> */}
+          {t('signinHeader')}
         </Header>
+
         <OauthSignin>
           {/* <h2 className='Title'>{t('oauthTitle')}Unete o entra en un click</h2> */}
           <h2 className='Title'>{t('oauthTitle')}</h2>
