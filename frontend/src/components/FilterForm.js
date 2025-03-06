@@ -8,6 +8,7 @@ import Button from './Button/Button';
 import Select from './Select/Select';
 import InputRange from './Input/InputRange';
 import InputLocation from './Input/InputLocation';
+import Typography from '../components/Typography';
 import { getMunicipality } from '../utils/GetMunicipality';
 import { Autocomplete } from '@react-google-maps/api';
 import { useTranslation } from 'react-i18next';
@@ -196,9 +197,8 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
     <Filter>
       <FormContainer>
         <MainFilters>
-          {/* <h2>Planes cerca de</h2> */}
-          <h2>{tFilter('header.title')}</h2>
-          <div className='filtersContainer'>
+          <Typography as="h2" $variant="title-4-semibold">{tFilter('header.title')}</Typography>
+          <FiltersContainer>
             <Location
               type="button"
               onClick={toggleLocationFields}
@@ -209,7 +209,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
             </Location>
             {showLocationFields && (
               <LocationDropdown ref={dropdownRef}>
-                <div className='LocationAddressBlock'>
+                <LocationAddressBlock>
                   <label htmlFor="locationInput">{tFilter('location.label')}</label>
                   <Autocomplete
                     onLoad={(autocomplete) => {
@@ -229,8 +229,8 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                       variant="default"
                     />
                   </Autocomplete>
-                </div>
-                <div className='LocationRadiusBlock'>
+                </LocationAddressBlock>
+                <LocationRadiusBlock>
                   <label htmlFor="radiusRange">{tFilter('radius.label')}</label>
                   <InputRange
                     min={minRadius}
@@ -240,19 +240,19 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                     onChange={(e) => setTempRadius(Number(e.target.value))}
                     label={tFilter('radius.label')}
                   />
-                </div>
-                <div className='LocationDropdownButtons'>
+                </LocationRadiusBlock>
+                <LocationDropdownButtons>
                   <Button type="button" id="applyButton" onClick={handleApply}>
                     {tFilter('buttons.apply')}
                   </Button>
                   <Button type="button" id="cancelButton" $variant="outline" onClick={handleCancel}>
                     {tFilter('buttons.cancel')}
                   </Button>
-                </div>
+                </LocationDropdownButtons>
 
               </LocationDropdown>
             )}
-            <div className='TimeFrameWrapper'>
+            <TimeFrameWrapper>
               <TimeFrame value={filters.timeFilter || 'flexible'} onChange={(e) => handleFilterChange('timeFilter', e.target.value)}>
                 <option value="flexible">{tFilter('time.flexible')}</option>
                 <option value="today">{tFilter('time.today')}</option>
@@ -260,11 +260,11 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                 <option value="this_week">{tFilter('time.this_week')}</option>
                 <option value="this_month">{tFilter('time.this_month')}</option>
               </TimeFrame>
-            </div>
-          </div>
+            </TimeFrameWrapper>
+          </FiltersContainer>
         </MainFilters>
         <SecondaryFilters>
-          <div className='TabsFilters'>
+          <TabsFilters>
             {['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'].map((category) => (
               <EventTypeTab
                 key={category}
@@ -275,7 +275,7 @@ const FilterForm = ({ filters, setFilters, municipality, setMunicipality }) => {
                 icon={getEventTypeSvgIcon(category, filters.typology.includes(category) ? theme.colors.brandMain : theme.colors.defaultSubtle)}
               />
             ))}
-          </div>
+          </TabsFilters>
           <div className='MoreFilters'>
             <Button $variant='outline' type="button" onClick={() => setShowModal(true)}>
               {tFilter('buttons.moreFilters')}
@@ -358,32 +358,21 @@ const MainFilters = styled.div`
   flex-direction: row;
   align-items: center;
   gap: ${({ theme }) => theme.sizing.sm};
+`;
 
-  h2 {
-    margin: unset;
-    color: ${({ theme }) => theme.colors.defaultMain};
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-    font-family: "Mona Sans";
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 100%;
-  }
+const FiltersContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: ${({ theme }) => theme.sizing.xxs};
+  gap: ${({ theme }) => theme.sizing.xs};
+  border-radius: ${({ theme }) => theme.sizing.sm};
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  box-shadow: 0px 7px 4px -4px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.16);
+`;
 
-  .filtersContainer {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: ${({ theme }) => theme.sizing.xxs};
-    gap: ${({ theme }) => theme.sizing.xs};
-    border-radius: ${({ theme }) => theme.sizing.sm};
-    background-color: ${({ theme }) => theme.fill.defaultMain};
-    box-shadow: 0px 7px 4px -4px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.16);
-  }
-
-  .TimeFrameWrapper {
+const TimeFrameWrapper = styled.div`
     position: relative;
 
     &::before {
@@ -396,6 +385,33 @@ const MainFilters = styled.div`
       height: 20px;
       z-index: 1;
     }
+`;
+
+const TimeFrame = styled.select`
+  background-color: ${({ theme }) => theme.fill.defaultMain};
+  color: ${({ theme }) => theme.colors.defaultWeak};
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'ss01' on;
+  font-family: "Mona Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  padding: 0px 32px 0px 38px;
+  height: 44px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+
+  -webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+  background: url(${process.env.REACT_APP_CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
+	background-size: 24px;
+	background-position: calc(100% - 4px);
+
+  &:hover {
+    background-color: #efefef;
   }
 `;
 
@@ -405,14 +421,16 @@ const SecondaryFilters = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: ${({ theme }) => theme.sizing.sm};
-
-  .TabsFilters {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: ${({ theme }) => theme.sizing.sm};
-  }
 `;
+
+const TabsFilters = styled.div`
+display: flex;
+flex-direction: row;
+align-items: center;
+gap: ${({ theme }) => theme.sizing.sm};
+`;
+
+
 
 const Location = styled.button`
   // background-color: ${({ theme }) => theme.fill.defauMain};
@@ -446,6 +464,21 @@ const Location = styled.button`
   }
 `;
 
+const LocationAddressBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const LocationRadiusBlock = styled(LocationAddressBlock)``;
+
+const LocationDropdownButtons = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: ${({ theme }) => theme.sizing.xs};
+  justify-content: flex-start;
+`;
+
 const LocationDropdown = styled.div`
   position: absolute;
   top: 64px;
@@ -460,50 +493,8 @@ const LocationDropdown = styled.div`
   background-color: ${({ theme }) => theme.fill.defaultMain};
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.08);
   z-index: 999;
-
-  .LocationDropdownButtons{
-    display: flex;
-    flex-direction: row;
-    gap: ${({ theme }) => theme.sizing.xs};
-    justify-content: flex-start;
-  }
-
-  .LocationAddressBlock,
-  .LocationRadiusBlock {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
 `;
 
-
-const TimeFrame = styled.select`
-  background-color: ${({ theme }) => theme.fill.defaultMain};
-  color: ${({ theme }) => theme.colors.defaultWeak};
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: 'ss01' on;
-  font-family: "Mona Sans", sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  border: none;
-  border-radius: 12px;
-  padding: 0px 32px 0px 38px;
-  height: 44px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.3s;
-
-  -webkit-appearance: none;
-	-moz-appearance: none;
-	appearance: none;
-  background: url(${process.env.REACT_APP_CLIENT_URL}/icons/chevron-down.svg) no-repeat center / contain;
-	background-size: 24px;
-	background-position: calc(100% - 4px);
-
-  &:hover {
-    background-color: #efefef;
-  }
-`;
 
 const ModalWrapper = styled.div`
   position: fixed;
