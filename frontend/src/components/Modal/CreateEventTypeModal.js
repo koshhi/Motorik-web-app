@@ -6,15 +6,18 @@ import { getEventTypeSvgIcon } from '../../utilities';
 import { theme } from '../../theme';
 import styled from 'styled-components';
 import Typography from '../Typography';
+import { useTranslation } from 'react-i18next';
 
 const EventTypeModal = ({ eventType, setEventType, onClose }) => {
+  const { t } = useTranslation('createEvent');
   const categories = ['Meetup', 'Competition', 'Race', 'Adventure', 'Trip', 'Gathering', 'Course', 'Ride', 'Exhibition'];
 
   return (
-    <Modal onClose={onClose} title="Tipo de evento">
+    <Modal onClose={onClose} title={t('createEventTypeModal.title')}>
       <ModalContent>
         <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
-          Selecciona el tipo de evento que mejor describa tu actividad.
+          {/* Selecciona el tipo de evento que mejor describa tu actividad. */}
+          {t('createEventTypeModal.description')}
         </Typography>
         <EventTypeList>
           {categories.map((category) => (
@@ -29,7 +32,9 @@ const EventTypeModal = ({ eventType, setEventType, onClose }) => {
         </EventTypeList>
       </ModalContent>
       <FormActions>
-        <Button size="medium" onClick={onClose}>Guardar tipo de evento</Button>
+        <Button size="medium" onClick={onClose}>
+          {t('createEventTypeModal.save')}
+        </Button>
       </FormActions>
     </Modal>
   );

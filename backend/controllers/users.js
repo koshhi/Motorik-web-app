@@ -91,7 +91,7 @@ usersRouter.post('/check-or-register', async (req, res) => {
             <a href="${loginLink}" style="background-color: #10110f; border: none; border-radius: 8px; color: white; padding: 16px 16px; text-decoration: none; font-family: sans-serif !important;font-size: 18px; font-weight: 600; cursor: pointer; display: inline-block;display: block;text-align: center;">
               Crear cuenta
             </a>
-            <p style="color: #656565; text-align: left; font-size: 16px; font-style: normal; font-family: sans-serif !important; font-weight: 500 !important; line-height: 150%; margin: 0px; 16px 0px 24px 0px">
+            <p style="color: #656565; text-align: left; font-size: 16px; font-style: normal; font-family: sans-serif !important; font-weight: 500 !important; line-height: 150%; margin: 0px 16px 0px 24px">
               Si no intentaste iniciar sesión, puedes ignorar este correo electrónico de forma segura.
             </p>
             <div style="display: block; height: 1px; background: #DCDCDC; margin-bottom: 24px;"></div>

@@ -1,0 +1,69 @@
+{
+  "pageTitle": {
+    "edit": "Edit Profile",
+    "complete": "Complete Your Profile"
+  },
+  "tabs": {
+    "completeProfile": "Complete Your Profile",
+    "markInterests": "Mark Your Interests",
+    "addGarage": "Add Your Garage"
+  },
+  "nav": {
+    "saveChanges": "Save Changes"
+  },
+  "upload": {
+    "uploadFileAlt": "Upload File",
+    "uploadImage": "Upload an Image"
+  },
+  "form": {
+    "name": {
+      "label": "Name:",
+      "placeholder": "Enter your name",
+      "error": "Name is required"
+    },
+    "lastName": {
+      "label": "Last Name:",
+      "placeholder": "Enter your last name",
+      "error": "Last name is required"
+    },
+    "address": {
+      "label": "Address:",
+      "placeholder": "Enter your address",
+      "note": "We will only show your city. Your full address will not be displayed.",
+      "error": "Address is required"
+    },
+    "phonePrefix": {
+      "label": "Prefix:",
+      "error": "Phone prefix is required"
+    },
+    "phoneNumber": {
+      "label": "Phone:",
+      "placeholder": "Enter your number",
+      "error": "Phone number is required"
+    },
+    "biography": {
+      "label": "Biography:"
+    },
+    "socialMedia": {
+      "label": "Social Media:",
+      "linkPlaceholder": "Enter the link",
+      "addLink": "Add Link",
+      "removeLink": "Remove"
+    }
+  },
+  "formActions": {
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "saving": "Saving..."
+  },
+  "toasts": {
+    "duplicateLink": "Duplicate link",
+    "profileCompleted": "Profile completed successfully",
+    "updateUserError": "Error updating user data",
+    "sessionExpired": "Session expired. Please log in again.",
+    "updateProfileError": "Error updating profile"
+  },
+  "altTexts": {
+    "emptyAvatar": "empty avatar"
+  }
+}

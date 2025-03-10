@@ -1,0 +1,102 @@
+{
+  "eventForm": {
+    "imageUpload": "Upload an image",
+    "uploadAlt": "Upload image",
+    "titlePlaceholder": "Enter the event title...",
+    "organizedBy": "Organized by",
+    "details": "Details",
+    "detailsPlaceholder": "Add details about your event so that other users can know what it is about...",
+    "date": {
+      "heading": "Date",
+      "startLabel": "Start",
+      "endLabel": "End"
+    },
+    "location": {
+      "heading": "Location",
+      "searchPlaceholder": "Enter the event location",
+      "searchAlt": "Search by location"
+    },
+    "options": {
+      "heading": "Event options",
+      "eventType": {
+        "label": "Event type",
+        "edit": "Edit"
+      },
+      "terrain": {
+        "label": "Terrain",
+        "edit": "Edit"
+      },
+      "experience": {
+        "label": "Experience",
+        "edit": "Edit"
+      },
+      "vehicle": {
+        "label": "Requires vehicle?"
+      },
+      "ticket": {
+        "label": "Ticket",
+        "free": "Free",
+        "paid": "Paid - {{price}}€",
+        "edit": "Edit"
+      }
+    }
+  },
+  "createEventPage": {
+    "title": "Create an event",
+    "discard": "Discard",
+    "create": "Create Event",
+    "creating": "Creating..."
+  },
+  "createEventTypeModal": {
+    "title": "Event type",
+    "description": "Select the type of event that best describes your activity.",
+    "save": "Save event type"
+  },
+  "createEventTicketModal": {
+    "title": "Set up the ticket",
+    "description": "Customize the ticket, its price, and available quantity.",
+    "name": {
+      "label": "Name",
+      "placeholder": "Ticket name"
+    },
+    "ticketOptions": {
+      "free": "Free",
+      "paid": "Paid"
+    },
+    "freeTicket": {
+      "capacityLabel": "Number of Tickets:",
+      "capacityPlaceholder": "Ticket capacity",
+      "approvalLabel": "Approval required:",
+      "save": "Save ticket"
+    },
+    "paidTicket": {
+      "loadingStripe": "Loading Stripe status...",
+      "noStripe": {
+        "title": "Set up your account to sell paid tickets.",
+        "description": "To create paid tickets, you must have payments enabled in your account. Go to your settings to do so.",
+        "button": "Go to Settings"
+      },
+      "stripeNotEnabled": {
+        "title": "Charges not enabled",
+        "description": "To offer paid tickets, your Stripe account must be verified and enabled for charges. Check your Stripe settings.",
+        "button": "Go to Settings"
+      },
+      "enabled": {
+        "capacityLabel": "Number of Tickets:",
+        "capacityPlaceholder": "Ticket capacity",
+        "priceLabel": "Price:",
+        "pricePlaceholder": "Ticket price"
+      }
+    }
+  },
+  "createEventTerrainModal": {
+    "title": "Terrain type",
+    "description": "This information will help give visibility to your event.",
+    "save": "Save terrain type"
+  },
+  "createEventExperienceModal": {
+    "title": "Desired experience",
+    "description": "This information will help give visibility to your event.",
+    "save": "Save desired experience"
+  }
+}

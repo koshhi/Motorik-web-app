@@ -1,0 +1,69 @@
+{
+  "pageTitle": {
+    "edit": "Editar perfil",
+    "complete": "Completa tu perfil"
+  },
+  "tabs": {
+    "completeProfile": "Completa tu perfil",
+    "markInterests": "Marca tus intereses",
+    "addGarage": "Añade tu garaje"
+  },
+  "nav": {
+    "saveChanges": "Guardar cambios"
+  },
+  "upload": {
+    "uploadFileAlt": "Subir fichero",
+    "uploadImage": "Sube una imagen"
+  },
+  "form": {
+    "name": {
+      "label": "Nombre:",
+      "placeholder": "Introduce tu nombre",
+      "error": "El nombre es obligatorio"
+    },
+    "lastName": {
+      "label": "Apellidos:",
+      "placeholder": "Introduce tus apellidos",
+      "error": "Los apellidos son obligatorios"
+    },
+    "address": {
+      "label": "Dirección:",
+      "placeholder": "Introduce tu dirección",
+      "note": "Mostraremos solo tu ciudad. Tu dirección completa no se mostrará.",
+      "error": "La dirección es obligatoria"
+    },
+    "phonePrefix": {
+      "label": "Prefijo:",
+      "error": "El prefijo del teléfono es obligatorio"
+    },
+    "phoneNumber": {
+      "label": "Teléfono:",
+      "placeholder": "Introduce tu número",
+      "error": "El número de teléfono es obligatorio"
+    },
+    "biography": {
+      "label": "Biografía:"
+    },
+    "socialMedia": {
+      "label": "Redes sociales:",
+      "linkPlaceholder": "Introduce el enlace",
+      "addLink": "Añadir Enlace",
+      "removeLink": "Eliminar"
+    }
+  },
+  "formActions": {
+    "cancel": "Cancelar",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando..."
+  },
+  "toasts": {
+    "duplicateLink": "Enlace duplicado",
+    "profileCompleted": "Perfil completado correctamente",
+    "updateUserError": "Error actualizando los datos del usuario",
+    "sessionExpired": "Sesión expirada. Por favor, inicia sesión nuevamente.",
+    "updateProfileError": "Error al actualizar el perfil"
+  },
+  "altTexts": {
+    "emptyAvatar": "empty avatar"
+  }
+}

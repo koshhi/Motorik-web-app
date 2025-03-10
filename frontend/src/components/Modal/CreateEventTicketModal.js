@@ -13,6 +13,7 @@ import axiosClient from '../../api/axiosClient';
 import StripeOnboardingModal from './StripeOnboardingModal';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const CreateEventTicketModal = ({
@@ -28,7 +29,7 @@ const CreateEventTicketModal = ({
   setApprovalRequired,
   onClose,
 }) => {
-
+  const { t } = useTranslation('createEvent');
   const { user } = useAuth();
   const userId = user?._id || user?.id
 
@@ -43,8 +44,8 @@ const CreateEventTicketModal = ({
 
   // Opciones para ToogableTabs
   const ticketOptions = [
-    { label: 'Gratis', value: 'free' },
-    { label: 'De Pago', value: 'paid' },
+    { label: t('createEventTicketModal.ticketOptions.free'), value: 'free' },
+    { label: t('createEventTicketModal.ticketOptions.paid'), value: 'paid' }
   ];
 
   const navigate = useNavigate();
@@ -88,24 +89,26 @@ const CreateEventTicketModal = ({
   }, [ticketType]);
 
   return (
-    <Modal onClose={onClose} title="Configura la entrada">
+    <Modal onClose={onClose} title={t('createEventTicketModal.title')}>
       <ModalContent>
         <ModalContentRow>
           <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
-            Customiza la entrada, su precio y cantidad disponible.
+            {t('createEventTicketModal.description')}
+            {/* Customiza la entrada, su precio y cantidad disponible. */}
           </Typography>
         </ModalContentRow>
         <ModalContentRow>
           <InputWrapper>
             <Typography $variant="body-2-medium" as="label" color={theme.colors.defaultMain}>
-              Nombre
+              {t('createEventTicketModal.name.label')}
             </Typography>
             <InputText
               $size="large"
               type="text"
               value={ticketName}
               onChange={(e) => setTicketName(e.target.value)}
-              placeholder="Nombre de la entrada"
+              // placeholder="Nombre de la entrada"
+              placeholder={t('createEventTicketModal.name.placeholder')}
               required
             />
           </InputWrapper>
@@ -124,13 +127,17 @@ const CreateEventTicketModal = ({
           <>
             <ModalContentRow>
               <InputWrapperHorizontal>
-                <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Número de Entradas:</Typography>
+                <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>
+                  {t('createEventTicketModal.freeTicket.capacityLabel')}
+
+                </Typography>
                 <InputText
                   size="medium"
                   type="number"
                   value={capacity}
                   onChange={(e) => setCapacity(e.target.value)}
-                  placeholder="Capacidad del ticket"
+                  // placeholder="Capacidad del ticket"
+                  placeholder={t('createEventTicketModal.freeTicket.capacityPlaceholder')}
                   required
                   style={{ width: "80px" }}
                 />
@@ -138,7 +145,9 @@ const CreateEventTicketModal = ({
             </ModalContentRow>
             <ModalContentRow>
               <InputWrapperHorizontal style={{ minHeight: "38px" }}>
-                <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>Aprobación requerida:</Typography>
+                <Typography $variant="body-1-medium" as="label" color={theme.colors.defaultMain} style={{ width: "100%" }}>
+                  {t('createEventTicketModal.freeTicket.approvalLabel')}
+                </Typography>
                 <Switch
                   value={approvalRequired}
                   onChange={(value) => setApprovalRequired(value)}
@@ -148,7 +157,7 @@ const CreateEventTicketModal = ({
             </ModalContentRow>
             <FormActions>
               <Button size="medium" onClick={onClose}>
-                Guardar ticket
+                {t('createEventTicketModal.freeTicket.save')}
               </Button>
             </FormActions>
           </>
@@ -157,7 +166,7 @@ const CreateEventTicketModal = ({
         {ticketType === 'paid' && (
           <>
             {loadingStripeCheck ? (
-              <p>Cargando estado de Stripe...</p>
+              <p>{t('createEventTicketModal.paidTicket.loadingStripe')}</p>
             ) : (
               <>
                 {/* Caso 1: El usuario no tiene cuenta Stripe conectada */}
@@ -166,14 +175,14 @@ const CreateEventTicketModal = ({
                     <ConnectedAccountBanner>
                       <IntegrationIcon src="/icons/motorik-stripe-connect.svg" alt="Stripe Integration" />
                       <Typography as="h3" $variant="title-5-semibold">
-                        Configura tu cuenta para vender entradas de pago.
+                        {t('createEventTicketModal.paidTicket.noStripe.title')}
                       </Typography>
                       <Typography as="p" $variant="body-1-regular" color={theme.colors.defaultWeak}>
-                        Para crear entradas de pago deberás tener activo los pagos en tu cuenta. Ve a tu configuración para hacerlo.
+                        {t('createEventTicketModal.paidTicket.noStripe.description')}
                       </Typography>
                       <StripeActions>
                         <Button size="medium" onClick={() => navigate('/user/' + userId + '/settings')}>
-                          Ir a tu Configuración
+                          {t('createEventTicketModal.paidTicket.noStripe.button')}
                         </Button>
                       </StripeActions>
                     </ConnectedAccountBanner>
@@ -186,14 +195,13 @@ const CreateEventTicketModal = ({
                     <ConnectedAccountBanner>
                       <IntegrationIcon src="/icons/motorik-stripe-connect.svg" alt="Stripe Integration" />
                       <Typography as="h3" $variant="title-5-semibold">
-                        No tienes habilitados los cobros
+                        {t('createEventTicketModal.paidTicket.stripeNotEnabled.title')}
                       </Typography>
                       <Typography as="p" $variant="body-2-regular">
-                        Para ofrecer tickets de pago, tu cuenta de Stripe debe estar verificada y habilitada para cobrar.
-                        Revisa tu configuración en Stripe.
+                        {t('createEventTicketModal.paidTicket.stripeNotEnabled.description')}
                       </Typography>
                       <Button size="small" onClick={() => navigate('/user/' + userId + '/settings')}>
-                        Ir a Configuración
+                        {t('createEventTicketModal.paidTicket.stripeNotEnabled.button')}
                       </Button>
                     </ConnectedAccountBanner>
                   </ConnectedAccountWrapper>
@@ -210,14 +218,16 @@ const CreateEventTicketModal = ({
                           color={theme.colors.defaultMain}
                           style={{ width: '100%' }}
                         >
-                          Número de Entradas:
+                          {t('createEventTicketModal.paidTicket.enabled.capacityLabel')}
                         </Typography>
                         <InputText
                           size="medium"
                           type="number"
                           value={capacity}
                           onChange={(e) => setCapacity(e.target.value)}
-                          placeholder="Capacidad del ticket"
+                          // placeholder="Capacidad del ticket"
+                          placeholder={t('createEventTicketModal.paidTicket.enabled.capacityPlaceholder')}
+
                           required
                           style={{ width: '80px' }}
                         />
@@ -232,7 +242,8 @@ const CreateEventTicketModal = ({
                           color={theme.colors.defaultMain}
                           style={{ width: '100%' }}
                         >
-                          Precio:
+                          {t('createEventTicketModal.paidTicket.enabled.priceLabel')}
+
                         </Typography>
                         <TicketPriceInput>
                           <InputText
@@ -240,7 +251,7 @@ const CreateEventTicketModal = ({
                             type="number"
                             value={ticketPrice}
                             onChange={(e) => setTicketPrice(e.target.value)}
-                            placeholder="Precio del ticket"
+                            placeholder={t('createEventTicketModal.paidTicket.enabled.pricePlaceholder')}
                             required
                             style={{ width: '80px' }}
                           />
