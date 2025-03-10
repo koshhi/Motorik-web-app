@@ -13,14 +13,17 @@ import { getPlatform, getIcon } from '../utils/socialMediaUtils';
 import { CircleFlag } from 'react-circle-flags';
 import { Autocomplete } from '@react-google-maps/api';
 import Typography from '../components/Typography';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../theme';
 
 const CompleteProfile = () => {
+  const { t } = useTranslation('completeProfile');
   const { userId } = useParams();
   const isEditMode = Boolean(userId);
-  const pageTitle = isEditMode ? 'Editar perfil' : 'Completa tu perfil';
+  const pageTitle = isEditMode ? t('pageTitle.edit') : t('pageTitle.complete');
   const navigate = useNavigate();
   const location = useLocation();
+
 
   const { user, refreshUserData } = useAuth();
 
@@ -102,10 +105,10 @@ const CompleteProfile = () => {
 
   const handleAddressBlur = () => {
     if (formData.address && (!formData.locality || formData.locality === '')) {
-      console.log("handleAddressBlur activado. Geocodificando la dirección:", formData.address);
+      console.log(t('addressBlur.log', { address: formData.address }));
       const geocoder = new window.google.maps.Geocoder();
       geocoder.geocode({ address: formData.address }, (results, status) => {
-        console.log("Resultado del geocode. Estado:", status, "Resultados:", results);
+        console.log(t('addressBlur.resultLog', { status, results }));
         if (status === 'OK' && results.length > 0) {
           const addressComponents = results[0].address_components;
           let locality = '';
@@ -122,14 +125,14 @@ const CompleteProfile = () => {
             }
           });
 
-          console.log("Locality extraída:", locality, "y Country extraído:", country);
+          console.log(t('addressBlur.extracted', { locality, country }));
           setFormData(prev => ({
             ...prev,
             locality,
             country,
           }));
         } else {
-          console.log('Geocoding no encontró resultados o ocurrió un error:', status);
+          console.log(t('addressBlur.error', { status }));
         }
       });
     }
@@ -164,7 +167,7 @@ const CompleteProfile = () => {
       );
 
       if (isDuplicate) {
-        toast.error('Enlace duplicado');
+        toast.error(t('toasts.duplicateLink'));
         return;
       }
 
@@ -186,12 +189,12 @@ const CompleteProfile = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Los apellidos son obligatorios';
-    if (!formData.userAvatar && !file) newErrors.userAvatar = 'La imagen de perfil es obligatoria';
-    if (!formData.address.trim()) newErrors.address = 'La dirección es obligatoria';
-    if (!formData.phonePrefix) newErrors.phonePrefix = 'El prefijo del teléfono es obligatorio';
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'El número de teléfono es obligatorio';
+    if (!formData.name.trim()) newErrors.name = t('form.name.error');
+    if (!formData.lastName.trim()) newErrors.lastName = t('form.lastName.error');
+    if (!formData.userAvatar && !file) newErrors.userAvatar = t('form.userAvatar.error');
+    if (!formData.address.trim()) newErrors.address = t('form.address.error');
+    if (!formData.phonePrefix) newErrors.phonePrefix = t('form.phonePrefix.error');
+    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = t('form.phoneNumber.error');
 
     return newErrors;
   };
@@ -237,22 +240,22 @@ const CompleteProfile = () => {
         const updatedUser = await refreshUserData();
 
         if (updatedUser && updatedUser.profileFilled) {
-          toast.success('Perfil completado correctamente');
+          toast.success(t('toasts.profileCompleted'));
           // Si viene un returnTo en el state, redirigimos a esa URL; de lo contrario, a la home.
           const destination = location.state?.returnTo || '/';
           navigate(destination, { replace: true });
         } else {
-          toast.error('Error actualizando los datos del usuario');
+          toast.error(t('toasts.updateUserError'));
         }
 
       }
     } catch (error) {
       console.error('Error al completar el perfil:', error);
       if (error?.response?.status === 401) {
-        toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        toast.error(t('toasts.sessionExpired'));
         navigate('/signin');
       } else {
-        toast.error('Error al actualizar el perfil');
+        toast.error(t('toasts.updateProfileError'));
       }
     } finally {
       setIsLoading(false);
@@ -269,13 +272,13 @@ const CompleteProfile = () => {
             <Typography as="h1" $variant="title-3-semibold">{pageTitle}</Typography>
 
           ) : (
-            <div className='tabs'>
-              <div className='tab'>Completa tu perfil</div>
-              <div className='tab'>Marca tus intereses</div>
-              <div className='tab'>Añade tu garaje</div>
+            <div className="tabs">
+              <div className="tab">{t('tabs.completeProfile')}</div>
+              <div className="tab">{t('tabs.markInterests')}</div>
+              <div className="tab">{t('tabs.addGarage')}</div>
             </div>
           )}
-          <Button type="submit" size="medium">Guardar cambios</Button>
+          <Button type="submit" size="medium">{t('nav.saveChanges')}</Button>
         </Container>
       </Navigation>
       <FormContainer>
@@ -294,41 +297,41 @@ const CompleteProfile = () => {
             ) : (
               // Si no hay archivo ni imagen de perfil guardada, mostrar el placeholder
               <EmptyImageWrapper>
-                <EmptyAvatarImage src="/icons/helmet.svg" alt="empty avatar" />
+                <EmptyAvatarImage src="/icons/helmet.svg" alt={t('altTexts.emptyAvatar')} />
               </EmptyImageWrapper>
             )}
             <UploadField>
               <UploadAvatarButton>
-                <img src="/icons/upload-file.svg" alt="Subir fichero" />
-                <Typography $variant="body-1-semibold">Sube una imagen</Typography>
+                <img src="/icons/upload-file.svg" alt={t('upload.uploadFileAlt')} />
+                <Typography $variant="body-1-semibold">{t('upload.uploadImage')}</Typography>
               </UploadAvatarButton>
               <InputFile type="file" id="file" onChange={handleFileChange} />
             </UploadField>
           </UserAvatarRow>
           <FormRow>
             <NameInputWrapper>
-              <Typography $variant="body-2-medium">Nombre:</Typography>
+              <Typography $variant="body-2-medium">{t('form.name.label')}</Typography>
               <InputText
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 $size="large"
-                placeholder="Introduce tu nombre"
+                placeholder={t('form.name.placeholder')}
                 $variant={errors.name ? 'error' : ''}
                 required
               />
               {errors.name && <ErrorMsg>{errors.name}</ErrorMsg>}
             </NameInputWrapper>
             <LastNameInputWrapper>
-              <Typography $variant="body-2-medium">Apellidos:</Typography>
+              <Typography $variant="body-2-medium">{t('form.lastName.label')}</Typography>
               <InputText
                 type="text"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
                 $size="large"
-                placeholder="Introduce tus apellidos"
+                placeholder={t('form.lastName.placeholder')}
                 $variant={errors.lastName ? 'error' : ''}
                 required
               />
@@ -337,7 +340,7 @@ const CompleteProfile = () => {
           </FormRow>
           <FormRow>
             <AddressInputWrapper>
-              <Typography $variant="body-2-medium">Dirección:</Typography>
+              <Typography $variant="body-2-medium">{t('form.address.label')}</Typography>
               <Autocomplete
                 onLoad={onLoad}
                 onPlaceChanged={onPlaceChanged}
@@ -350,19 +353,21 @@ const CompleteProfile = () => {
                   onChange={handleChange}
                   onBlur={handleAddressBlur}
                   $size="large"
-                  placeholder="Introduce tu dirección"
+                  placeholder={t('form.address.placeholder')}
                   $variant={errors.address ? 'error' : ''}
                   required
                   autoComplete="off"
                 />
               </Autocomplete>
-              <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>Mostraremos solo tu ciudad. Tu dirección completa no se mostrará.</Typography>
+              <Typography $variant="body-2-regular" color={theme.colors.defaultWeak}>
+                {t('form.address.note')}
+              </Typography>
               {errors.address && <ErrorMsg>{errors.address}</ErrorMsg>}
             </AddressInputWrapper>
           </FormRow>
           <FormRow>
             <PhonePrefixInputWrapper>
-              <Typography $variant="body-2-medium">Prefijo:</Typography>
+              <Typography $variant="body-2-medium">{t('form.phonePrefix.label')}</Typography>
               <PhonePrefixInput>
                 {selectedCountry && (
                   <PrefixFlag countryCode={selectedCountry.code} height="20" />
@@ -386,14 +391,14 @@ const CompleteProfile = () => {
               {errors.phonePrefix && <ErrorMsg>{errors.phonePrefix}</ErrorMsg>}
             </PhonePrefixInputWrapper>
             <PhoneInputWrapper>
-              <Typography $variant="body-2-medium">Teléfono:</Typography>
+              <Typography $variant="body-2-medium">{t('form.phoneNumber.label')}</Typography>
               <InputText
                 type="text"
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 $size="large"
-                placeholder="Introduce tu número"
+                placeholder={t('form.phoneNumber.placeholder')}
                 $variant={errors.phoneNumber ? 'error' : ''}
                 required
                 autoComplete="off"
@@ -403,7 +408,7 @@ const CompleteProfile = () => {
           </FormRow>
           <FormRow>
             <InputTextAreaWrapper>
-              <Typography $variant="body-2-medium">Descripción:</Typography>
+              <Typography $variant="body-2-medium">{t('form.biography.label')}</Typography>
               <InputTextArea style={{ fieldSizing: 'content' }}
                 name="description"
                 value={formData.description}
@@ -415,17 +420,19 @@ const CompleteProfile = () => {
           </FormRow>
           <SocialMediaLinksRow>
             <InputLinksWrapper>
-              <Typography $variant="body-2-medium">Redes sociales:</Typography>
+              <Typography $variant="body-2-medium">{t('form.socialMedia.label')}</Typography>
               <LinksInputInnerWrapper>
                 <InputText
                   type="text"
                   name="socialMediaLink"
                   value={newLink}
                   onChange={(e) => setNewLink(e.target.value)}
-                  placeholder="Introduce el enlace"
+                  placeholder={t('form.socialMedia.linkPlaceholder')}
                   $size="large"
                 />
-                <Button $variant="outline" style={{ alignSelf: 'stretch' }} type="button" onClick={handleAddLink}>Añadir Enlace</Button>
+                <Button $variant="outline" style={{ alignSelf: 'stretch' }} type="button" onClick={handleAddLink}>
+                  {t('form.socialMedia.addLink')}
+                </Button>
               </LinksInputInnerWrapper>
             </InputLinksWrapper>
             {formData.socialMediaLinks.length > 0 && (
@@ -436,7 +443,9 @@ const CompleteProfile = () => {
                       <img src={getIcon(link.platform)} alt={`${link.platform} icon`} style={{ marginRight: '8px' }} />
                       <Typography style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{link.url}</Typography>
                     </SocialLink>
-                    <Button $variant="ghost" $size="small" type="button" onClick={() => handleRemoveLink(index)}>Eliminar</Button>
+                    <Button $variant="ghost" $size="small" type="button" onClick={() => handleRemoveLink(index)}>
+                      {t('form.socialMedia.removeLink')}
+                    </Button>
                   </SocialLinkItem>
                 ))}
               </LinksList>
@@ -451,10 +460,12 @@ const CompleteProfile = () => {
               type="button"
               onClick={() => navigate(-1)}
             >
-              Cancelar
+              {t('formActions.cancel')}
             </Button>
           )}
-          <Button size="medium" type="submit" disabled={isLoading}>{isLoading ? 'Guardando...' : 'Guardar cambios'}</Button>
+          <Button size="medium" type="submit" disabled={isLoading}>
+            {isLoading ? t('formActions.saving') : t('formActions.saveChanges')}
+          </Button>
         </FormActions>
       </FormContainer>
     </CompleteProfileForm>

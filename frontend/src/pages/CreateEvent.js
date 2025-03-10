@@ -6,8 +6,11 @@ import EventForm from '../components/EventForm';
 import Button from '../components/Button/Button';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import Typography from '../components/Typography';
 
 const CreateEvent = () => {
+  const { t } = useTranslation('createEvent');
   const { user } = useAuth();
   const navigate = useNavigate();
   const eventFormRef = useRef();
@@ -61,10 +64,10 @@ const CreateEvent = () => {
     <>
       <Topbar>
         <Container>
-          <Heading>Crea un evento</Heading>
+          <Typography as="p" $variant="title-4-semibold">{t('createEventPage.title')}</Typography>
           <Links>
             <Button size="default" $variant="outline" onClick={handleDiscard}>
-              Descartar
+              {t('createEventPage.discard')}
             </Button>
             <Button
               size="default"
@@ -72,7 +75,7 @@ const CreateEvent = () => {
               onClick={handleCreateEvent}
               disabled={loadingCreate}
             >
-              {loadingCreate ? 'Creando...' : 'Crear Evento'}
+              {loadingCreate ? t('createEventPage.creating') : t('createEventPage.create')}
             </Button>
           </Links>
         </Container>
@@ -108,19 +111,6 @@ export const Container = styled.nav`
     padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
     max-width: 1400px;
     width: 100%;
-`;
-
-export const Heading = styled.h1`
-  color: ${({ theme }) => theme.colors.defaultStrong};
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: 'ss01' on;
-
-  /* Titles/Desktop/Title 4/Semibold */
-  font-family: "Mona Sans";
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 140%; /* 28px */
 `;
 
 export const Links = styled.div`

@@ -1,11 +1,11 @@
 {
-  "Meetup": "Encuentro",
-  "Competition": "Competencia",
+  "Meetup": "Quedada",
+  "Competition": "Competición",
   "Race": "Carrera",
   "Adventure": "Aventura",
   "Trip": "Viaje",
-  "Gathering": "Reunión",
+  "Gathering": "Concentración",
   "Course": "Curso",
-  "Ride": "Paseo",
+  "Ride": "Circuito",
   "Exhibition": "Exposición"
 }

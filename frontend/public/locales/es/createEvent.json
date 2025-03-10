@@ -1,0 +1,102 @@
+{
+  "eventForm": {
+    "imageUpload": "Sube una imagen",
+    "uploadAlt": "Subir imagen",
+    "titlePlaceholder": "Introduce el título del evento...",
+    "organizedBy": "Organizado por",
+    "details": "Detalles",
+    "detailsPlaceholder": "Añade detalles a tu evento para que otros usuarios puedan saber de qué tratará tu evento...",
+    "date": {
+      "heading": "Fecha",
+      "startLabel": "Inicio",
+      "endLabel": "Fin"
+    },
+    "location": {
+      "heading": "Localización",
+      "searchPlaceholder": "Introduce localización del evento",
+      "searchAlt": "Buscar por ubicación"
+    },
+    "options": {
+      "heading": "Opciones del evento",
+      "eventType": {
+        "label": "Tipo de evento",
+        "edit": "Editar"
+      },
+      "terrain": {
+        "label": "Terreno",
+        "edit": "Editar"
+      },
+      "experience": {
+        "label": "Experiencia",
+        "edit": "Editar"
+      },
+      "vehicle": {
+        "label": "¿Requiere vehículo?"
+      },
+      "ticket": {
+        "label": "Ticket",
+        "free": "Gratis",
+        "paid": "De pago - {{price}}€",
+        "edit": "Editar"
+      }
+    }
+  },
+  "createEventPage": {
+    "title": "Crea un evento",
+    "discard": "Descartar",
+    "create": "Crear Evento",
+    "creating": "Creando..."
+  },
+  "createEventTypeModal": {
+    "title": "Tipo de evento",
+    "description": "Selecciona el tipo de evento que mejor describa tu actividad.",
+    "save": "Guardar tipo de evento"
+  },
+  "createEventTicketModal": {
+    "title": "Configura la entrada",
+    "description": "Customiza la entrada, su precio y cantidad disponible.",
+    "name": {
+      "label": "Nombre",
+      "placeholder": "Nombre de la entrada"
+    },
+    "ticketOptions": {
+      "free": "Gratis",
+      "paid": "De Pago"
+    },
+    "freeTicket": {
+      "capacityLabel": "Número de Entradas:",
+      "capacityPlaceholder": "Capacidad del ticket",
+      "approvalLabel": "Aprobación requerida:",
+      "save": "Guardar ticket"
+    },
+    "paidTicket": {
+      "loadingStripe": "Cargando estado de Stripe...",
+      "noStripe": {
+        "title": "Configura tu cuenta para vender entradas de pago.",
+        "description": "Para crear entradas de pago deberás tener activo los pagos en tu cuenta. Ve a tu configuración para hacerlo.",
+        "button": "Ir a tu Configuración"
+      },
+      "stripeNotEnabled": {
+        "title": "No tienes habilitados los cobros",
+        "description": "Para ofrecer tickets de pago, tu cuenta de Stripe debe estar verificada y habilitada para cobrar. Revisa tu configuración en Stripe.",
+        "button": "Ir a Configuración"
+      },
+      "enabled": {
+        "capacityLabel": "Número de Entradas:",
+        "capacityPlaceholder": "Capacidad del ticket",
+        "priceLabel": "Precio:",
+        "pricePlaceholder": "Precio del ticket"
+      }
+    }
+  },
+  "createEventTerrainModal": {
+    "title": "Tipo de terreno",
+    "description": "Esta información ayudará a dar visibilidad a tu evento.",
+    "save": "Guardar tipo de terreno"
+  },
+  "createEventExperienceModal": {
+    "title": "Experiencia deseada",
+    "description": "Esta información ayudará a dar visibilidad a tu evento.",
+    "save": "Guardar experiencia deseada"
+  }
+}

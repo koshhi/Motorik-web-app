@@ -6,15 +6,19 @@ import { getEventExperienceSvgIcon } from '../../utilities';
 import { theme } from '../../theme';
 import Typography from '../Typography';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 
 const CreateEventExperienceModal = ({ experience, setExperience, onClose }) => {
+  const { t } = useTranslation('createEvent');
   const experienceTypes = ['none', 'beginner', 'intermediate', 'advanced'];
 
   return (
-    <Modal onClose={onClose} title="Experiencia deseada">
+    <Modal onClose={onClose} title={t('createEventExperienceModal.title')}>
       <ModalContent>
         <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
-          Esta información ayudará a dar visibilidad a tu evento.
+          {/* Esta información ayudará a dar visibilidad a tu evento. */}
+          {t('createEventExperienceModal.description')}
+
         </Typography>
         <ExperienceList>
           {experienceTypes.map((experienceType) => (
@@ -29,7 +33,9 @@ const CreateEventExperienceModal = ({ experience, setExperience, onClose }) => {
         </ExperienceList>
       </ModalContent>
       <FormActions>
-        <Button size="medium" onClick={onClose}>Guardar experiencia deseada</Button>
+        <Button size="medium" onClick={onClose}>
+          {t('createEventExperienceModal.save')}
+        </Button>
       </FormActions>
     </Modal>
   );

@@ -6,15 +6,18 @@ import { theme } from '../../theme';
 import styled from 'styled-components';
 import Typography from '../Typography';
 import Modal from './Modal';
+import { useTranslation } from 'react-i18next';
 
 const CreateEventTerrainModal = ({ terrain, setTerrain, onClose }) => {
+  const { t } = useTranslation('createEvent');
   const terrainTypes = ['road', 'offroad', 'mixed'];
 
   return (
-    <Modal onClose={onClose} title="Tipo de terreno">
+    <Modal onClose={onClose} title={t('createEventTerrainModal.title')}>
       <ModalContent>
         <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
-          Esta información ayudará a dar visibilidad a tu evento.
+          {/* Esta información ayudará a dar visibilidad a tu evento. */}
+          {t('createEventTerrainModal.description')}
         </Typography>
         <TerrainList>
           {terrainTypes.map((terrainType) => (
@@ -29,7 +32,9 @@ const CreateEventTerrainModal = ({ terrain, setTerrain, onClose }) => {
         </TerrainList>
       </ModalContent>
       <FormActions>
-        <Button size="medium" onClick={onClose}>Guardar tipo de terreno</Button>
+        <Button size="medium" onClick={onClose}>
+          {t('createEventTerrainModal.save')}
+        </Button>
       </FormActions>
     </Modal>
   );

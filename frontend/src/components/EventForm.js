@@ -7,14 +7,16 @@ import InputTextArea from './Input/InputTextArea';
 import { getEventTypeIcon } from '../utilities';
 import CreateEventTypeModal from './Modal/CreateEventTypeModal';
 import CreateEventTerrainModal from './Modal/CreateEventTerrainModal';
-// import EventCapacityModal from './Modal/EventCapacityModal';
 import CreateEventExperienceModal from './Modal/CreateEventExperienceModal';
 import CreateEventTicketModal from './Modal/CreateEventTicketModal';
 import Typography from './Typography';
 import { theme } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 // Componente principal del formulario
 const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref) => {
+  const { t } = useTranslation('createEvent');
+
   const roundTimeToNearestHalfHour = () => {
     const now = new Date();
     const minutes = now.getMinutes();
@@ -156,17 +158,31 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     const endDateTime = new Date(`${endDay}T${endTime}`);
 
     // Validaciones básicas
-    if (!formData.title.trim()) newErrors.title = 'El título es obligatorio';
-    if (!formData.location.trim()) newErrors.location = 'La localización es obligatoria';
-    if (!formData.description.trim()) newErrors.description = 'La descripción es obligatoria';
-    if (!file && !isEditMode && !formData.imageUrl) newErrors.file = 'La imagen es obligatoria';
+    // if (!formData.title.trim()) newErrors.title = 'El título es obligatorio';
+    // if (!formData.location.trim()) newErrors.location = 'La localización es obligatoria';
+    // if (!formData.description.trim()) newErrors.description = 'La descripción es obligatoria';
+    // if (!file && !isEditMode && !formData.imageUrl) newErrors.file = 'La imagen es obligatoria';
+    if (!formData.title.trim()) newErrors.title = t('eventForm.titlePlaceholder');
+    if (!formData.location.trim()) newErrors.location = t('eventForm.location.heading');
+    if (!formData.description.trim()) newErrors.description = t('eventForm.detailsPlaceholder');
+    if (!file && !isEditMode && !formData.imageUrl) newErrors.file = t('eventForm.imageUpload');
+
+    // if (startDateTime >= endDateTime) {
+    //   newErrors.startDay =
+    //     'La fecha y hora de inicio no pueden ser posteriores o iguales a la de fin.';
+    //   newErrors.endDay = 'La fecha y hora de fin deben ser posteriores a las de inicio.';
+    // }
+
     if (startDateTime >= endDateTime) {
-      newErrors.startDay =
-        'La fecha y hora de inicio no pueden ser posteriores o iguales a la de fin.';
-      newErrors.endDay = 'La fecha y hora de fin deben ser posteriores a las de inicio.';
+      newErrors.startDay = t('eventForm.date.startLabel') + " " + t('eventForm.date.endLabel');
+      newErrors.endDay = t('eventForm.date.endLabel');
     }
+
+    // if (!formData.coordinates.lat || !formData.coordinates.lng) {
+    //   newErrors.location = 'Selecciona una ubicación válida del autocompletado.';
+    // }
     if (!formData.coordinates.lat || !formData.coordinates.lng) {
-      newErrors.location = 'Selecciona una ubicación válida del autocompletado.';
+      newErrors.location = t('eventForm.location.searchPlaceholder');
     }
 
     // Validaciones de tickets
@@ -333,7 +349,9 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
         shortLocation,
       }));
     } else {
-      alert('No se pudieron obtener las coordenadas. Intenta de nuevo.');
+      // alert('No se pudieron obtener las coordenadas. Intenta de nuevo.');
+      alert(t('eventForm.location.searchPlaceholder'));
+
     }
   };
 
@@ -357,7 +375,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                placeholder="Introduce el título del evento..."
+                placeholder={t('eventForm.titlePlaceholder')}
                 $variant={errors.title ? 'error' : ''}
                 required
               />
@@ -368,7 +386,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 <UserAvatar src={user.userAvatar} alt="User Avatar" />
                 <UserData>
                   <Typography $variant="caption-medium" color={theme.colors.defaultWeak}>
-                    Organizado por
+                    {t('eventForm.organizedBy')}
                   </Typography>
                   <Typography $variant="body-2-medium">
                     {user.name} {user.lastName}
@@ -398,8 +416,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                         className={errors.file ? 'error' : ''}
                       >
                         <LabelContent>
-                          <img src="/icons/upload-file.svg" alt="Subir imagen" />
-                          <p>Sube una imagen</p>
+                          <img src="/icons/upload-file.svg" alt={t('eventForm.uploadAlt')} />
+                          <p>{t('eventForm.imageUpload')}</p>
                         </LabelContent>
                         {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
                       </InputFileLabel>
@@ -419,8 +437,9 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                         className={errors.file ? 'error' : ''}
                       >
                         <LabelContent>
-                          <img src="/icons/upload-file.svg" alt="Subir imagen" />
-                          <p>Sube una imagen</p>
+                          <img src="/icons/upload-file.svg" alt={t('eventForm.uploadAlt')} />
+                          <p>{t('eventForm.imageUpload')}</p>
+
                         </LabelContent>
                         {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
                       </InputFileLabel>
@@ -444,8 +463,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
 
                       >
                         <LabelContent>
-                          <img src="/icons/upload-file.svg" alt="Subir fichero" />
-                          <p>Sube una imagen</p>
+                          <img src="/icons/upload-file.svg" alt={t('eventForm.uploadAlt')} />
+                          <p>{t('eventForm.imageUpload')}</p>
                         </LabelContent>
                         {errors.file && (
                           <ImageUploadError>{errors.file}</ImageUploadError>
@@ -457,14 +476,15 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
               </ImageContainer>
             </Image>
             <Description>
-              <label>Detalles</label>
+              <label>{t('eventForm.details')}</label>
               <div className="DescriptionInputBlock">
                 <InputTextArea
                   size="large"
+                  style={{ fieldSizing: 'content' }}
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Añade detalles a tu evento para que otros usuarios puedan saber de qué tratará tu evento..."
+                  placeholder={t('eventForm.detailsPlaceholder')}
                   $variant={errors.description ? 'error' : ''}
                   required
                 />
@@ -475,12 +495,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
           <Settings>
             <div className="Date">
               <div className="Heading">
-                <img src="/icons/date.svg" alt="Fecha" />
-                Fecha
+                <img src="/icons/date.svg" alt={t('eventForm.date.heading')} />
+                {t('eventForm.date.heading')}
               </div>
               <div className="DateInputTexts">
                 <div className="Row">
-                  <label>Inicio</label>
+                  <label>{t('eventForm.date.startLabel')}</label>
                   <div className="DateInputBlock">
                     <div className="ComboBlock">
                       <InputText
@@ -514,7 +534,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   </div>
                 </div>
                 <div className="Row">
-                  <label>Fin</label>
+                  <label>{t('eventForm.date.endLabel')}</label>
                   <div className="DateInputBlock">
                     <div className="ComboBlock">
                       <InputText
@@ -584,12 +604,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
             </div>
             <div className="Location">
               <div className="Heading">
-                <img src="/icons/location.svg" alt="Localización" />
-                Localización
+                <img src="/icons/location.svg" alt={t('eventForm.location.heading')} />
+                {t('eventForm.location.heading')}
               </div>
               <div className="SearchLocation">
                 <div className="LocationInputBlock">
-                  <img src="/icons/search.svg" alt="Buscar por ubicación" />
+                  <img src="/icons/search.svg" alt={t('eventForm.location.searchAlt')} />
                   <Autocomplete
                     onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
                     onPlaceChanged={onPlaceChanged}
@@ -603,7 +623,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                         handleInputChange(e);
                         if (errors.location) setErrors({ ...errors, location: '' });
                       }}
-                      placeholder="Introduce localización del evento"
+                      placeholder={t('eventForm.location.searchPlaceholder')}
+                      // placeholder="Introduce localización del evento"
                       $variant={errors.location ? 'error' : ''}
                       required
                     />
@@ -615,42 +636,46 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
             <Options>
               <div className="Heading">
                 <img src="/icons/options.svg" alt="Opciones" />
-                Opciones del evento
+                {t('eventForm.options.heading')}
               </div>
               <div className="OptionsContainer">
                 <Option onClick={() => handleOpenModal('eventType')}>
                   <div className="Title">
-                    <img src="/icons/event-type.svg" alt="Tipo de evento" /> Tipo de evento
+                    <img src="/icons/event-type.svg" alt={t('eventForm.options.eventType.label')} />
+                    {t('eventForm.options.eventType.label')}
                   </div>
 
                   <button className="OptionSelected">
-                    {formData.eventType} <img src="/icons/edit.svg" alt="Editar" />
+                    {formData.eventType} <img src="/icons/edit.svg" alt={t('eventForm.options.eventType.edit')} />
                   </button>
                 </Option>
 
                 <Option onClick={() => handleOpenModal('terrain')}>
                   <div className="Title">
-                    <img src="/icons/terrain.svg" alt="Terreno" /> Terreno
+                    <img src="/icons/terrain.svg" alt={t('eventForm.options.terrain.label')} />
+                    {t('eventForm.options.terrain.label')}
                   </div>
 
                   <button className="OptionSelected">
-                    {formData.terrain} <img src="/icons/edit.svg" alt="Editar" />
+                    {formData.terrain} <img src="/icons/edit.svg" alt={t('eventForm.options.terrain.edit')} />
                   </button>
                 </Option>
 
                 <Option onClick={() => handleOpenModal('experience')}>
                   <div className="Title">
-                    <img src="/icons/experience.svg" alt="Experiencia" /> Experiencia
+                    <img src="/icons/experience.svg" alt={t('eventForm.options.experience.label')} />
+                    {t('eventForm.options.experience.label')}
                   </div>
 
                   <button className="OptionSelected">
-                    {formData.experience} <img src="/icons/edit.svg" alt="Editar" />
+                    {formData.experience} <img src="/icons/edit.svg" alt={t('eventForm.options.experience.edit')} />
                   </button>
                 </Option>
 
                 <Option>
                   <div className="Title">
-                    <img src="/icons/vehicle.svg" alt="Vehículo" /> ¿Requiere vehículo?
+                    <img src="/icons/vehicle.svg" alt={t('eventForm.options.vehicle.label')} />
+                    {t('eventForm.options.vehicle.label')}
                   </div>
                   <div>
                     <input
@@ -675,11 +700,17 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 {!isEditMode && (
                   <Option onClick={() => handleOpenModal('ticket')}>
                     <div className="Title">
-                      <img src="/icons/ticket.svg" alt="Ticket" /> Ticket
+                      <img src="/icons/ticket.svg" alt={t('eventForm.options.ticket.label')} />
+                      {t('eventForm.options.ticket.label')}
                     </div>
 
                     <button className="OptionSelected">
-                      {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" />
+                      {formData.tickets[0].type === 'free'
+                        ? t('eventForm.options.ticket.free')
+                        : t('eventForm.options.ticket.paid', { price: formData.tickets[0].price })}
+                      <img src="/icons/edit.svg" alt={t('eventForm.options.ticket.edit')} />
+
+                      {/* {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" /> */}
                     </button>
                   </Option>
                 )}
