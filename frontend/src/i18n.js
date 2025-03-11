@@ -14,7 +14,14 @@ i18n
     fallbackLng: 'es', // Idioma por defecto si la detección falla
     debug: true, // Activa el modo de depuración (desactívalo en producción)
 
-    ns: ['common', 'signin', 'completeProfile', 'eventCategories', 'filterForm', 'createEvent'], // Define los namespaces
+    ns: [
+      'common',
+      'signin',
+      'completeProfile',
+      'eventCategories',
+      'filterForm',
+      'createEvent'
+    ], // Define los namespaces
     defaultNS: 'common', // Namespace por defecto
 
     interpolation: {

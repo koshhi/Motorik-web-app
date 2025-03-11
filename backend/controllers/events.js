@@ -89,7 +89,7 @@ eventsRouter.get('/my-events', auth, async (req, res) => {
     })
   } catch (error) {
     console.error('Error al obtener los eventos del usuario:', error)
-    res.status(500).json({ success: false, message: 'Error al obtener los eventos' });
+    res.status(500).json({ success: false, message: 'Error al obtener los eventos' })
   }
 })
 
@@ -785,7 +785,8 @@ eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
     eventType,
     terrain,
     experience,
-    needsVehicle
+    needsVehicle,
+    organizerVehicle
   } = req.body
 
   try {
@@ -848,6 +849,7 @@ eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
     event.terrain = terrain
     event.experience = experience
     event.needsVehicle = parsedNeedsVehicle
+    event.organizerVehicle = parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null
     event.image = imageUrl
 
     let parsedTickets
@@ -925,7 +927,8 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       terrain,
       experience,
       tickets,
-      needsVehicle
+      needsVehicle,
+      organizerVehicle
     } = req.body
 
     // Validar la existencia de los campos obligatorios
@@ -1020,7 +1023,8 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       published: false,
       capacity,
       availableSeats: capacity,
-      needsVehicle: parsedNeedsVehicle
+      needsVehicle: parsedNeedsVehicle,
+      organizerVehicle: parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null
     })
 
     // Guardar el evento en la base de datos

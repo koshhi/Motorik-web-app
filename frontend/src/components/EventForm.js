@@ -2,6 +2,7 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } f
 import styled from 'styled-components';
 import { Autocomplete } from '@react-google-maps/api';
 import { useAuth } from '../context/AuthContext';
+import Typography from './Typography';
 import InputText from './Input/InputText';
 import InputTextArea from './Input/InputTextArea';
 import { getEventTypeIcon } from '../utilities';
@@ -9,9 +10,19 @@ import CreateEventTypeModal from './Modal/CreateEventTypeModal';
 import CreateEventTerrainModal from './Modal/CreateEventTerrainModal';
 import CreateEventExperienceModal from './Modal/CreateEventExperienceModal';
 import CreateEventTicketModal from './Modal/CreateEventTicketModal';
-import Typography from './Typography';
+import VehicleRequirementModal from './Modal/CreateEventVehicleRequirementModal';
+import SelectVehicleModal from './Modal/CreateEventSelectVehicleModal';
 import { theme } from '../theme';
 import { useTranslation } from 'react-i18next';
+import WheelIcon from './Icons/WheelIcon';
+import EventTypeIcon from './Icons/EventTypeIcon';
+import TerrainIcon from './Icons/TerrainIcon';
+import ExperienceIcon from './Icons/ExperienceIcon';
+import TicketsIcon from './Icons/TicketsIcon';
+import UploadFileIcon from './Icons/UploadFileIcon';
+import CalendarIcon from './Icons/CalendarIcon';
+import LocationIcon from './Icons/LocationIcon';
+import OptionsIcon from './Icons/OptionsIcon';
 
 // Componente principal del formulario
 const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref) => {
@@ -60,7 +71,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     approvalRequired: false,
     coordinates: { lat: null, lng: null },
     imageUrl: '',
-    needsVehicle: true
+    needsVehicle: true,
+    organizerVehicle: null
   });
 
   const [file, setFile] = useState(null);
@@ -174,8 +186,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     // }
 
     if (startDateTime >= endDateTime) {
-      newErrors.startDay = t('eventForm.date.startLabel') + " " + t('eventForm.date.endLabel');
-      newErrors.endDay = t('eventForm.date.endLabel');
+      newErrors.startDay = t('eventForm.date.invalid') || t('eventForm.date.startLabel') + " " + t('eventForm.date.endLabel');
+      newErrors.endDay = t('eventForm.date.invalid') || t('eventForm.date.endLabel');
     }
 
     // if (!formData.coordinates.lat || !formData.coordinates.lng) {
@@ -258,6 +270,9 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       newFormData.append('locationCoordinates', JSON.stringify(locationCoordinates));
       newFormData.append('needsVehicle', formData.needsVehicle);
       if (file) newFormData.append('image', file);
+      if (formData.organizerVehicle) {
+        newFormData.append('organizerVehicle', formData.organizerVehicle.id);
+      }
 
       return newFormData;
     },
@@ -416,8 +431,10 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                         className={errors.file ? 'error' : ''}
                       >
                         <LabelContent>
-                          <img src="/icons/upload-file.svg" alt={t('eventForm.uploadAlt')} />
-                          <p>{t('eventForm.imageUpload')}</p>
+                          <UploadFileIcon fill={theme.colors.defaultStrong} />
+                          <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                            {t('eventForm.imageUpload')}
+                          </Typography>
                         </LabelContent>
                         {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
                       </InputFileLabel>
@@ -437,9 +454,10 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                         className={errors.file ? 'error' : ''}
                       >
                         <LabelContent>
-                          <img src="/icons/upload-file.svg" alt={t('eventForm.uploadAlt')} />
-                          <p>{t('eventForm.imageUpload')}</p>
-
+                          <UploadFileIcon fill={theme.colors.defaultStrong} />
+                          <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                            {t('eventForm.imageUpload')}
+                          </Typography>
                         </LabelContent>
                         {errors.file && <ErrorMessage>{errors.file}</ErrorMessage>}
                       </InputFileLabel>
@@ -463,8 +481,10 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
 
                       >
                         <LabelContent>
-                          <img src="/icons/upload-file.svg" alt={t('eventForm.uploadAlt')} />
-                          <p>{t('eventForm.imageUpload')}</p>
+                          <UploadFileIcon fill={theme.colors.defaultStrong} />
+                          <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                            {t('eventForm.imageUpload')}
+                          </Typography>
                         </LabelContent>
                         {errors.file && (
                           <ImageUploadError>{errors.file}</ImageUploadError>
@@ -476,11 +496,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
               </ImageContainer>
             </Image>
             <Description>
-              <label>{t('eventForm.details')}</label>
-              <div className="DescriptionInputBlock">
-                <InputTextArea
+              <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                {t('eventForm.details')}
+              </Typography>
+              <DescriptionInputBlock>
+                <DescriptionArea
                   size="large"
-                  style={{ fieldSizing: 'content' }}
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
@@ -489,15 +510,17 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   required
                 />
                 {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
-              </div>
+              </DescriptionInputBlock>
             </Description>
           </Details>
           <Settings>
             <div className="Date">
-              <div className="Heading">
-                <img src="/icons/date.svg" alt={t('eventForm.date.heading')} />
-                {t('eventForm.date.heading')}
-              </div>
+              <SettingsHeader>
+                <CalendarIcon fill={theme.colors.defaultStrong} />
+                <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                  {t('eventForm.date.heading')}
+                </Typography>
+              </SettingsHeader>
               <div className="DateInputTexts">
                 <div className="Row">
                   <label>{t('eventForm.date.startLabel')}</label>
@@ -603,10 +626,12 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
               </div>
             </div>
             <div className="Location">
-              <div className="Heading">
-                <img src="/icons/location.svg" alt={t('eventForm.location.heading')} />
-                {t('eventForm.location.heading')}
-              </div>
+              <SettingsHeader>
+                <LocationIcon fill={theme.colors.defaultStrong} />
+                <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                  {t('eventForm.location.heading')}
+                </Typography>
+              </SettingsHeader>
               <div className="SearchLocation">
                 <div className="LocationInputBlock">
                   <img src="/icons/search.svg" alt={t('eventForm.location.searchAlt')} />
@@ -634,27 +659,52 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
               </div>
             </div>
             <Options>
-              <div className="Heading">
-                <img src="/icons/options.svg" alt="Opciones" />
-                {t('eventForm.options.heading')}
-              </div>
+              <SettingsHeader>
+                <OptionsIcon stroke={theme.colors.defaultStrong} />
+                <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                  {t('eventForm.options.heading')}
+                </Typography>
+              </SettingsHeader>
               <div className="OptionsContainer">
                 <Option onClick={() => handleOpenModal('eventType')}>
-                  <div className="Title">
-                    <img src="/icons/event-type.svg" alt={t('eventForm.options.eventType.label')} />
-                    {t('eventForm.options.eventType.label')}
-                  </div>
-
+                  <OptionTitle>
+                    <EventTypeIcon fill={theme.colors.defaultStrong} />
+                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                      {t('eventForm.options.eventType.label')}
+                    </Typography>
+                  </OptionTitle>
                   <button className="OptionSelected">
                     {formData.eventType} <img src="/icons/edit.svg" alt={t('eventForm.options.eventType.edit')} />
                   </button>
                 </Option>
 
+                {!isEditMode && (
+                  <Option onClick={() => handleOpenModal('ticket')}>
+                    <OptionTitle>
+                      <TicketsIcon fill={theme.colors.defaultStrong} />
+                      <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                        {t('eventForm.options.ticket.label')}
+                      </Typography>
+                    </OptionTitle>
+
+                    <button className="OptionSelected">
+                      {formData.tickets[0].type === 'free'
+                        ? t('eventForm.options.ticket.free')
+                        : t('eventForm.options.ticket.paid', { price: formData.tickets[0].price })}
+                      <img src="/icons/edit.svg" alt={t('eventForm.options.ticket.edit')} />
+
+                      {/* {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" /> */}
+                    </button>
+                  </Option>
+                )}
+
                 <Option onClick={() => handleOpenModal('terrain')}>
-                  <div className="Title">
-                    <img src="/icons/terrain.svg" alt={t('eventForm.options.terrain.label')} />
-                    {t('eventForm.options.terrain.label')}
-                  </div>
+                  <OptionTitle>
+                    <TerrainIcon fill={theme.colors.defaultStrong} />
+                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                      {t('eventForm.options.terrain.label')}
+                    </Typography>
+                  </OptionTitle>
 
                   <button className="OptionSelected">
                     {formData.terrain} <img src="/icons/edit.svg" alt={t('eventForm.options.terrain.edit')} />
@@ -662,29 +712,51 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 </Option>
 
                 <Option onClick={() => handleOpenModal('experience')}>
-                  <div className="Title">
-                    <img src="/icons/experience.svg" alt={t('eventForm.options.experience.label')} />
-                    {t('eventForm.options.experience.label')}
-                  </div>
+                  <OptionTitle>
+                    <ExperienceIcon fill={theme.colors.defaultStrong} />
+                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                      {t('eventForm.options.experience.label')}
+                    </Typography>
+                  </OptionTitle>
 
                   <button className="OptionSelected">
                     {formData.experience} <img src="/icons/edit.svg" alt={t('eventForm.options.experience.edit')} />
                   </button>
                 </Option>
 
-                <Option>
-                  <div className="Title">
-                    <img src="/icons/vehicle.svg" alt={t('eventForm.options.vehicle.label')} />
-                    {t('eventForm.options.vehicle.label')}
-                  </div>
-                  <div>
-                    <input
-                      type="checkbox"
-                      checked={formData.needsVehicle}
-                      onChange={(e) => setFormData(prev => ({ ...prev, needsVehicle: e.target.checked }))}
-                    />
-                  </div>
+                <Option onClick={() => handleOpenModal('vehicleRequirement')}>
+                  <OptionTitle>
+                    <WheelIcon fill={theme.colors.defaultStrong} />
+                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                      {t('eventForm.options.vehicle.label')}
+                    </Typography>
+                  </OptionTitle>
+                  <button className="OptionSelected">
+                    {formData.needsVehicle
+                      ? (formData.organizerVehicle
+                        ? formData.organizerVehicle.nickname || formData.organizerVehicle.model
+                        : t('eventForm.options.vehicle.required'))
+                      : t('eventForm.options.vehicle.notRequired')}
+                    <img src="/icons/edit.svg" alt={t('eventForm.options.vehicle.edit')} />
+                  </button>
                 </Option>
+
+                {formData.needsVehicle && (
+                  <Option onClick={() => handleOpenModal('selectVehicle')}>
+                    <OptionTitle>
+                      <WheelIcon fill={theme.colors.defaultStrong} />
+                      <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                        {t('eventForm.options.organizerVehicle.label')}
+                      </Typography>
+                    </OptionTitle>
+                    <button className="OptionSelected">
+                      {formData.organizerVehicle
+                        ? formData.organizerVehicle.nickname || formData.organizerVehicle.model
+                        : t('eventForm.options.organizerVehicle.select')}
+                      <img src="/icons/edit.svg" alt={t('eventForm.options.organizerVehicle.edit')} />
+                    </button>
+                  </Option>
+                )}
 
                 {/* <Option onClick={() => handleOpenModal('capacity')}>
                   <div className="Title">
@@ -697,23 +769,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                 </Option> */}
 
 
-                {!isEditMode && (
-                  <Option onClick={() => handleOpenModal('ticket')}>
-                    <div className="Title">
-                      <img src="/icons/ticket.svg" alt={t('eventForm.options.ticket.label')} />
-                      {t('eventForm.options.ticket.label')}
-                    </div>
 
-                    <button className="OptionSelected">
-                      {formData.tickets[0].type === 'free'
-                        ? t('eventForm.options.ticket.free')
-                        : t('eventForm.options.ticket.paid', { price: formData.tickets[0].price })}
-                      <img src="/icons/edit.svg" alt={t('eventForm.options.ticket.edit')} />
-
-                      {/* {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" /> */}
-                    </button>
-                  </Option>
-                )}
                 {/* 
                 {!isEditMode && (
                   <Option>
@@ -761,6 +817,29 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                     setExperience={(value) =>
                       setFormData((prevData) => ({ ...prevData, experience: value }))
                     }
+                    onClose={handleCloseModal}
+                  />
+                )}
+
+                {activeModal === 'vehicleRequirement' && (
+                  <VehicleRequirementModal
+                    needsVehicle={formData.needsVehicle}
+                    setNeedsVehicle={(value) =>
+                      setFormData((prev) => ({ ...prev, needsVehicle: value }))
+                    }
+                    organizerVehicle={formData.organizerVehicle}
+                    onOpenSelectVehicle={() => setActiveModal('selectVehicle')}
+                    onClose={handleCloseModal}
+                  />
+                )}
+
+                {activeModal === 'selectVehicle' && (
+                  <SelectVehicleModal
+                    onSelectVehicle={(vehicle) => {
+                      setFormData((prev) => ({ ...prev, organizerVehicle: vehicle }));
+                      setActiveModal('vehicleRequirement'); // Regresar al modal de requerimiento
+                    }}
+                    selectedVehicle={formData.organizerVehicle}
                     onClose={handleCloseModal}
                   />
                 )}
@@ -944,33 +1023,22 @@ const Description = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-
-  .DescriptionInputBlock {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
   
   textarea {
     min-height: 120px;
   }
+`;
 
-  label {
-    display: inline-flex;
-    gap: 8px;
-    color: ${({ theme }) => theme.colors.defaultStrong};
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
+const DescriptionInputBlock = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+`;
 
-    /* Body/Body 1/Semibold */
-    font-family: "Mona Sans";
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 150%; /* 24px */
-  }
+const DescriptionArea = styled(InputTextArea)`
+  field-sizing: content;
 `;
 
 const TitleInputBlock = styled.div`
@@ -1096,18 +1164,18 @@ const Option = styled.div`
     gap: 8px;
   }
 
-  .Title {
-    color: var(--text-icon-default-strong, #464646);
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
+  // .Title {
+  //   color: var(--text-icon-default-strong, #464646);
+  //   font-variant-numeric: lining-nums tabular-nums;
+  //   font-feature-settings: 'ss01' on;
 
-    /* Body/Body 1/Semibold */
-    font-family: "Mona Sans";
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 150%; /* 24px */
-  }
+  //   /* Body/Body 1/Semibold */
+  //   font-family: "Mona Sans";
+  //   font-size: 16px;
+  //   font-style: normal;
+  //   font-weight: 600;
+  //   line-height: 150%; /* 24px */
+  // }
   .OptionSelected {
     color: var(--text-icon-default-subtle, #989898);
     font-variant-numeric: lining-nums tabular-nums;
@@ -1122,6 +1190,12 @@ const Option = styled.div`
     border: 0;
     background-color: unset;
   }
+`;
+
+const OptionTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const ErrorMessage = styled.div`
@@ -1159,6 +1233,12 @@ const Details = styled.div`
   gap: 32px;
 `;
 
+const SettingsHeader = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+`;
+
 const Settings = styled.div`
   grid-area: 1 / 8 / 2 / 13;
   border-radius: 16px;
@@ -1173,21 +1253,6 @@ const Settings = styled.div`
     align-items: stretch;
     gap: 16px;
     border-top: 1px solid var(--border-default-weak, #DCDCDC);
-
-    .Heading {
-      display: inline-flex;
-      gap: 8px;
-      color: ${({ theme }) => theme.colors.defaultStrong};
-      font-variant-numeric: lining-nums tabular-nums;
-      font-feature-settings: 'ss01' on;
-
-      /* Body/Body 1/Semibold */
-      font-family: "Mona Sans";
-      font-size: 16px;
-      font-style: normal;
-      font-weight: 600;
-      line-height: 150%; /* 24px */
-    }
   }
   
   .Date {

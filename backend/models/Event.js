@@ -119,6 +119,10 @@ const eventSchema = new Schema({
     type: Boolean,
     default: true
   },
+  organizerVehicle: {
+    type: Schema.Types.ObjectId,
+    ref: 'Vehicle'
+  },
   policy: {
     type: Schema.Types.ObjectId,
     ref: 'Policy'

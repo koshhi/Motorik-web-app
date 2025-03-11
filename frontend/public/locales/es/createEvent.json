@@ -31,7 +31,15 @@
         "edit": "Editar"
       },
       "vehicle": {
-        "label": "¿Requiere vehículo?"
+        "label": "Vehículo",
+        "required": "Requerido",
+        "notRequired": "No requerido"
+      },
+      "organizerVehicle": {
+        "label": "Tu vehículo",
+        "select": "Seleccionar",
+        "edit": "Editar",
+        "selected": "{{vehicle}}"
       },
       "ticket": {
         "label": "Ticket",
@@ -98,5 +106,22 @@
     "title": "Experiencia deseada",
     "description": "Esta información ayudará a dar visibilidad a tu evento.",
     "save": "Guardar experiencia deseada"
+  },
+  "vehicleModal": {
+    "title": "Vehículos",
+    "description": "Elige si el evento requiere vehículo. Si es así, podrás seleccionar el vehículo del organizador.",
+    "optionRequired": "Requerido",
+    "optionNotRequired": "No requerido",
+    "selectedVehicle": "Vehículo seleccionado: {{vehicle}}",
+    "noVehicleSelected": "No se ha seleccionado ningún vehículo",
+    "changeVehicle": "Cambiar vehículo",
+    "selectVehicle": "Seleccionar vehículo",
+    "save": "Guardar"
+  },
+  "selectVehicleModal": {
+    "title": "Selecciona tu vehículo",
+    "loading": "Cargando vehículos...",
+    "noVehicles": "No tienes vehículos registrados.",
+    "close": "Cerrar"
   }
 }
