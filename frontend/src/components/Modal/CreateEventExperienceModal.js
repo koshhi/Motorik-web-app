@@ -16,18 +16,16 @@ const CreateEventExperienceModal = ({ experience, setExperience, onClose }) => {
     <Modal onClose={onClose} title={t('createEventExperienceModal.title')}>
       <ModalContent>
         <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
-          {/* Esta información ayudará a dar visibilidad a tu evento. */}
           {t('createEventExperienceModal.description')}
-
         </Typography>
         <ExperienceList>
-          {experienceTypes.map((experienceType) => (
+          {experienceTypes.map((expType) => (
             <CardToogle
-              key={experienceType}
-              category={experienceType}
-              isActive={experience === experienceType}
-              onClick={() => setExperience(experienceType)}
-              icon={getEventExperienceSvgIcon(experienceType, experience === experienceType ? theme.colors.brandMain : theme.colors.defaultSubtle)}
+              key={expType}
+              category={expType}
+              isActive={experience === expType}
+              onClick={() => setExperience(expType)}
+              icon={getEventExperienceSvgIcon(expType, experience === expType ? theme.colors.brandMain : theme.colors.defaultSubtle)}
             />
           ))}
         </ExperienceList>

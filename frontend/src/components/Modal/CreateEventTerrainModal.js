@@ -16,17 +16,16 @@ const CreateEventTerrainModal = ({ terrain, setTerrain, onClose }) => {
     <Modal onClose={onClose} title={t('createEventTerrainModal.title')}>
       <ModalContent>
         <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultWeak}>
-          {/* Esta información ayudará a dar visibilidad a tu evento. */}
           {t('createEventTerrainModal.description')}
         </Typography>
         <TerrainList>
-          {terrainTypes.map((terrainType) => (
+          {terrainTypes.map((type) => (
             <CardToogle
-              key={terrainType}
-              category={terrainType}
-              isActive={terrain === terrainType}
-              onClick={() => setTerrain(terrainType)}
-              icon={getEventTerrainSvgIcon(terrainType, terrain === terrainType ? theme.colors.brandMain : theme.colors.defaultSubtle)}
+              key={type}
+              category={type}
+              isActive={terrain === type}
+              onClick={() => setTerrain(type)}
+              icon={getEventTerrainSvgIcon(type, terrain === type ? theme.colors.brandMain : theme.colors.defaultSubtle)}
             />
           ))}
         </TerrainList>

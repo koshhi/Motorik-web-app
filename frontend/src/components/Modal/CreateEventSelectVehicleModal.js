@@ -6,9 +6,11 @@ import Button from '../Button/Button';
 import Typography from '../Typography';
 import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
+import { useAuth } from '../../context/AuthContext';
 
 const SelectVehicleModal = ({ onSelectVehicle, selectedVehicle, onClose }) => {
   const { t } = useTranslation('createEvent');
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -16,8 +18,7 @@ const SelectVehicleModal = ({ onSelectVehicle, selectedVehicle, onClose }) => {
     const fetchVehicles = async () => {
       setLoading(true);
       try {
-        // Se asume que existe un endpoint para obtener los vehículos del usuario actual
-        const response = await axiosClient.get('/api/vehicles/user/me');
+        const response = await axiosClient.get(`/api/vehicles/user/${user.id}`);
         setVehicles(response.data.vehicles);
       } catch (error) {
         console.error('Error fetching vehicles:', error);
@@ -26,7 +27,8 @@ const SelectVehicleModal = ({ onSelectVehicle, selectedVehicle, onClose }) => {
       }
     };
     fetchVehicles();
-  }, []);
+  }, [user.id]);
+
 
   return (
     <Modal onClose={onClose} title={t('selectVehicleModal.title')}>
@@ -62,6 +64,7 @@ const SelectVehicleModal = ({ onSelectVehicle, selectedVehicle, onClose }) => {
     </Modal>
   );
 };
+
 
 export default SelectVehicleModal;
 

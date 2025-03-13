@@ -14,42 +14,35 @@ import VehicleRequirementModal from './Modal/CreateEventVehicleRequirementModal'
 import SelectVehicleModal from './Modal/CreateEventSelectVehicleModal';
 import { theme } from '../theme';
 import { useTranslation } from 'react-i18next';
-import WheelIcon from './Icons/WheelIcon';
-import EventTypeIcon from './Icons/EventTypeIcon';
-import TerrainIcon from './Icons/TerrainIcon';
-import ExperienceIcon from './Icons/ExperienceIcon';
-import TicketsIcon from './Icons/TicketsIcon';
 import UploadFileIcon from './Icons/UploadFileIcon';
 import CalendarIcon from './Icons/CalendarIcon';
 import LocationIcon from './Icons/LocationIcon';
 import OptionsIcon from './Icons/OptionsIcon';
+import TicketsIcon from './Icons/TicketsIcon';
+import TerrainIcon from './Icons/TerrainIcon';
+import ExperienceIcon from './Icons/ExperienceIcon';
+import EventTypeIcon from './Icons/EventTypeIcon';
+import WheelIcon from './Icons/WheelIcon';
+import useDateTimeSync from '../hooks/useDateTimeSync';
+import EditIcon from './Icons/EditIcon';
+import SearchIcon from './Icons/SearchIcon';
 
-// Componente principal del formulario
 const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref) => {
   const { t } = useTranslation('createEvent');
 
-  const roundTimeToNearestHalfHour = () => {
-    const now = new Date();
-    const minutes = now.getMinutes();
-
-    if (minutes > 0 && minutes <= 30) {
-      now.setMinutes(30);
-    } else {
-      now.setHours(now.getHours() + 1);
-      now.setMinutes(0);
-    }
-
-    now.setSeconds(0);
-    return now.toTimeString().slice(0, 5);
-  };
-
-  const adjustEndTime = (startTime) => {
-    const [hours, minutes] = startTime.split(':');
-    const endTime = new Date();
-    endTime.setHours(parseInt(hours) + 1);
-    endTime.setMinutes(parseInt(minutes));
-    return endTime.toTimeString().slice(0, 5);
-  };
+  // Utilizar el hook para la sincronización de fechas y horas
+  const {
+    startDay,
+    setStartDay,
+    endDay,
+    setEndDay,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
+    setIsEndDayChanged,
+    setIsEndTimeChanged
+  } = useDateTimeSync();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -81,23 +74,13 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
   const autocompleteRef = useRef(null);
   const [activeModal, setActiveModal] = useState(null);
 
-  // Estados para fechas y horas
-  const [startDay, setStartDay] = useState(() => new Date().toISOString().split('T')[0]);
-  const [endDay, setEndDay] = useState(() => new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState(() => roundTimeToNearestHalfHour());
-  const [endTime, setEndTime] = useState(() => adjustEndTime(roundTimeToNearestHalfHour()));
-
-  // Estados adicionales
-  const [isEndDayChanged, setIsEndDayChanged] = useState(false);
-  const [isEndTimeChanged, setIsEndTimeChanged] = useState(false);
-
   useEffect(() => {
     if (initialData && isEditMode) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         ...initialData,
         tickets: initialData.tickets
-          ? initialData.tickets.map((ticket) => ({
+          ? initialData.tickets.map(ticket => ({
             ...ticket,
             approvalRequired: ticket.approvalRequired !== undefined ? ticket.approvalRequired : false,
           }))
@@ -109,7 +92,7 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
             lng: initialData.locationCoordinates.coordinates[0],
           }
           : { lat: null, lng: null },
-        needsVehicle: initialData.needsVehicle !== undefined ? initialData.needsVehicle : true // Cargar valor si existe
+        needsVehicle: initialData.needsVehicle !== undefined ? initialData.needsVehicle : true
       }));
 
       const startDateObj = new Date(initialData.startDate);
@@ -119,110 +102,61 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       setStartTime(startDateObj.toISOString().substr(11, 5));
       setEndTime(endDateObj.toISOString().substr(11, 5));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData, isEditMode]);
+  }, [initialData, isEditMode, setStartDay, setEndDay, setStartTime, setEndTime]);
 
-  // useEffect para sincronizar endDay con startDay
-  useEffect(() => {
-    if (!isEndDayChanged) {
-      if (endDay !== startDay) {
-        setEndDay(startDay);
-      }
-    } else if (new Date(endDay) < new Date(startDay)) {
-      setEndDay(startDay);
-      setIsEndDayChanged(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDay, endDay, isEndDayChanged]);
+  // Los useEffect para sincronizar endDay y endTime se gestionan en el hook
 
-  // useEffect para sincronizar endTime con startTime
-  useEffect(() => {
-    if (!isEndTimeChanged) {
-      setEndTime(adjustEndTime(startTime));
-    } else {
-      const startDateTime = new Date(`${startDay}T${startTime}`);
-      const endDateTime = new Date(`${endDay}T${endTime}`);
+  const isEventPaid = () => formData.tickets.some(ticket => ticket.type === 'paid');
 
-      if (endDateTime <= startDateTime) {
-        setEndTime(adjustEndTime(startTime));
-        setIsEndTimeChanged(false);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startTime, startDay, endDay, isEndTimeChanged, endTime, endDay]);
-
-  // Función para determinar si el evento es de pago
-  const isEventPaid = () => {
-    return formData.tickets.some(ticket => ticket.type === 'paid');
-  };
-
-  // Efecto para forzar 'approvalRequired' a 'false' si el evento es de pago
   useEffect(() => {
     if (isEventPaid() && formData.approvalRequired) {
-      setFormData(prevData => ({ ...prevData, approvalRequired: false }));
+      setFormData(prev => ({ ...prev, approvalRequired: false }));
     }
   }, [formData.tickets]);
 
-  // Función de validación del formulario
+  // Función de validación (no modificada)
   const validateForm = () => {
     const newErrors = {};
-    const startDateTime = new Date(`${startDay}T${startTime}`);
-    const endDateTime = new Date(`${endDay}T${endTime}`);
+    const startDT = new Date(`${startDay}T${startTime}`);
+    const endDT = new Date(`${endDay}T${endTime}`);
 
-    // Validaciones básicas
-    // if (!formData.title.trim()) newErrors.title = 'El título es obligatorio';
-    // if (!formData.location.trim()) newErrors.location = 'La localización es obligatoria';
-    // if (!formData.description.trim()) newErrors.description = 'La descripción es obligatoria';
-    // if (!file && !isEditMode && !formData.imageUrl) newErrors.file = 'La imagen es obligatoria';
     if (!formData.title.trim()) newErrors.title = t('eventForm.titlePlaceholder');
     if (!formData.location.trim()) newErrors.location = t('eventForm.location.heading');
     if (!formData.description.trim()) newErrors.description = t('eventForm.detailsPlaceholder');
     if (!file && !isEditMode && !formData.imageUrl) newErrors.file = t('eventForm.imageUpload');
 
-    // if (startDateTime >= endDateTime) {
-    //   newErrors.startDay =
-    //     'La fecha y hora de inicio no pueden ser posteriores o iguales a la de fin.';
-    //   newErrors.endDay = 'La fecha y hora de fin deben ser posteriores a las de inicio.';
-    // }
-
-    if (startDateTime >= endDateTime) {
-      newErrors.startDay = t('eventForm.date.invalid') || t('eventForm.date.startLabel') + " " + t('eventForm.date.endLabel');
+    if (startDT >= endDT) {
+      newErrors.startDay = t('eventForm.date.invalid') || `${t('eventForm.date.startLabel')} ${t('eventForm.date.endLabel')}`;
       newErrors.endDay = t('eventForm.date.invalid') || t('eventForm.date.endLabel');
     }
 
-    // if (!formData.coordinates.lat || !formData.coordinates.lng) {
-    //   newErrors.location = 'Selecciona una ubicación válida del autocompletado.';
-    // }
     if (!formData.coordinates.lat || !formData.coordinates.lng) {
       newErrors.location = t('eventForm.location.searchPlaceholder');
     }
 
-    // Validaciones de tickets
     if (!formData.tickets || !Array.isArray(formData.tickets) || formData.tickets.length === 0) {
-      newErrors.tickets = 'Se requiere al menos un ticket.';
+      newErrors.tickets = t('eventForm.tickets.required');
     } else {
       formData.tickets.forEach((ticket, index) => {
         if (!ticket.name || !ticket.name.trim()) {
-          newErrors[`tickets.${index}.name`] = `El nombre del ticket ${index + 1} es obligatorio.`;
+          newErrors[`tickets.${index}.name`] = t('eventForm.tickets.nameRequired', { index: index + 1 });
         }
         if (!ticket.type) {
-          newErrors[`tickets.${index}.type`] = `El tipo del ticket ${index + 1} es obligatorio.`;
+          newErrors[`tickets.${index}.type`] = t('eventForm.tickets.typeRequired', { index: index + 1 });
         }
         if (ticket.type === 'paid') {
           const price = Number(ticket.price);
           if (isNaN(price) || price <= 0) {
-            newErrors[`tickets.${index}.price`] = `El precio del ticket ${index + 1} debe ser un número positivo.`;
+            newErrors[`tickets.${index}.price`] = t('eventForm.tickets.priceInvalid', { index: index + 1 });
           }
         }
-        // Validar 'approvalRequired'
         const approvalValue = ticket.approvalRequired;
         if (approvalValue !== true && approvalValue !== false) {
-          newErrors[`tickets.${index}.approvalRequired`] = `El campo 'Aprobación requerida' del ticket ${index + 1} debe ser verdadero o falso.`;
+          newErrors[`tickets.${index}.approvalRequired`] = t('eventForm.tickets.approvalInvalid', { index: index + 1 });
         }
-        // Validar 'capacity'
-        const capacityValue = Number(ticket.capacity);
-        if (isNaN(capacityValue) || capacityValue < 1) {
-          newErrors[`tickets.${index}.capacity`] = `La capacidad del ticket ${index + 1} debe ser un número entero positivo.`;
+        const capValue = Number(ticket.capacity);
+        if (isNaN(capValue) || capValue < 1) {
+          newErrors[`tickets.${index}.capacity`] = t('eventForm.tickets.capacityInvalid', { index: index + 1 });
         }
       });
     }
@@ -231,38 +165,32 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
     return Object.keys(newErrors).length === 0;
   };
 
-  // Exponer funciones al componente padre usando useImperativeHandle
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
       if (!validateForm()) {
         console.error('Errores en el formulario, no se puede enviar');
         return null;
       }
-
-      const startDateTime = new Date(`${startDay}T${startTime}`).toISOString();
-      const endDateTime = new Date(`${endDay}T${endTime}`).toISOString();
-
-      // Construir locationCoordinates con la estructura esperada por el backend
+      const startDT = new Date(`${startDay}T${startTime}`).toISOString();
+      const endDT = new Date(`${endDay}T${endTime}`).toISOString();
       const locationCoordinates = {
         type: 'Point',
-        coordinates: [formData.coordinates.lng, formData.coordinates.lat], // [lng, lat]
+        coordinates: [formData.coordinates.lng, formData.coordinates.lat]
       };
-
-      const tickets = formData.tickets.map((ticket) => ({
+      const tickets = formData.tickets.map(ticket => ({
         name: ticket.name,
         type: ticket.type,
         price: ticket.type === 'paid' ? Number(ticket.price) : 0,
         approvalRequired: ticket.approvalRequired,
         capacity: Number(ticket.capacity)
       }));
-
       const newFormData = new FormData();
       newFormData.append('title', formData.title);
       newFormData.append('description', formData.description);
       newFormData.append('location', formData.location);
       newFormData.append('shortLocation', formData.shortLocation);
-      newFormData.append('startDate', startDateTime);
-      newFormData.append('endDate', endDateTime);
+      newFormData.append('startDate', startDT);
+      newFormData.append('endDate', endDT);
       newFormData.append('eventType', formData.eventType);
       newFormData.append('terrain', formData.terrain);
       newFormData.append('experience', formData.experience);
@@ -273,11 +201,10 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
       if (formData.organizerVehicle) {
         newFormData.append('organizerVehicle', formData.organizerVehicle.id);
       }
-
       return newFormData;
     },
     setInitialData: (data) => {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         ...data,
         tickets: data.tickets || [{
@@ -296,89 +223,54 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
           : { lat: null, lng: null },
         needsVehicle: data.needsVehicle !== undefined ? data.needsVehicle : true
       }));
-
       const startDateObj = new Date(data.startDate);
       const endDateObj = new Date(data.endDate);
       setStartDay(startDateObj.toISOString().split('T')[0]);
       setEndDay(endDateObj.toISOString().split('T')[0]);
       setStartTime(startDateObj.toISOString().substr(11, 5));
       setEndTime(endDateObj.toISOString().substr(11, 5));
-    },
+    }
   }));
 
-  // Manejar cambios en los campos de entrada
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
-  // Manejar cambios en la imagen
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
     if (errors.file) setErrors({ ...errors, file: '' });
   };
 
-  // Manejar la selección de lugar usando Autocomplete de Google Maps
   const onPlaceChanged = () => {
     const place = autocompleteRef.current.getPlace();
-
     if (place && place.geometry) {
       const lat = place.geometry.location.lat();
       const lng = place.geometry.location.lng();
-
-      setFormData((prevData) => ({
-        ...prevData,
+      setFormData(prev => ({
+        ...prev,
         location: place.formatted_address,
-        coordinates: { lat, lng },
+        coordinates: { lat, lng }
       }));
-
-      const addressComponents = place.address_components;
-      let locality = '';
-      let administrativeArea = '';
-      let country = '';
-
-      addressComponents.forEach((component) => {
-        if (component.types.includes('locality')) {
-          locality = component.long_name;
-        }
-        if (component.types.includes('administrative_area_level_2')) {
-          administrativeArea = component.long_name;
-        }
-        if (component.types.includes('country')) {
-          country = component.long_name;
-        }
+      let locality = '', administrativeArea = '', country = '';
+      place.address_components.forEach(component => {
+        if (component.types.includes('locality')) locality = component.long_name;
+        if (component.types.includes('administrative_area_level_2')) administrativeArea = component.long_name;
+        if (component.types.includes('country')) country = component.long_name;
       });
-
-      let shortLocation =
-        locality && administrativeArea && locality !== administrativeArea
-          ? `${locality}, ${administrativeArea}, ${country}`
-          : `${administrativeArea}, ${country}`;
-
-      setFormData((prevData) => ({
-        ...prevData,
-        shortLocation,
-      }));
+      const shortLocation = locality && administrativeArea && locality !== administrativeArea
+        ? `${locality}, ${administrativeArea}, ${country}`
+        : `${administrativeArea}, ${country}`;
+      setFormData(prev => ({ ...prev, shortLocation }));
     } else {
-      // alert('No se pudieron obtener las coordenadas. Intenta de nuevo.');
       alert(t('eventForm.location.searchPlaceholder'));
-
     }
   };
 
-  // Manejar la apertura de modales
-  const handleOpenModal = (modalId) => {
-    setActiveModal(modalId);
-  };
-
-  // Manejar el cierre de modales
-  const handleCloseModal = () => {
-    setActiveModal(null);
-  };
+  const handleOpenModal = (modalId) => setActiveModal(modalId);
+  const handleCloseModal = () => setActiveModal(null);
 
   return (
     <FormContainer>
@@ -421,15 +313,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   <EventImageWrapper>
                     <EventImage src={URL.createObjectURL(file)} alt="Event" />
                     <ImageInputBlock>
-                      <InputFile
-                        type="file"
-                        id="file"
-                        onChange={handleFileChange}
-                      />
-                      <InputFileLabel
-                        htmlFor="file"
-                        className={errors.file ? 'error' : ''}
-                      >
+                      <InputFile type="file" id="file" onChange={handleFileChange} />
+                      <InputFileLabel htmlFor="file" className={errors.file ? 'error' : ''}>
                         <LabelContent>
                           <UploadFileIcon fill={theme.colors.defaultStrong} />
                           <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
@@ -444,15 +329,8 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   <EventImageWrapper>
                     <EventImage src={formData.imageUrl} alt="Event" />
                     <ImageInputBlock>
-                      <InputFile
-                        type="file"
-                        id="file"
-                        onChange={handleFileChange}
-                      />
-                      <InputFileLabel
-                        htmlFor="file"
-                        className={errors.file ? 'error' : ''}
-                      >
+                      <InputFile type="file" id="file" onChange={handleFileChange} />
+                      <InputFileLabel htmlFor="file" className={errors.file ? 'error' : ''}>
                         <LabelContent>
                           <UploadFileIcon fill={theme.colors.defaultStrong} />
                           <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
@@ -465,30 +343,17 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                   </EventImageWrapper>
                 ) : (
                   <EventEmptyImageWrapper>
-                    <EmptyStateIcon
-                      src={getEventTypeIcon(formData.eventType)}
-                      alt="empty state icon"
-                    />
+                    <EmptyStateIcon src={getEventTypeIcon(formData.eventType)} alt="empty state icon" />
                     <ImageInputBlock>
-                      <InputFile
-                        type="file"
-                        id="file"
-                        onChange={handleFileChange}
-                      />
-                      <InputFileLabel
-                        htmlFor="file"
-                        className={errors.file ? 'error' : ''}
-
-                      >
+                      <InputFile type="file" id="file" onChange={handleFileChange} />
+                      <InputFileLabel htmlFor="file" className={errors.file ? 'error' : ''}>
                         <LabelContent>
                           <UploadFileIcon fill={theme.colors.defaultStrong} />
                           <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
                             {t('eventForm.imageUpload')}
                           </Typography>
                         </LabelContent>
-                        {errors.file && (
-                          <ImageUploadError>{errors.file}</ImageUploadError>
-                        )}
+                        {errors.file && <ImageUploadError>{errors.file}</ImageUploadError>}
                       </InputFileLabel>
                     </ImageInputBlock>
                   </EventEmptyImageWrapper>
@@ -514,18 +379,20 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
             </Description>
           </Details>
           <Settings>
-            <div className="Date">
+            <DateOptions>
               <SettingsHeader>
                 <CalendarIcon fill={theme.colors.defaultStrong} />
                 <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
                   {t('eventForm.date.heading')}
                 </Typography>
               </SettingsHeader>
-              <div className="DateInputTexts">
-                <div className="Row">
-                  <label>{t('eventForm.date.startLabel')}</label>
-                  <div className="DateInputBlock">
-                    <div className="ComboBlock">
+              <DateInputs>
+                <StartDateRow>
+                  <Typography as="label" $variant="body-1-medium" color={theme.colors.defaultStrong} style={{ width: '64px' }}>
+                    {t('eventForm.date.startLabel')}
+                  </Typography>
+                  <DateInputBlock>
+                    <DateInputsWrapper>
                       <InputText
                         size="medium"
                         type="date"
@@ -534,8 +401,11 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                           setStartDay(e.target.value);
                           if (errors.startDay) setErrors({ ...errors, startDay: '' });
                         }}
+                        onClick={(e) => {
+                          if (e.target.showPicker) e.target.showPicker();
+                        }}
+                        onKeyDown={(e) => e.preventDefault()}
                         $variant={errors.startDay ? 'error' : ''}
-                        placeholder="Start Day"
                         min={new Date().toISOString().split('T')[0]}
                         required
                       />
@@ -547,19 +417,24 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                           setStartTime(e.target.value);
                           if (errors.startTime) setErrors({ ...errors, startTime: '' });
                         }}
+                        onClick={(e) => {
+                          if (e.target.showPicker) e.target.showPicker();
+                        }}
+                        onKeyDown={(e) => e.preventDefault()}
                         $variant={errors.startTime ? 'error' : ''}
-                        placeholder="Start Time"
                         required
                       />
-                    </div>
+                    </DateInputsWrapper>
                     {errors.startTime && <ErrorMessage>{errors.startTime}</ErrorMessage>}
                     {errors.startDay && <ErrorMessage>{errors.startDay}</ErrorMessage>}
-                  </div>
-                </div>
-                <div className="Row">
-                  <label>{t('eventForm.date.endLabel')}</label>
-                  <div className="DateInputBlock">
-                    <div className="ComboBlock">
+                  </DateInputBlock>
+                </StartDateRow>
+                <EndDateRow>
+                  <Typography as="label" $variant="body-1-medium" color={theme.colors.defaultStrong} style={{ width: '64px' }}>
+                    {t('eventForm.date.endLabel')}
+                  </Typography>
+                  <DateInputBlock>
+                    <DateInputsWrapper>
                       <InputText
                         size="medium"
                         type="date"
@@ -568,27 +443,21 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                           const newEndDay = e.target.value;
                           setEndDay(newEndDay);
                           setIsEndDayChanged(true);
-
-                          const startDateTime = new Date(`${startDay}T${startTime}`);
-                          const endDateTime = new Date(`${newEndDay}T${endTime}`);
-
+                          const startDT = new Date(`${startDay}T${startTime}`);
+                          const endDT = new Date(`${newEndDay}T${endTime}`);
                           if (new Date(newEndDay) < new Date(startDay)) {
-                            setErrors((prevErrors) => ({
-                              ...prevErrors,
-                              endDay: 'La fecha de fin no puede ser anterior a la fecha de inicio.',
-                            }));
-                          } else if (endDateTime <= startDateTime) {
-                            setErrors((prevErrors) => ({
-                              ...prevErrors,
-                              endDay:
-                                'La fecha y hora de fin deben ser posteriores a la fecha y hora de inicio.',
-                            }));
+                            setErrors(prev => ({ ...prev, endDay: t('eventForm.date.invalid') }));
+                          } else if (endDT <= startDT) {
+                            setErrors(prev => ({ ...prev, endDay: t('eventForm.date.invalid') }));
                           } else {
-                            setErrors((prevErrors) => ({ ...prevErrors, endDay: '' }));
+                            setErrors(prev => ({ ...prev, endDay: '' }));
                           }
                         }}
+                        onClick={(e) => {
+                          if (e.target.showPicker) e.target.showPicker();
+                        }}
+                        onKeyDown={(e) => e.preventDefault()}
                         $variant={errors.endDay ? 'error' : ''}
-                        placeholder="End Day"
                         min={startDay}
                         required
                       />
@@ -600,260 +469,206 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                           const newEndTime = e.target.value;
                           setEndTime(newEndTime);
                           setIsEndTimeChanged(true);
-
-                          const startDateTime = new Date(`${startDay}T${startTime}`);
-                          const endDateTime = new Date(`${endDay}T${newEndTime}`);
-
-                          if (endDateTime <= startDateTime) {
-                            setErrors((prevErrors) => ({
-                              ...prevErrors,
-                              endTime:
-                                'La fecha y hora de fin deben ser posteriores a la fecha y hora de inicio.',
-                            }));
+                          const startDT = new Date(`${startDay}T${startTime}`);
+                          const endDT = new Date(`${endDay}T${newEndTime}`);
+                          if (endDT <= startDT) {
+                            setErrors(prev => ({ ...prev, endTime: t('eventForm.date.invalid') }));
                           } else {
-                            setErrors((prevErrors) => ({ ...prevErrors, endTime: '' }));
+                            setErrors(prev => ({ ...prev, endTime: '' }));
                           }
                         }}
+                        onClick={(e) => {
+                          if (e.target.showPicker) e.target.showPicker();
+                        }}
+                        onKeyDown={(e) => e.preventDefault()}
                         $variant={errors.endTime ? 'error' : ''}
-                        placeholder="End Time"
                         required
                       />
-                    </div>
+                    </DateInputsWrapper>
                     {errors.endDay && <ErrorMessage>{errors.endDay}</ErrorMessage>}
                     {errors.endTime && <ErrorMessage>{errors.endTime}</ErrorMessage>}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="Location">
+                  </DateInputBlock>
+                </EndDateRow>
+              </DateInputs>
+            </DateOptions>
+            <LocationOptions>
               <SettingsHeader>
                 <LocationIcon fill={theme.colors.defaultStrong} />
                 <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
                   {t('eventForm.location.heading')}
                 </Typography>
               </SettingsHeader>
-              <div className="SearchLocation">
-                <div className="LocationInputBlock">
-                  <img src="/icons/search.svg" alt={t('eventForm.location.searchAlt')} />
-                  <Autocomplete
-                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                    onPlaceChanged={onPlaceChanged}
-                  >
-                    <InputText
-                      size="large"
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        if (errors.location) setErrors({ ...errors, location: '' });
-                      }}
-                      placeholder={t('eventForm.location.searchPlaceholder')}
-                      // placeholder="Introduce localización del evento"
-                      $variant={errors.location ? 'error' : ''}
-                      required
-                    />
-                  </Autocomplete>
-                  {errors.location && <ErrorMessage>{errors.location}</ErrorMessage>}
-                </div>
-              </div>
-            </div>
-            <Options>
+              <LocationInput>
+                <SearchIcon
+                  fill={theme.colors.defaultWeak}
+                  style={{ position: "absolute", left: "8px", top: "8px" }}
+                />
+                <Autocomplete
+                  onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                  onPlaceChanged={onPlaceChanged}
+                  className='Autocomplete'
+                >
+                  <AutocompleteInput
+                    size="large"
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      if (errors.location) setErrors({ ...errors, location: '' });
+                    }}
+                    placeholder={t('eventForm.location.searchPlaceholder')}
+                    $variant={errors.location ? 'error' : ''}
+                    required
+                  />
+                </Autocomplete>
+                {errors.location && <ErrorMessage>{errors.location}</ErrorMessage>}
+              </LocationInput>
+            </LocationOptions>
+            <EventOptions>
               <SettingsHeader>
                 <OptionsIcon stroke={theme.colors.defaultStrong} />
                 <Typography as="label" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
                   {t('eventForm.options.heading')}
                 </Typography>
               </SettingsHeader>
-              <div className="OptionsContainer">
-                <Option onClick={() => handleOpenModal('eventType')}>
+              <OptionsContainer>
+                <EventOption onClick={() => handleOpenModal('eventType')}>
                   <OptionTitle>
                     <EventTypeIcon fill={theme.colors.defaultStrong} />
-                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
                       {t('eventForm.options.eventType.label')}
                     </Typography>
                   </OptionTitle>
-                  <button className="OptionSelected">
-                    {formData.eventType} <img src="/icons/edit.svg" alt={t('eventForm.options.eventType.edit')} />
-                  </button>
-                </Option>
-
+                  <OptionSelected>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultSubtle}>
+                      {formData.eventType}
+                    </Typography>
+                    <EditIcon fill={theme.colors.defaultSubtle} />
+                  </OptionSelected>
+                </EventOption>
                 {!isEditMode && (
-                  <Option onClick={() => handleOpenModal('ticket')}>
+                  <EventOption onClick={() => handleOpenModal('ticket')}>
                     <OptionTitle>
                       <TicketsIcon fill={theme.colors.defaultStrong} />
-                      <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                      <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
                         {t('eventForm.options.ticket.label')}
                       </Typography>
                     </OptionTitle>
-
-                    <button className="OptionSelected">
-                      {formData.tickets[0].type === 'free'
-                        ? t('eventForm.options.ticket.free')
-                        : t('eventForm.options.ticket.paid', { price: formData.tickets[0].price })}
-                      <img src="/icons/edit.svg" alt={t('eventForm.options.ticket.edit')} />
-
-                      {/* {formData.tickets[0].type === 'free' ? 'Gratis' : `De pago - ${formData.tickets[0].price}€`} <img src="/icons/edit.svg" alt="Editar" /> */}
-                    </button>
-                  </Option>
+                    <OptionSelected>
+                      <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultSubtle}>
+                        {formData.tickets[0].type === 'free'
+                          ? t('eventForm.options.ticket.free')
+                          : t('eventForm.options.ticket.paid', { price: formData.tickets[0].price })}
+                      </Typography>
+                      <EditIcon fill={theme.colors.defaultSubtle} />
+                    </OptionSelected>
+                  </EventOption>
                 )}
-
-                <Option onClick={() => handleOpenModal('terrain')}>
+                <EventOption onClick={() => handleOpenModal('terrain')}>
                   <OptionTitle>
                     <TerrainIcon fill={theme.colors.defaultStrong} />
-                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
                       {t('eventForm.options.terrain.label')}
                     </Typography>
                   </OptionTitle>
-
-                  <button className="OptionSelected">
-                    {formData.terrain} <img src="/icons/edit.svg" alt={t('eventForm.options.terrain.edit')} />
-                  </button>
-                </Option>
-
-                <Option onClick={() => handleOpenModal('experience')}>
+                  <OptionSelected>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultSubtle}>
+                      {formData.terrain}
+                    </Typography>
+                    <EditIcon fill={theme.colors.defaultSubtle} />
+                  </OptionSelected>
+                </EventOption>
+                <EventOption onClick={() => handleOpenModal('experience')}>
                   <OptionTitle>
                     <ExperienceIcon fill={theme.colors.defaultStrong} />
-                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
                       {t('eventForm.options.experience.label')}
                     </Typography>
                   </OptionTitle>
-
-                  <button className="OptionSelected">
-                    {formData.experience} <img src="/icons/edit.svg" alt={t('eventForm.options.experience.edit')} />
-                  </button>
-                </Option>
-
-                <Option onClick={() => handleOpenModal('vehicleRequirement')}>
+                  <OptionSelected>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultSubtle}>
+                      {formData.experience}
+                    </Typography>
+                    <EditIcon fill={theme.colors.defaultSubtle} />
+                  </OptionSelected>
+                </EventOption>
+                <EventOption onClick={() => handleOpenModal('vehicleRequirement')}>
                   <OptionTitle>
                     <WheelIcon fill={theme.colors.defaultStrong} />
-                    <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
                       {t('eventForm.options.vehicle.label')}
                     </Typography>
                   </OptionTitle>
-                  <button className="OptionSelected">
-                    {formData.needsVehicle
-                      ? (formData.organizerVehicle
-                        ? formData.organizerVehicle.nickname || formData.organizerVehicle.model
-                        : t('eventForm.options.vehicle.required'))
-                      : t('eventForm.options.vehicle.notRequired')}
-                    <img src="/icons/edit.svg" alt={t('eventForm.options.vehicle.edit')} />
-                  </button>
-                </Option>
-
+                  <OptionSelected>
+                    <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultSubtle}>
+                      {formData.needsVehicle
+                        ? (formData.organizerVehicle
+                          ? formData.organizerVehicle.nickname || formData.organizerVehicle.model
+                          : t('eventForm.options.vehicle.required'))
+                        : t('eventForm.options.vehicle.notRequired')}
+                    </Typography>
+                    <EditIcon fill={theme.colors.defaultSubtle} />
+                  </OptionSelected>
+                </EventOption>
                 {formData.needsVehicle && (
-                  <Option onClick={() => handleOpenModal('selectVehicle')}>
+                  <EventOption onClick={() => handleOpenModal('selectVehicle')}>
                     <OptionTitle>
                       <WheelIcon fill={theme.colors.defaultStrong} />
-                      <Typography as="p" $variant="body-1-semibold" color={theme.colors.defaultStrong}>
+                      <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultStrong}>
                         {t('eventForm.options.organizerVehicle.label')}
                       </Typography>
                     </OptionTitle>
-                    <button className="OptionSelected">
-                      {formData.organizerVehicle
-                        ? formData.organizerVehicle.nickname || formData.organizerVehicle.model
-                        : t('eventForm.options.organizerVehicle.select')}
-                      <img src="/icons/edit.svg" alt={t('eventForm.options.organizerVehicle.edit')} />
-                    </button>
-                  </Option>
+                    <OptionSelected>
+                      <Typography as="p" $variant="body-1-medium" color={theme.colors.defaultSubtle}>
+                        {formData.organizerVehicle
+                          ? formData.organizerVehicle.nickname || formData.organizerVehicle.model
+                          : t('eventForm.options.organizerVehicle.select')}
+                      </Typography>
+                      <EditIcon fill={theme.colors.defaultSubtle} />
+                    </OptionSelected>
+                  </EventOption>
                 )}
-
-                {/* <Option onClick={() => handleOpenModal('capacity')}>
-                  <div className="Title">
-                    <img src="/icons/capacity.svg" alt="Capacidad" /> Capacidad
-                  </div>
-
-                  <button className="OptionSelected">
-                    {formData.capacity} <img src="/icons/edit.svg" alt="Editar" />
-                  </button>
-                </Option> */}
-
-
-
-                {/* 
-                {!isEditMode && (
-                  <Option>
-                    <div className="Title">
-                      <img src="/icons/approval-required.svg" alt="Aprobación requerida" /> Aprobación requerida
-                    </div>
-                    <div>
-                      <Switch
-                        value={formData.tickets[0].approvalRequired}
-                        onChange={(value) => {
-                          const updatedTickets = [...formData.tickets];
-                          updatedTickets[0].approvalRequired = value;
-                          setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
-                        }}
-                        disabled={ticketType === 'paid'}
-                      />
-                    </div>
-                  </Option>
-                )} */}
-
-                {/* Renderizar modales según el estado */}
                 {activeModal === 'eventType' && (
                   <CreateEventTypeModal
                     eventType={formData.eventType}
-                    setEventType={(value) =>
-                      setFormData((prevData) => ({ ...prevData, eventType: value }))
-                    }
+                    setEventType={(value) => setFormData(prev => ({ ...prev, eventType: value }))}
                     onClose={handleCloseModal}
                   />
                 )}
-
                 {activeModal === 'terrain' && (
                   <CreateEventTerrainModal
                     terrain={formData.terrain}
-                    setTerrain={(value) =>
-                      setFormData((prevData) => ({ ...prevData, terrain: value }))
-                    }
+                    setTerrain={(value) => setFormData(prev => ({ ...prev, terrain: value }))}
                     onClose={handleCloseModal}
                   />
                 )}
-
                 {activeModal === 'experience' && (
                   <CreateEventExperienceModal
                     experience={formData.experience}
-                    setExperience={(value) =>
-                      setFormData((prevData) => ({ ...prevData, experience: value }))
-                    }
+                    setExperience={(value) => setFormData(prev => ({ ...prev, experience: value }))}
                     onClose={handleCloseModal}
                   />
                 )}
-
                 {activeModal === 'vehicleRequirement' && (
                   <VehicleRequirementModal
                     needsVehicle={formData.needsVehicle}
-                    setNeedsVehicle={(value) =>
-                      setFormData((prev) => ({ ...prev, needsVehicle: value }))
-                    }
+                    setNeedsVehicle={(value) => setFormData(prev => ({ ...prev, needsVehicle: value }))}
                     organizerVehicle={formData.organizerVehicle}
                     onOpenSelectVehicle={() => setActiveModal('selectVehicle')}
                     onClose={handleCloseModal}
                   />
                 )}
-
                 {activeModal === 'selectVehicle' && (
                   <SelectVehicleModal
                     onSelectVehicle={(vehicle) => {
-                      setFormData((prev) => ({ ...prev, organizerVehicle: vehicle }));
-                      setActiveModal('vehicleRequirement'); // Regresar al modal de requerimiento
+                      setFormData(prev => ({ ...prev, organizerVehicle: vehicle }));
+                      setActiveModal('vehicleRequirement');
                     }}
                     selectedVehicle={formData.organizerVehicle}
                     onClose={handleCloseModal}
                   />
                 )}
-
-                {/* {activeModal === 'capacity' && (
-                  <EventCapacityModal
-                    capacity={formData.capacity}
-                    setCapacity={(value) =>
-                      setFormData((prevData) => ({ ...prevData, capacity: value }))
-                    }
-                    onClose={handleCloseModal}
-                  />
-                )} */}
-
                 {!isEditMode && activeModal === 'ticket' && (
                   <CreateEventTicketModal
                     ticketName={formData.tickets[0].name}
@@ -862,36 +677,36 @@ const EventForm = forwardRef(({ initialData, onSubmit, isEditMode = false }, ref
                     capacity={formData.tickets[0].capacity}
                     approvalRequired={formData.tickets[0].approvalRequired}
                     setTicketName={(value) => {
-                      const updatedTickets = [...formData.tickets];
-                      updatedTickets[0].name = value;
-                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                      const updated = [...formData.tickets];
+                      updated[0].name = value;
+                      setFormData(prev => ({ ...prev, tickets: updated }));
                     }}
                     setTicketType={(value) => {
-                      const updatedTickets = [...formData.tickets];
-                      updatedTickets[0].type = value;
-                      if (value === 'free') updatedTickets[0].price = 0;
-                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                      const updated = [...formData.tickets];
+                      updated[0].type = value;
+                      if (value === 'free') updated[0].price = 0;
+                      setFormData(prev => ({ ...prev, tickets: updated }));
                     }}
                     setTicketPrice={(value) => {
-                      const updatedTickets = [...formData.tickets];
-                      updatedTickets[0].price = value;
-                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                      const updated = [...formData.tickets];
+                      updated[0].price = value;
+                      setFormData(prev => ({ ...prev, tickets: updated }));
                     }}
                     setCapacity={(value) => {
-                      const updatedTickets = [...formData.tickets];
-                      updatedTickets[0].capacity = value;
-                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                      const updated = [...formData.tickets];
+                      updated[0].capacity = value;
+                      setFormData(prev => ({ ...prev, tickets: updated }));
                     }}
                     setApprovalRequired={(value) => {
-                      const updatedTickets = [...formData.tickets];
-                      updatedTickets[0].approvalRequired = value;
-                      setFormData((prevData) => ({ ...prevData, tickets: updatedTickets }));
+                      const updated = [...formData.tickets];
+                      updated[0].approvalRequired = value;
+                      setFormData(prev => ({ ...prev, tickets: updated }));
                     }}
                     onClose={handleCloseModal}
                   />
                 )}
-              </div>
-            </Options>
+              </OptionsContainer>
+            </EventOptions>
           </Settings>
         </Grid>
       </FormWrapper>
@@ -906,6 +721,15 @@ const FormContainer = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
+`;
+
+const FormHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  background: ${({ theme }) => theme.fill.defaultSubtle};
+  padding-top: 74px;
 `;
 
 const Container = styled.div`
@@ -924,6 +748,82 @@ const HeaderWrapper = styled.div`
   align-items: flex-start;
   width: 100%;
   gap: ${({ theme }) => theme.sizing.xs};
+`;
+
+const TitleInputBlock = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xxs};
+  width: 100%;
+`;
+
+const EventTitle = styled(InputText)`
+  width: 100%;
+  padding: 0px;
+  border-radius: ${({ theme }) => theme.radius.xs};
+  border: 1px solid transparent;
+  background: none;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'ss01' on;
+
+  /* Titles/Mobile/Title 1/Bold */
+  font-family: "Mona Sans";
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 140%; /* 39.2px */
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.defaultSubtle};
+  }
+`;
+
+const EventOrganizer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: ${({ theme }) => theme.sizing.xs};
+`;
+
+const UserAvatar = styled.img`
+  border-radius: ${({ theme }) => theme.sizing.xs};
+  height: 40px;
+  width: 40px;
+`;
+
+const UserData = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xxs};
+`;
+
+const FormWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 32px;
+  grid-row-gap: 0px;
+  max-width: 1400px;
+  width: 100%;
+  padding: ${({ theme }) => theme.sizing.md};
+`;
+
+const Details = styled.div`
+  grid-area: 1 / 1 / 2 / 8;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
 `;
 
 const Image = styled.div`
@@ -1041,163 +941,6 @@ const DescriptionArea = styled(InputTextArea)`
   field-sizing: content;
 `;
 
-const TitleInputBlock = styled.div`
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.sizing.xxs};
-  width: 100%;
-`;
-
-const EventTitle = styled(InputText)`
-  width: 100%;
-  padding: 0px;
-  border-radius: ${({ theme }) => theme.radius.xs};
-  border: 1px solid transparent;
-  background: none;
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: 'ss01' on;
-
-  /* Titles/Mobile/Title 1/Bold */
-  font-family: "Mona Sans";
-  font-size: 28px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 140%; /* 39.2px */
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.defaultSubtle};
-  }
-`;
-
-const EventOrganizer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: ${({ theme }) => theme.sizing.xs};
-`;
-
-const UserData = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.sizing.xxs};
-`;
-
-const UserAvatar = styled.img`
-  border-radius: ${({ theme }) => theme.sizing.xs};
-  height: 40px;
-  width: 40px;
-`;
-
-const FormHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  background: ${({ theme }) => theme.fill.defaultSubtle};
-  padding-top: 74px;
-`;
-
-const FormWrapper = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Options = styled.div`
-  display: flex;
-  padding: 24px;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 16px;
-  border-top: 1px solid var(--border-default-weak, #DCDCDC);
-
-  .Heading {
-    display: inline-flex;
-    gap: 8px;
-    color: ${({ theme }) => theme.colors.defaultStrong};
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-
-    /* Body/Body 1/Semibold */
-    font-family: "Mona Sans";
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 150%; /* 24px */
-  }
-
-  .OptionsContainer {
-    border-radius: 8px;
-    border: 1px solid var(--border-default-weak, #DCDCDC);
-    background: var(--bg-default-subtle, #FAFAFA);
-    // overflow: hidden;
-  }
-`;
-
-
-const Option = styled.div`
-  display: flex;
-  padding: 16px;
-  align-items: flex-start;
-  gap: 8px;
-  justify-content: space-between;
-  border-top: 1px solid var(--border-default-weak, #DCDCDC);
-  cursor: pointer;
-  transition: all 0.3s;
-
-  &:first-child {
-    border-top: none;
-  }
-
-
-  &:hover {
-    background-color: #EFEFEF;
-  }
-
-  .Title,
-  .OptionSelected {
-    display: inline-flex;
-    gap: 8px;
-  }
-
-  // .Title {
-  //   color: var(--text-icon-default-strong, #464646);
-  //   font-variant-numeric: lining-nums tabular-nums;
-  //   font-feature-settings: 'ss01' on;
-
-  //   /* Body/Body 1/Semibold */
-  //   font-family: "Mona Sans";
-  //   font-size: 16px;
-  //   font-style: normal;
-  //   font-weight: 600;
-  //   line-height: 150%; /* 24px */
-  // }
-  .OptionSelected {
-    color: var(--text-icon-default-subtle, #989898);
-    font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: 'ss01' on;
-
-    /* Body/Body 1/Semibold */
-    font-family: "Mona Sans";
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 150%; /* 24px */
-    border: 0;
-    background-color: unset;
-  }
-`;
-
-const OptionTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
 const ErrorMessage = styled.div`
   color: ${({ theme }) => theme.colors.errorMain};
   font-variant-numeric: lining-nums tabular-nums;
@@ -1214,23 +957,11 @@ const ImageUploadError = styled(ErrorMessage)`
   bottom: 12px;
 `;
 
-const Grid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: 1fr;
-    grid-column-gap: 32px;
-    grid-row-gap: 0px;
-    max-width: 1400px;
-    width: 100%;
-    padding: ${({ theme }) => theme.sizing.md};
-`;
-
-const Details = styled.div`
-  grid-area: 1 / 1 / 2 / 8;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 32px;
+const Settings = styled.div`
+  grid-area: 1 / 8 / 2 / 13;
+  border-radius: 16px;
+  border: 1px solid var(--border-default-weak, #DCDCDC);
+  height: fit-content;
 `;
 
 const SettingsHeader = styled.div`
@@ -1239,130 +970,141 @@ const SettingsHeader = styled.div`
   gap: 8px;
 `;
 
-const Settings = styled.div`
-  grid-area: 1 / 8 / 2 / 13;
-  border-radius: 16px;
-  border: 1px solid var(--border-default-weak, #DCDCDC);
-  height: fit-content;
+const OptionsBlock = styled.div`
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.sm};
+  flex-direction: column;
+  align-items: stretch;
+  gap: ${({ theme }) => theme.sizing.sm};
+  border-top: 1px solid ${({ theme }) => theme.border.defaultWeak};
+`;
+const DateOptions = styled(OptionsBlock)`
+  border-top: none;
+`;
 
-  .Date,
-  .Location {
-    display: flex;
-    padding: 24px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    border-top: 1px solid var(--border-default-weak, #DCDCDC);
-  }
-  
-  .Date {
-    border-top: none;
+const DateInputs = styled.div`
+  display: flex;
+  padding: ${({ theme }) => theme.sizing.sm};
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.sm};
+  align-self: stretch;
+  border-radius: ${({ theme }) => theme.radius.xs};
+  border: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  background: ${({ theme }) => theme.fill.defaultSubtle};
+`;
 
-    .DateInputTexts {
-      display: flex;
-      padding: 16px;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 16px;
-      align-self: stretch;
-      border-radius: 8px;
-      border: 1px solid var(--border-default-weak, #DCDCDC);
-      background: var(--bg-default-subtle, #FAFAFA);
+const DateInputRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+`;
 
-      .Row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 16px;
-        width: 100%;
-  
-        .DateInputBlock {
-          flex-grow: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 4px;
+const StartDateRow = styled(DateInputRow)``;
+const EndDateRow = styled(DateInputRow)``;
 
-          .ComboBlock {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            width: 100%;
+const DateInputBlock = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xxs};
+`;
 
-            input {
-              height: 40px;
+const DateInputsWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 
-              &:first-child {
-                border-top-right-radius: 0px;
-                border-bottom-right-radius: 0px;
-                border-right: 0px;
-                width: 100%;
-              }
-              &:last-child {
-                border-top-left-radius: 0px;
-                border-bottom-left-radius: 0px;
-                width: 100px;
-              }
-            }
-            
+  input {
+    height: 40px;
 
-          }
-        }
-
-        label {
-          width: 64px;
-        }
-      }
+    &:first-child {
+      border-top-right-radius: 0px;
+      border-bottom-right-radius: 0px;
+      border-right: 0px;
+      width: 100%;
     }
-  }
-
-  .Location {
-    padding-top: 0px;
-    border-top: none;
-
-    .SearchLocation {
-      .LocationInputBlock {
-        position: relative;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      
-
-        img {
-          position: absolute;
-          left: 16px;
-          top: 16px;
-        }
-
-        div {
-          width: 100%;
-        }
-      
-        input {
-          padding-left: 44px;
-          background: var(--bg-default-subtle, #FAFAFA);
-
-          &:hover {
-            background: #efefef;
-          }
-        }
-      }
+    &:last-child {
+      border-top-left-radius: 0px;
+      border-bottom-left-radius: 0px;
+      width: 100px;
     }
   }
 `;
 
+const LocationOptions = styled(OptionsBlock)`
+`;
 
+const LocationInput = styled.div`
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xxs};
+  width: 100%;
+
+  .Autocomplete {
+    width: 100%;
+  }
+`;
+
+const AutocompleteInput = styled(InputText)`
+  padding-left: 44px;
+  background: var(--bg-default-subtle, #FAFAFA);
+
+  &:hover {
+    background: #efefef;
+  }
+`;
+
+const EventOptions = styled(OptionsBlock)``;
 
 const OptionsContainer = styled.div`
-  border-radius: 8px;
-  border: 1px solid var(--border-default-weak, #DCDCDC);
-  background: var(--bg-default-subtle, #FAFAFA);
+  border-radius: ${({ theme }) => theme.sizing.xs};
+  border: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  background: ${({ theme }) => theme.fill.defaultSubtle};
   overflow: hidden;
 `;
 
+const EventOption = styled.div`
+  display: flex;
+  padding: 12px ${({ theme }) => theme.sizing.sm};
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.sizing.xss};
+  justify-content: space-between;
+  border-top: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &:hover {
+    background-color: ${({ theme }) => theme.fill.defaultWeak};
+  }
+`;
+
+const OptionTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const OptionSelected = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background-color: unset;
+  padding: 0;
+`;
 
 const AddTicketButton = styled.button`
   /* Estilos para el botón de añadir ticket */

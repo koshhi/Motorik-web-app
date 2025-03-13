@@ -9,7 +9,8 @@
     "date": {
       "heading": "Date",
       "startLabel": "Start",
-      "endLabel": "End"
+      "endLabel": "End",
+      "invalid": "Invalid date and time"
     },
     "location": {
       "heading": "Location",
@@ -45,7 +46,13 @@
         "label": "Ticket",
         "free": "Free",
         "paid": "Paid - {{price}}€",
-        "edit": "Edit"
+        "edit": "Edit",
+        "required": "At least one ticket is required.",
+        "nameRequired": "Ticket name for ticket {{index}} is required.",
+        "typeRequired": "Ticket type for ticket {{index}} is required.",
+        "priceInvalid": "Ticket price for ticket {{index}} must be a positive number.",
+        "approvalInvalid": "The 'Approval required' field for ticket {{index}} must be true or false.",
+        "capacityInvalid": "Ticket capacity for ticket {{index}} must be a positive integer."
       }
     }
   },

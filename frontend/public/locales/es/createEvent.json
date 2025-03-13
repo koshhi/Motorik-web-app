@@ -9,7 +9,8 @@
     "date": {
       "heading": "Fecha",
       "startLabel": "Inicio",
-      "endLabel": "Fin"
+      "endLabel": "Fin",
+      "invalid": "La fecha y hora no son válidas"
     },
     "location": {
       "heading": "Localización",
@@ -45,7 +46,13 @@
         "label": "Ticket",
         "free": "Gratis",
         "paid": "De pago - {{price}}€",
-        "edit": "Editar"
+        "edit": "Editar",
+        "required": "Se requiere al menos un ticket.",
+        "nameRequired": "El nombre del ticket {{index}} es obligatorio.",
+        "typeRequired": "El tipo del ticket {{index}} es obligatorio.",
+        "priceInvalid": "El precio del ticket {{index}} debe ser un número positivo.",
+        "approvalInvalid": "El campo 'Aprobación requerida' del ticket {{index}} debe ser verdadero o falso.",
+        "capacityInvalid": "La capacidad del ticket {{index}} debe ser un número entero positivo."
       }
     }
   },
