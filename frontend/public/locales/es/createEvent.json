@@ -1,23 +1,35 @@
 {
   "eventForm": {
-    "imageUpload": "Sube una imagen",
-    "uploadAlt": "Subir imagen",
-    "titlePlaceholder": "Introduce el título del evento...",
-    "organizedBy": "Organizado por",
-    "details": "Detalles",
-    "detailsPlaceholder": "Añade detalles a tu evento para que otros usuarios puedan saber de qué tratará tu evento...",
+    "eventTitle": {
+      "titlePlaceholder": "Introduce el título del evento...",
+      "error": "El título del evento es obligatorio",
+      "organizedBy": "Organizado por"
+    },
+    "eventImage": {
+      "imageUpload": "Sube una imagen de portada",
+      "uploadAlt": "Subir imagen",
+      "error": "La imagen del evento es obligatoria",
+      "recommendations": "Tamaño recomendado: 1500 x 1125 px · JPG o PNG, máx. 300 KB",
+      "warning": "Puede que la portada se vea recortada. Recomendado: 1500 x 1125 px"
+    },
+    "details": "Descripción",
+    "detailsPlaceholder": "Agrega detalles sobre tu evento para que otros usuarios comprendan de qué se trata.",
     "date": {
-      "heading": "Fecha",
+      "heading": "Horario",
       "startLabel": "Inicio",
       "endLabel": "Fin",
-      "invalid": "La fecha y hora no son válidas"
+      "invalid": "La fecha y hora no son válidas",
+      "tooltip": "Define la fecha y duración del evento."
     },
     "location": {
-      "heading": "Localización",
-      "searchPlaceholder": "Introduce localización del evento",
-      "searchAlt": "Buscar por ubicación"
+      "heading": "Punto de encuentro",
+      "searchPlaceholder": "Introduce la dirección...",
+      "searchAlt": "Buscar por ubicación",
+      "tooltip": "Define la dirección del punto de encuentro con los participantes.",
+      "error": "Introduce una dirección válida"
     },
     "options": {
+      "tooltip": "Configura las opciones de tu evento, como el tipo de actividad o los requisitos de participación.",
       "heading": "Opciones del evento",
       "eventType": {
         "label": "Tipo de evento",
@@ -43,7 +55,7 @@
         "selected": "{{vehicle}}"
       },
       "ticket": {
-        "label": "Ticket",
+        "label": "Entrada",
         "free": "Gratis",
         "paid": "De pago - {{price}}€",
         "edit": "Editar",

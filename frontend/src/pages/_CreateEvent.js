@@ -1,4 +1,3 @@
-// src/pages/CreateEvent.js
 import React, { useRef, useState } from 'react';
 import axiosClient from '../api/axiosClient';
 import styled from 'styled-components';
@@ -27,11 +26,13 @@ const CreateEvent = () => {
       setLoadingCreate(true);
       try {
         const formData = await eventFormRef.current.getFormData();
+
         if (!formData) {
           console.error('Errores en el formulario, no se puede enviar');
           setLoadingCreate(false);
           return;
         }
+
         // Verificar que si hay tickets de pago, el usuario tenga activados los cobros
         const hasPaidTicket = formData.get('tickets').includes('"type":"paid"');
         if (hasPaidTicket && (!user.stripeConnectedAccountId || !user.chargesEnabled)) {
@@ -39,9 +40,13 @@ const CreateEvent = () => {
           setLoadingCreate(false);
           return;
         }
+
         const response = await axiosClient.post('/api/events', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
+
         if (response.data.success) {
           navigate(`/events/manage/${response.data.event.id}`);
         } else {
@@ -64,7 +69,12 @@ const CreateEvent = () => {
             <Button size="default" $variant="outline" onClick={handleDiscard}>
               {t('createEventPage.discard')}
             </Button>
-            <Button size="default" $variant="default" onClick={handleCreateEvent} disabled={loadingCreate}>
+            <Button
+              size="default"
+              $variant="default"
+              onClick={handleCreateEvent}
+              disabled={loadingCreate}
+            >
               {loadingCreate ? t('createEventPage.creating') : t('createEventPage.create')}
             </Button>
           </Links>
@@ -75,31 +85,35 @@ const CreateEvent = () => {
   );
 };
 
+
 export default CreateEvent;
 
-const Topbar = styled.header`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: ${({ theme }) => theme.fill.defaultSubtle};
-  border-bottom: 1px solid ${({ theme }) => theme.border.defaultWeak};
+//Estilos del componente
+
+export const Topbar = styled.header`
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  border-bottom: 1px solid ${({ theme }) => theme.border.defaultWeak};
+  background: ${({ theme }) => theme.fill.defaultSubtle};
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
 `;
 
-const Container = styled.nav`
-  max-width: 1400px;
-  width: 100%;
-  padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+export const Container = styled.nav`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: ${({ theme }) => theme.sizing.sm} ${({ theme }) => theme.sizing.md};
+    max-width: 1400px;
+    width: 100%;
 `;
 
-const Links = styled.div`
+export const Links = styled.div`
   display: flex;
   gap: 10px;
   align-items: center;

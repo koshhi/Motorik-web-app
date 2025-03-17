@@ -49,6 +49,8 @@ const EventImage = styled.img`
   height: auto;
   object-fit: cover;
   border-radius: ${({ theme }) => theme.radius.sm};
+  aspect-ratio: 4/3;
+  border: 1px solid ${({ theme }) => theme.border.defaultWeak};
 `;
 
 const PlaceholderImage = styled.div`

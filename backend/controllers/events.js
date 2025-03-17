@@ -771,9 +771,113 @@ eventsRouter.delete('/:id', auth, async (req, res) => {
   }
 })
 
+// // Actualizar un evento
+// eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
+//   const { id } = req.params
+//   const {
+//     title,
+//     startDate,
+//     endDate,
+//     location,
+//     shortLocation,
+//     locationCoordinates,
+//     description,
+//     eventType,
+//     terrain,
+//     experience,
+//     needsVehicle,
+//     organizerVehicle
+//   } = req.body
+
+//   try {
+//     const event = await Event.findById(id)
+//     if (!event) {
+//       return res.status(404).json({ success: false, message: 'Evento no encontrado' })
+//     }
+
+//     if (event.owner.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'No autorizado' })
+//     }
+
+//     let imageUrl = event.image
+//     if (req.file) {
+//       try {
+//         const result = await cloudinary.uploader.upload(req.file.path, {
+//           folder: 'events',
+//           resource_type: 'image'
+//         })
+//         imageUrl = result.secure_url
+//       } catch (error) {
+//         console.error('Error subiendo imagen:', error)
+//         return res.status(500).json({ success: false, message: 'Error subiendo imagen' })
+//       }
+//     }
+
+//     let parsedLocationCoordinates
+//     if (typeof locationCoordinates === 'string') {
+//       try {
+//         parsedLocationCoordinates = JSON.parse(locationCoordinates)
+//       } catch (error) {
+//         return res.status(400).json({ success: false, message: 'Formato inválido para locationCoordinates.' })
+//       }
+//     } else {
+//       parsedLocationCoordinates = locationCoordinates
+//     }
+
+//     if (
+//       !parsedLocationCoordinates ||
+//       parsedLocationCoordinates.type !== 'Point' ||
+//       !Array.isArray(parsedLocationCoordinates.coordinates) ||
+//       parsedLocationCoordinates.coordinates.length !== 2 ||
+//       typeof parsedLocationCoordinates.coordinates[0] !== 'number' ||
+//       typeof parsedLocationCoordinates.coordinates[1] !== 'number'
+//     ) {
+//       return res.status(400).json({ success: false, message: 'Formato inválido para locationCoordinates.' })
+//     }
+
+//     // Parsear needsVehicle a boolean
+//     const parsedNeedsVehicle = needsVehicle === 'true'
+
+//     event.title = title
+//     event.startDate = new Date(startDate)
+//     event.endDate = new Date(endDate)
+//     event.location = location
+//     event.shortLocation = shortLocation
+//     event.locationCoordinates = parsedLocationCoordinates
+//     event.description = description
+//     event.eventType = eventType
+//     event.terrain = terrain
+//     event.experience = experience
+//     event.needsVehicle = parsedNeedsVehicle
+//     event.organizerVehicle = parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null
+//     event.image = imageUrl
+
+//     let parsedTickets
+//     try {
+//       parsedTickets = typeof req.body.tickets === 'string'
+//         ? JSON.parse(req.body.tickets)
+//         : req.body.tickets
+
+//       // Validar la estructura de los tickets
+//       validateTickets(parsedTickets)
+
+//       // VALIDACIÓN: si se incluye al menos un ticket de pago, el usuario debe tener cuenta Stripe activa
+//       validatePaidEvent(req.user, parsedTickets)
+//     } catch (error) {
+//       return res.status(400).json({ success: false, message: error.message })
+//     }
+
+//     const updatedEvent = await event.save()
+//     res.status(200).json({ success: true, event: updatedEvent })
+//   } catch (error) {
+//     console.error('Error actualizando evento:', error)
+//     res.status(500).json({ success: false, message: 'Error interno' })
+//   }
+// })
+
 // Actualizar un evento
 eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params;
   const {
     title,
     startDate,
@@ -787,41 +891,54 @@ eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
     experience,
     needsVehicle,
     organizerVehicle
-  } = req.body
+  } = req.body;
 
   try {
-    const event = await Event.findById(id)
+    const event = await Event.findById(id);
     if (!event) {
-      return res.status(404).json({ success: false, message: 'Evento no encontrado' })
+      return res.status(404).json({ success: false, message: 'Evento no encontrado' });
     }
 
     if (event.owner.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'No autorizado' })
+      return res.status(403).json({ success: false, message: 'No autorizado' });
     }
 
-    let imageUrl = event.image
+    let imageUrl = event.image;
     if (req.file) {
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
           folder: 'events',
-          resource_type: 'image'
-        })
-        imageUrl = result.secure_url
+          resource_type: 'image',
+          format: 'jpg',
+          quality: 'auto:low',
+          transformation: [
+            { width: 1500, crop: 'limit' },
+            { fetch_format: 'auto' },
+            { quality: 'auto' },
+            { flags: 'progressive' }
+          ]
+        });
+        // Comprobar que el tamaño no exceda 200 KB
+        if (result.bytes > 300 * 1024) {
+          console.error('La imagen es demasiado grande después de la compresión.');
+          return res.status(400).json({ success: false, message: 'La imagen de portada no puede superar los 300 KB.' });
+        }
+        imageUrl = result.secure_url;
       } catch (error) {
-        console.error('Error subiendo imagen:', error)
-        return res.status(500).json({ success: false, message: 'Error subiendo imagen' })
+        console.error('Error subiendo imagen:', error);
+        return res.status(500).json({ success: false, message: 'Error subiendo imagen' });
       }
     }
 
-    let parsedLocationCoordinates
+    let parsedLocationCoordinates;
     if (typeof locationCoordinates === 'string') {
       try {
-        parsedLocationCoordinates = JSON.parse(locationCoordinates)
+        parsedLocationCoordinates = JSON.parse(locationCoordinates);
       } catch (error) {
-        return res.status(400).json({ success: false, message: 'Formato inválido para locationCoordinates.' })
+        return res.status(400).json({ success: false, message: 'Formato inválido para locationCoordinates.' });
       }
     } else {
-      parsedLocationCoordinates = locationCoordinates
+      parsedLocationCoordinates = locationCoordinates;
     }
 
     if (
@@ -832,48 +949,49 @@ eventsRouter.put('/:id', auth, upload.single('image'), async (req, res) => {
       typeof parsedLocationCoordinates.coordinates[0] !== 'number' ||
       typeof parsedLocationCoordinates.coordinates[1] !== 'number'
     ) {
-      return res.status(400).json({ success: false, message: 'Formato inválido para locationCoordinates.' })
+      return res.status(400).json({ success: false, message: 'Formato inválido para locationCoordinates.' });
     }
 
     // Parsear needsVehicle a boolean
-    const parsedNeedsVehicle = needsVehicle === 'true'
+    const parsedNeedsVehicle = needsVehicle === 'true';
 
-    event.title = title
-    event.startDate = new Date(startDate)
-    event.endDate = new Date(endDate)
-    event.location = location
-    event.shortLocation = shortLocation
-    event.locationCoordinates = parsedLocationCoordinates
-    event.description = description
-    event.eventType = eventType
-    event.terrain = terrain
-    event.experience = experience
-    event.needsVehicle = parsedNeedsVehicle
-    event.organizerVehicle = parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null
-    event.image = imageUrl
+    event.title = title;
+    event.startDate = new Date(startDate);
+    event.endDate = new Date(endDate);
+    event.location = location;
+    event.shortLocation = shortLocation;
+    event.locationCoordinates = parsedLocationCoordinates;
+    event.description = description;
+    event.eventType = eventType;
+    event.terrain = terrain;
+    event.experience = experience;
+    event.needsVehicle = parsedNeedsVehicle;
+    event.organizerVehicle = parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null;
+    event.image = imageUrl;
 
-    let parsedTickets
+    let parsedTickets;
     try {
       parsedTickets = typeof req.body.tickets === 'string'
         ? JSON.parse(req.body.tickets)
-        : req.body.tickets
+        : req.body.tickets;
 
       // Validar la estructura de los tickets
-      validateTickets(parsedTickets)
+      validateTickets(parsedTickets);
 
       // VALIDACIÓN: si se incluye al menos un ticket de pago, el usuario debe tener cuenta Stripe activa
-      validatePaidEvent(req.user, parsedTickets)
+      validatePaidEvent(req.user, parsedTickets);
     } catch (error) {
-      return res.status(400).json({ success: false, message: error.message })
+      return res.status(400).json({ success: false, message: error.message });
     }
 
-    const updatedEvent = await event.save()
-    res.status(200).json({ success: true, event: updatedEvent })
+    const updatedEvent = await event.save();
+    res.status(200).json({ success: true, event: updatedEvent });
   } catch (error) {
-    console.error('Error actualizando evento:', error)
-    res.status(500).json({ success: false, message: 'Error interno' })
+    console.error('Error actualizando evento:', error);
+    res.status(500).json({ success: false, message: 'Error interno' });
   }
-})
+});
+
 
 // Obtener un evento por su ID
 eventsRouter.get('/:id', async (req, res) => {
@@ -911,6 +1029,151 @@ eventsRouter.get('/:id', async (req, res) => {
   }
 })
 
+// // Crear un evento
+// eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
+//   try {
+//     // Extraer campos del cuerpo de la solicitud
+//     const {
+//       title,
+//       startDate,
+//       endDate,
+//       location,
+//       shortLocation,
+//       locationCoordinates,
+//       description,
+//       eventType,
+//       terrain,
+//       experience,
+//       tickets,
+//       needsVehicle,
+//       organizerVehicle
+//     } = req.body
+
+//     // Validar la existencia de los campos obligatorios
+//     if (
+//       !title ||
+//       !startDate ||
+//       !endDate ||
+//       !location ||
+//       !locationCoordinates ||
+//       !description ||
+//       !eventType ||
+//       !experience ||
+//       !terrain
+//     ) {
+//       return res.status(400).json({ success: false, message: 'All fields are required.' })
+//     }
+
+//     // Parsear 'locationCoordinates' desde JSON si es una cadena
+//     let parsedLocationCoordinates
+//     if (typeof locationCoordinates === 'string') {
+//       try {
+//         parsedLocationCoordinates = JSON.parse(locationCoordinates)
+//       } catch (error) {
+//         return res.status(400).json({ success: false, message: 'Invalid format for locationCoordinates.' })
+//       }
+//     } else {
+//       parsedLocationCoordinates = locationCoordinates
+//     }
+
+//     // Validar que 'locationCoordinates' tenga la estructura correcta
+//     if (
+//       !parsedLocationCoordinates ||
+//       parsedLocationCoordinates.type !== 'Point' ||
+//       !Array.isArray(parsedLocationCoordinates.coordinates) ||
+//       parsedLocationCoordinates.coordinates.length !== 2 ||
+//       typeof parsedLocationCoordinates.coordinates[0] !== 'number' ||
+//       typeof parsedLocationCoordinates.coordinates[1] !== 'number'
+//     ) {
+//       return res.status(400).json({ success: false, message: 'Invalid locationCoordinates format.' })
+//     }
+
+//     let parsedTickets
+//     try {
+//       parsedTickets = typeof req.body.tickets === 'string'
+//         ? JSON.parse(req.body.tickets)
+//         : req.body.tickets
+
+//       // Validar la estructura de cada ticket
+//       validateTickets(parsedTickets)
+
+//       // VALIDACIÓN: si hay al menos un ticket de pago, el usuario debe tener una cuenta Stripe válida
+//       validatePaidEvent(req.user, parsedTickets)
+//     } catch (error) {
+//       return res.status(400).json({ success: false, message: error.message })
+//     }
+
+//     // // Calcular la capacidad total del evento como la suma de las capacidades de los tickets
+//     const capacity = parsedTickets.reduce((acc, ticket) => acc + ticket.capacity, 0)
+
+//     // Manejar la carga de la imagen si se proporciona
+//     let imageUrl = ''
+//     if (req.file) {
+//       try {
+//         const result = await cloudinary.uploader.upload(req.file.path, {
+//           folder: 'events', // Puedes organizar las imágenes en carpetas específicas
+//           resource_type: 'image'
+//         })
+//         imageUrl = result.secure_url
+//       } catch (error) {
+//         console.error('Error uploading image to Cloudinary:', error)
+//         return res.status(500).json({ success: false, message: 'Failed to upload image.' })
+//       }
+//     }
+
+//     // Parsear needsVehicle a boolean
+//     const parsedNeedsVehicle = needsVehicle === 'true'
+
+//     // Crear una nueva instancia del modelo Event
+//     const newEvent = new Event({
+//       title,
+//       startDate: new Date(startDate),
+//       endDate: new Date(endDate),
+//       location,
+//       shortLocation,
+//       locationCoordinates: parsedLocationCoordinates,
+//       image: imageUrl,
+//       description,
+//       eventType,
+//       terrain,
+//       experience,
+//       owner: req.user.id,
+//       published: false,
+//       capacity,
+//       availableSeats: capacity,
+//       needsVehicle: parsedNeedsVehicle,
+//       organizerVehicle: parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null
+//     })
+
+//     // Guardar el evento en la base de datos
+//     const savedEvent = await newEvent.save()
+
+//     // Crear los tickets asociados
+//     const ticketsToSave = parsedTickets.map(ticketData => ({
+//       ...ticketData,
+//       eventId: savedEvent._id,
+//       availableSeats: ticketData.capacity
+//     }))
+
+//     const insertedTickets = await Ticket.insertMany(ticketsToSave)
+
+//     // Actualizar el evento con los IDs de los tickets creados
+//     savedEvent.tickets = insertedTickets.map(ticket => ticket._id)
+//     await savedEvent.save()
+
+//     // Obtener el evento con los tickets poblados
+//     const eventWithTickets = await Event.findById(savedEvent._id)
+//       .populate('tickets')
+//       .exec()
+
+//     // Responder con el evento creado incluyendo los tickets
+//     return res.status(201).json({ success: true, event: eventWithTickets })
+//   } catch (error) {
+//     console.error('Error creating event:', error)
+//     return res.status(500).json({ success: false, message: 'Internal Server Error' })
+//   }
+// })
+
 // Crear un evento
 eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
   try {
@@ -929,7 +1192,7 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       tickets,
       needsVehicle,
       organizerVehicle
-    } = req.body
+    } = req.body;
 
     // Validar la existencia de los campos obligatorios
     if (
@@ -943,19 +1206,19 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       !experience ||
       !terrain
     ) {
-      return res.status(400).json({ success: false, message: 'All fields are required.' })
+      return res.status(400).json({ success: false, message: 'All fields are required.' });
     }
 
     // Parsear 'locationCoordinates' desde JSON si es una cadena
-    let parsedLocationCoordinates
+    let parsedLocationCoordinates;
     if (typeof locationCoordinates === 'string') {
       try {
-        parsedLocationCoordinates = JSON.parse(locationCoordinates)
+        parsedLocationCoordinates = JSON.parse(locationCoordinates);
       } catch (error) {
-        return res.status(400).json({ success: false, message: 'Invalid format for locationCoordinates.' })
+        return res.status(400).json({ success: false, message: 'Invalid format for locationCoordinates.' });
       }
     } else {
-      parsedLocationCoordinates = locationCoordinates
+      parsedLocationCoordinates = locationCoordinates;
     }
 
     // Validar que 'locationCoordinates' tenga la estructura correcta
@@ -967,44 +1230,57 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       typeof parsedLocationCoordinates.coordinates[0] !== 'number' ||
       typeof parsedLocationCoordinates.coordinates[1] !== 'number'
     ) {
-      return res.status(400).json({ success: false, message: 'Invalid locationCoordinates format.' })
+      return res.status(400).json({ success: false, message: 'Invalid locationCoordinates format.' });
     }
 
-    let parsedTickets
+    let parsedTickets;
     try {
       parsedTickets = typeof req.body.tickets === 'string'
         ? JSON.parse(req.body.tickets)
-        : req.body.tickets
+        : req.body.tickets;
 
       // Validar la estructura de cada ticket
-      validateTickets(parsedTickets)
+      validateTickets(parsedTickets);
 
       // VALIDACIÓN: si hay al menos un ticket de pago, el usuario debe tener una cuenta Stripe válida
-      validatePaidEvent(req.user, parsedTickets)
+      validatePaidEvent(req.user, parsedTickets);
     } catch (error) {
-      return res.status(400).json({ success: false, message: error.message })
+      return res.status(400).json({ success: false, message: error.message });
     }
 
-    // // Calcular la capacidad total del evento como la suma de las capacidades de los tickets
-    const capacity = parsedTickets.reduce((acc, ticket) => acc + ticket.capacity, 0)
+    // Calcular la capacidad total del evento como la suma de las capacidades de los tickets
+    const capacity = parsedTickets.reduce((acc, ticket) => acc + ticket.capacity, 0);
 
     // Manejar la carga de la imagen si se proporciona
-    let imageUrl = ''
+    let imageUrl = '';
     if (req.file) {
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'events', // Puedes organizar las imágenes en carpetas específicas
-          resource_type: 'image'
-        })
-        imageUrl = result.secure_url
+          folder: 'events',
+          resource_type: 'image',
+          format: 'jpg',
+          quality: 'auto:low',
+          transformation: [
+            { width: 1500, crop: 'limit' },
+            { fetch_format: 'auto' },
+            { quality: 'auto' },
+            { flags: 'progressive' }
+          ]
+        });
+        // Comprobar que el tamaño no exceda 200 KB
+        if (result.bytes > 300 * 1024) {
+          console.error('La imagen es demasiado grande después de la compresión.');
+          return res.status(400).json({ success: false, message: 'La imagen de portada no puede superar los 300 KB.' });
+        }
+        imageUrl = result.secure_url;
       } catch (error) {
-        console.error('Error uploading image to Cloudinary:', error)
-        return res.status(500).json({ success: false, message: 'Failed to upload image.' })
+        console.error('Error uploading image to Cloudinary:', error);
+        return res.status(500).json({ success: false, message: 'Failed to upload image.' });
       }
     }
 
     // Parsear needsVehicle a boolean
-    const parsedNeedsVehicle = needsVehicle === 'true'
+    const parsedNeedsVehicle = needsVehicle === 'true';
 
     // Crear una nueva instancia del modelo Event
     const newEvent = new Event({
@@ -1025,36 +1301,37 @@ eventsRouter.post('/', auth, upload.single('image'), async (req, res) => {
       availableSeats: capacity,
       needsVehicle: parsedNeedsVehicle,
       organizerVehicle: parsedNeedsVehicle && organizerVehicle ? organizerVehicle : null
-    })
+    });
 
     // Guardar el evento en la base de datos
-    const savedEvent = await newEvent.save()
+    const savedEvent = await newEvent.save();
 
     // Crear los tickets asociados
     const ticketsToSave = parsedTickets.map(ticketData => ({
       ...ticketData,
       eventId: savedEvent._id,
       availableSeats: ticketData.capacity
-    }))
+    }));
 
-    const insertedTickets = await Ticket.insertMany(ticketsToSave)
+    const insertedTickets = await Ticket.insertMany(ticketsToSave);
 
     // Actualizar el evento con los IDs de los tickets creados
-    savedEvent.tickets = insertedTickets.map(ticket => ticket._id)
-    await savedEvent.save()
+    savedEvent.tickets = insertedTickets.map(ticket => ticket._id);
+    await savedEvent.save();
 
     // Obtener el evento con los tickets poblados
     const eventWithTickets = await Event.findById(savedEvent._id)
       .populate('tickets')
-      .exec()
+      .exec();
 
     // Responder con el evento creado incluyendo los tickets
-    return res.status(201).json({ success: true, event: eventWithTickets })
+    return res.status(201).json({ success: true, event: eventWithTickets });
   } catch (error) {
-    console.error('Error creating event:', error)
-    return res.status(500).json({ success: false, message: 'Internal Server Error' })
+    console.error('Error creating event:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-})
+});
+
 
 // Obtener todos los eventos (con filtros y ordenados por proximidad de fecha)
 eventsRouter.get('/', async (req, res) => {

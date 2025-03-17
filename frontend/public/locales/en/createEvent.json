@@ -1,23 +1,34 @@
 {
   "eventForm": {
-    "imageUpload": "Upload an image",
-    "uploadAlt": "Upload image",
-    "titlePlaceholder": "Enter the event title...",
-    "organizedBy": "Organized by",
-    "details": "Details",
-    "detailsPlaceholder": "Add details about your event so that other users can know what it is about...",
+    "eventTitle": {
+      "titlePlaceholder": "Enter the event title...",
+      "error": "The event title is required",
+      "organizedBy": "Organized by"
+    },
+    "eventImage": {
+      "imageUpload": "Upload a cover image",
+      "uploadAlt": "Upload image",
+      "error": "The event image is required",
+      "recommendations": "Recommended size: 1500 x 1125 px · JPG or PNG, max. 300 KB",
+      "warning": "The cover may be cropped. Recommended: 1500 x 1125 px"
+    },
+    "details": "Description",
+    "detailsPlaceholder": "Add details about your event to help other users understand what it's about.",
     "date": {
-      "heading": "Date",
+      "heading": "Schedule",
       "startLabel": "Start",
       "endLabel": "End",
-      "invalid": "Invalid date and time"
+      "invalid": "Invalid date and time",
+      "tooltip": "Define the date and duration of the event."
     },
     "location": {
-      "heading": "Location",
-      "searchPlaceholder": "Enter the event location",
-      "searchAlt": "Search by location"
+      "heading": "Meeting point",
+      "searchPlaceholder": "Enter the address",
+      "searchAlt": "Search by location",
+      "tooltip": "Define the meeting point address with the participants."
     },
     "options": {
+      "tooltip": "Set up your event options, such as the type of activity or participation requirements.",
       "heading": "Event options",
       "eventType": {
         "label": "Event type",
